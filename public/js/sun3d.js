@@ -240,9 +240,11 @@ export function initSun(canvas) {
     renderer.setSize(w, h, false);
     const sunX = getComputedStyle(document.documentElement).getPropertyValue('--pad');
     const pad = parseFloat(sunX) || 24;
-    const cx = pad + 78; // sun center ≈ wordmark center
-    const cy = h * 0.52;
-    const r = Math.min(h * 0.46, 74);
+    // a big sun centered ABOVE the wordmark (content sits on the band's
+    // bottom edge); the river leaves its limb toward the right corner
+    const cx = pad + 95;
+    const cy = h * 0.38;
+    const r = Math.min(h * 0.38, 68);
     camera.left = -cx / r;
     camera.right = (w - cx) / r;
     camera.top = cy / r;

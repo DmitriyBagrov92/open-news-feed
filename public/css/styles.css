@@ -332,8 +332,10 @@ a:hover { text-decoration: underline; }
   gap: 12px;
   max-width: var(--max-w);
   margin: 0 auto;
-  /* extra height gives the 3D sun room to burn behind the wordmark */
-  padding: 30px var(--pad) 26px;
+  /* tall header: the sun burns centered ABOVE the wordmark; content sits
+     on the bottom edge of the band */
+  align-items: flex-end;
+  padding: 112px var(--pad) 20px;
   position: relative;
 }
 
@@ -363,6 +365,7 @@ a:hover { text-decoration: underline; }
 /* CSS solar-disc fallback where the 3D scene is off (small screens) */
 @media (max-width: 899px) {
   .sun-scene { display: none; }
+  .masthead { align-items: center; padding: 18px var(--pad) 14px; }
   .wordmark::before {
     content: "";
     position: absolute;
