@@ -24,8 +24,8 @@ the frontend (`public/**`). Both sides must conform to it exactly.
 ┌──────────────▼─────────────────────────────────────────┐
 │  public/ (vanilla ES modules, no build step)           │
 │  index.html · css/styles.css · js/{app, api, prefs,    │
-│  ai, i18n, cards, modal, time, plasma, motion, toast,  │
-│  dom, boot}.js · vendor/motion.js (vendored framework) │
+│  ai, i18n, cards, modal, time, plasma, timescale,      │
+│  motion, toast, dom, boot}.js · vendor/motion.js       │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -196,6 +196,9 @@ Used as the Railway healthcheck path.
   *successful* fetches (free-quota protection); a failed attempt is retried on
   the next cycle. A failing source keeps its last good articles; log a single
   warning line per failure. Never let one bad source break the cycle.
+  After each cycle, `lib/enrich.js` backfills `og:image` for the newest
+  articles whose feeds carry no image (allowlist-guarded, 30 fetches per
+  cycle, cached per article id).
 - **Normalization.** Strip HTML from titles/descriptions, decode entities,
   clamp description at 500 chars on a word boundary. Discard items without a
   title+link, or with an unparsable/absent date, or older than 7 days.
