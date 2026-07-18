@@ -26,9 +26,8 @@
     </div>
   </noscript>
 
-  <!-- 1 · Wire strip: the timeline as plasma, live world clocks on top -->
+  <!-- 1 · Wire strip: live world clocks -->
   <div class="wire" aria-hidden="true">
-    <canvas class="wire-canvas" id="plasma"></canvas>
     <div class="wire-track">
       <span class="wire-clock wire-clock--utc">
         <span class="wire-dot"></span>
@@ -55,14 +54,6 @@
         <span class="wire-label">Los Angeles</span>
         <span class="wire-time" data-tz="America/Los_Angeles">--:--</span>
       </span>
-    </div>
-    <!-- 24h scale under the clocks: labels filled by js/timeline.js -->
-    <div class="timeline-scale" id="timelineScale">
-      <span data-hours-ago="24">--:--</span>
-      <span data-hours-ago="18">--:--</span>
-      <span data-hours-ago="12">--:--</span>
-      <span data-hours-ago="6">--:--</span>
-      <span class="timeline-now">NOW</span>
     </div>
   </div>
 
@@ -152,6 +143,16 @@
   <button class="pill mono" id="newPill" hidden></button>
 
   <!-- 5 · Feed -->
+  <!-- Right-rail plasma timescale: scroll position ↔ story time -->
+  <aside class="timescale is-empty" id="timescale" aria-hidden="true">
+    <canvas class="timescale-canvas" id="plasma"></canvas>
+    <span class="timescale-end mono">NOW</span>
+    <div class="timescale-ticks" id="timescaleTicks"></div>
+    <div class="timescale-cursor" id="timescaleCursor">
+      <span class="timescale-label mono" id="timescaleLabel">NOW</span>
+    </div>
+  </aside>
+
   <main class="feed">
     <h1 class="sr-only">Meridian — the world’s news, sorted by freshness</h1>
     <div class="grid" id="grid">

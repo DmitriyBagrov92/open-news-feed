@@ -6,7 +6,7 @@ import { prefs, setPref, isSaved, toggleSaved } from './prefs.js';
 import { api } from './api.js';
 import { initWireClocks, refreshTimes } from './time.js';
 import { initPlasma } from './plasma.js';
-import { initTimelineScale } from './timeline.js';
+import { initTimescale } from './timescale.js';
 import { animateIn, animatePop, animateReveal } from './motion.js';
 import { toast } from './toast.js';
 import { buildCard, skeletonCard, applyCardText } from './cards.js';
@@ -44,7 +44,8 @@ const state = {
 const articleById = new Map();
 const translationCache = new Map(); // "id:lang" → { title, description }
 let translateBroken = false;        // stop retrying auto-translate after a hard failure
-let plasma = { setHistogram() {}, pulse() {} }; // replaced in boot()
+let plasma = { setHistogram() {}, pulse() {} };  // replaced in boot()
+let timescale = { refresh() {}, hide() {} };     // replaced in boot()
 
 /* ── Theme ──────────────────────────────────────────────────────────────── */
 
@@ -165,6 +166,7 @@ function appendArticles(list, withHero = false) {
   });
   grid.append(frag);
   animateIn(added);
+  timescale.refresh();
 }
 
 function prependArticles(list) {
@@ -193,6 +195,7 @@ function prependArticles(list) {
   }
 
   animateIn(cards);
+  timescale.refresh();
   state.newestAt = fresh[0].publishedAt;
   hideEmpty();
 }
@@ -309,9 +312,7 @@ sentinelObserver.observe(sentinel);
 async function pollNew() {
   if (document.hidden || !navigator.onLine) return;
   try {
-    // histogram feeds the plasma timeline on every poll
-    const res = await api.news({ pageSize: 1, histogram: 1 });
-    if (res.timeline) plasma.setHistogram(res.timeline);
+    const res = await api.news({ pageSize: 1 });
     if (!state.globalLatestId) {
       state.globalLatestId = res.latestId;
       return;
@@ -736,8 +737,22 @@ function boot() {
   applyI18n();
   initTheme();
   initWireClocks(document.querySelector('.wire'));
-  plasma = initPlasma(document.getElementById('plasma'));
-  initTimelineScale(document.getElementById('timelineScale'));
+  plasma = initPlasma(document.getElementById('plasma'), { vertical: true });
+  timescale = initTimescale({
+    container: $('#timescale'),
+    ticksEl: $('#timescaleTicks'),
+    cursorEl: $('#timescaleCursor'),
+    labelEl: $('#timescaleLabel'),
+    grid,
+    articleById,
+    plasma,
+    // seeking past the loaded range: pull more pages, then retry once
+    onSeekBeyond: async (retry) => {
+      if (!state.hasMore || state.loading) return;
+      await loadFeed();
+      retry();
+    },
+  });
   initSearch();
   initLangControl();
   initTabs();

@@ -15,8 +15,9 @@ precision mediump float;
 uniform float u_time;    // seconds since load (flow motion)
 uniform float u_clock;   // UTC time of day, 0..1 (palette phase)
 uniform float u_pulse;   // fresh-news flare at the NOW edge, 0..1
+uniform float u_vert;    // 0 = horizontal band, 1 = vertical rail (NOW on top)
 uniform vec2  u_res;
-uniform float u_hist[24]; // hourly news density, oldest -> now, 0..1
+uniform float u_hist[24]; // news density along the axis, oldest -> now, 0..1
 
 // density along the timeline with smooth interpolation between hours
 float densityAt(float x) {
@@ -35,10 +36,14 @@ float densityAt(float x) {
 
 void main() {
   vec2 uv = gl_FragCoord.xy / u_res;
-  float d = densityAt(uv.x);
+  // the time axis: x for the band, y (top = NOW) for the rail
+  float ax = mix(uv.x, uv.y, u_vert);
+  // the cross axis (for the edge vignette)
+  float cx = mix(uv.y, uv.x, u_vert);
+  float d = densityAt(ax);
   float t = u_time * 0.22;
 
-  vec2 p = uv * vec2(7.0, 1.8);
+  vec2 p = uv * mix(vec2(7.0, 1.8), vec2(1.8, 7.0), u_vert);
   p.x += 0.4 * sin(p.y * 1.9 + t * 0.7);
   p.y += 0.25 * sin(p.x * 1.1 - t * 0.5);
 
@@ -61,16 +66,16 @@ void main() {
   col = mix(col, c3, smoothstep(0.5, 0.78, s));
   col = mix(col, c4, smoothstep(0.8, 1.0, s));
 
-  // news density lights the band: quiet hours stay near-void
-  float energy = 0.10 + 0.55 * d;
+  // news density lights the axis: quiet stretches stay near-void
+  float energy = 0.14 + 0.6 * d;
   // fresh-news flare bleeding in from the NOW edge
-  energy += u_pulse * exp(-(1.0 - uv.x) * 14.0) * 0.9;
+  energy += u_pulse * exp(-(1.0 - ax) * 14.0) * 0.9;
 
-  float vig = smoothstep(0.0, 0.22, uv.y) * smoothstep(1.0, 0.78, uv.y);
+  float vig = smoothstep(0.0, 0.22, cx) * smoothstep(1.0, 0.78, cx);
   col *= energy * (0.35 + 0.65 * vig);
 
-  // hairline NOW cursor
-  float nowLine = smoothstep(0.9955, 0.997, uv.x) * smoothstep(0.9995, 0.998, uv.x);
+  // hairline NOW cursor at the fresh end of the axis
+  float nowLine = smoothstep(0.9955, 0.997, ax) * smoothstep(0.9995, 0.998, ax);
   col += nowLine * vec3(0.45, 0.9, 1.0) * (0.5 + 0.5 * sin(u_time * 2.2));
 
   gl_FragColor = vec4(col, 1.0);
@@ -90,7 +95,7 @@ function compile(gl, type, source) {
 
 const noop = { setHistogram() {}, pulse() {} };
 
-export function initPlasma(canvas) {
+export function initPlasma(canvas, { vertical = false } = {}) {
   if (!canvas) return noop;
   let gl;
   try {
@@ -120,8 +125,10 @@ export function initPlasma(canvas) {
   const uTime = gl.getUniformLocation(program, 'u_time');
   const uClock = gl.getUniformLocation(program, 'u_clock');
   const uPulse = gl.getUniformLocation(program, 'u_pulse');
+  const uVert = gl.getUniformLocation(program, 'u_vert');
   const uRes = gl.getUniformLocation(program, 'u_res');
   const uHist = gl.getUniformLocation(program, 'u_hist');
+  gl.uniform1f(uVert, vertical ? 1 : 0);
 
   // sensible default until the first histogram arrives
   let hist = new Float32Array(24).fill(0.45);

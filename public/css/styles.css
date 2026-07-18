@@ -38,15 +38,10 @@
   --font-ui: "Archivo", system-ui, -apple-system, sans-serif;
   --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* the plasma timeline band: clocks row + 24h scale */
-  --wire-h: 64px;
+  --wire-h: 36px;
   --pad: clamp(16px, 4vw, 32px);
   --max-w: 1280px;
   --radius: 10px;
-}
-
-@media (max-width: 560px) {
-  :root { --wire-h: 54px; }
 }
 
 @media (prefers-color-scheme: light) {
@@ -226,47 +221,99 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: center;
   gap: 0;
-  height: calc(var(--wire-h) - 22px);
-  max-width: var(--max-w);
-  margin: 0 auto;
-  padding: 4px var(--pad) 0;
-  overflow: hidden;
-}
-
-/* 24h scale row pinned to the bottom of the band */
-.timeline-scale {
-  position: absolute;
-  z-index: 1;
-  left: 0;
-  right: 0;
-  bottom: 3px;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  height: 100%;
   max-width: var(--max-w);
   margin: 0 auto;
   padding: 0 var(--pad);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.1em;
-  color: var(--wire-ink);
-  opacity: 0.85;
-  text-shadow: 0 1px 5px rgb(4 3 14 / 0.9);
+  overflow: hidden;
 }
-.timeline-scale .timeline-now {
-  color: var(--wire-strong);
-  font-weight: 600;
+
+/* ── Right-rail plasma timescale ─────────────────────────────────────────
+   The vertical line maps the loaded feed's time range, NOW on top. The
+   cursor mirrors the scroll position; click/drag seeks the feed. */
+.timescale {
+  position: fixed;
+  top: calc(var(--wire-h) + 118px);
+  bottom: 26px;
+  right: 12px;
+  width: 56px;
+  z-index: 60;
+  cursor: ns-resize;
+  user-select: none;
+  touch-action: none;
 }
-.timeline-scale .timeline-now::before {
-  content: "";
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  margin-right: 5px;
-  border-radius: 50%;
+.timescale.is-empty { display: none; }
+
+.timescale-canvas {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 100%;
+  display: block;
+  border-radius: 7px;
+  /* fallback when WebGL is unavailable */
+  background: linear-gradient(180deg, #10265A, #3A1160 40%, #241250 75%, #0A0620);
+  box-shadow: 0 0 0 1px rgb(140 130 255 / 0.18), 0 0 18px rgb(62 232 255 / 0.10);
+}
+
+.timescale-end {
+  position: absolute;
+  top: -16px;
+  right: 0;
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-2);
+}
+
+.timescale-tick {
+  position: absolute;
+  right: 20px;
+  transform: translateY(-50%);
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.timescale-cursor {
+  position: absolute;
+  right: -2px;
+  width: 18px;
+  height: 2px;
   background: var(--glow);
-  vertical-align: 1px;
-  animation: pulse 2.2s ease-in-out infinite;
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgb(62 232 255 / 0.75);
+  pointer-events: none;
+  transition: top 0.12s linear;
+}
+.timescale-label {
+  position: absolute;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.35);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+
+@media (max-width: 899px) {
+  .timescale { display: none; }
+}
+@media (min-width: 900px) {
+  /* keep cards clear of the rail (main.feed outranks the later .feed rule) */
+  main.feed { padding-right: 76px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timescale-cursor { transition: none; }
 }
 
 .wire-clock {
