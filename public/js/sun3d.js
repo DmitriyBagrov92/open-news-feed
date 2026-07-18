@@ -58,82 +58,66 @@ float fbm(vec3 p){
 }
 `;
 
-const SUN_VERT = NOISE_GLSL + `
-uniform float uTime;
-varying vec3 vNormal;
-varying vec3 vPos;
-void main(){
-  vNormal = normal;
-  float d = fbm(normal * 2.4 + vec3(uTime * 0.11)) * 0.045;
-  vec3 displaced = position * (1.0 + d);
-  vPos = displaced;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
-}
-`;
-
-// A star, not a textured ball: light first. Blinding white-gold core,
-// fiery limb with noise-driven flame licks; granulation is only a faint
-// breath over the glare.
-const SUN_FRAG = NOISE_GLSL + `
-uniform float uTime;
-uniform float uFlare;
-varying vec3 vNormal;
-varying vec3 vPos;
-void main(){
-  vec3 p = normalize(vPos);
-  float n1 = fbm(p * 4.0 + vec3(uTime * 0.05, uTime * 0.03, 0.0));
-  float n2 = fbm(p * 9.0 - vec3(0.0, uTime * 0.07, uTime * 0.035));
-  float granule = 0.5 + 0.5 * n1 + 0.3 * n2;
-
-  float facing = clamp(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0)), 0.0, 1.0);
-  vec3 limb  = vec3(1.0, 0.30, 0.05);
-  vec3 fire  = vec3(1.0, 0.55, 0.12);
-  vec3 gold  = vec3(1.0, 0.85, 0.45);
-  vec3 white = vec3(1.0, 0.98, 0.92);
-  vec3 col = mix(limb, fire, smoothstep(0.0, 0.35, facing));
-  col = mix(col, gold, smoothstep(0.35, 0.75, facing));
-  col = mix(col, white, smoothstep(0.68, 0.98, facing));
-
-  // living surface: a faint shimmer, never a dark blotch
-  col *= 0.9 + 0.14 * granule + uFlare * 0.1;
-
-  // flame licks around the limb
-  float rimN = fbm(vec3(p.x * 6.0, p.y * 6.0, uTime * 0.25));
-  col += vec3(1.0, 0.45, 0.10) * pow(1.0 - facing, 3.0) * (0.7 + 0.7 * rimN + uFlare * 0.8);
-
-  gl_FragColor = vec4(col, 1.0);
-}
-`;
-
-// The shine itself: an additive radial blaze drawn OVER the disc.
-const GLOW_FRAG = `
-uniform float uFlare;
+// The sun, rebuilt from scratch as a single HDR billboard — light physics,
+// not sphere texture. Emission field: a blinding tonemapped core, a boiling
+// turbulent disc, noise-driven flame tongues past the limb, a wide chromatic
+// halo and faint rotating rays. Disc radius = 0.34 of the plane half-size.
+const SUN_BILLBOARD_VERT = `
 varying vec2 vUv;
-void main(){
-  float r = length(vUv - 0.5) * 2.0;
-  float core = pow(smoothstep(1.0, 0.0, r), 2.0);
-  float halo = pow(smoothstep(1.0, 0.15, r), 1.4) * 0.35;
-  vec3 col = mix(vec3(1.0, 0.72, 0.28), vec3(1.0, 0.96, 0.85), core);
-  gl_FragColor = vec4(col, (core * 0.9 + halo) * (1.0 + uFlare * 0.5));
-}
+void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
 `;
 
-const CORONA_FRAG = NOISE_GLSL + `
+const SUN_BILLBOARD_FRAG = NOISE_GLSL + `
 uniform float uTime;
 uniform float uFlare;
 varying vec2 vUv;
+
 void main(){
-  vec2 c = vUv - 0.5;
-  float r = length(c) * 2.0;
+  vec2 c = (vUv - 0.5) * 2.0;
+  float r = length(c);
   float ang = atan(c.y, c.x);
-  float streaks = fbm(vec3(ang * 1.6, r * 3.0 - uTime * 0.12, uTime * 0.05));
-  // wide, soft halo — the glow owns the space around the sun
-  float falloff = smoothstep(1.0, 0.2, r) * (0.55 + 0.45 * streaks);
-  falloff *= smoothstep(0.16, 0.3, r);
-  vec3 col = mix(vec3(1.0, 0.55, 0.15), vec3(1.0, 0.85, 0.5), streaks);
-  gl_FragColor = vec4(col, falloff * (0.55 + uFlare * 0.6));
+  float t = uTime;
+
+  // boiling limb: the disc edge itself breathes with noise
+  float limbN = fbm(vec3(cos(ang) * 1.8, sin(ang) * 1.8, t * 0.16));
+  float discR = 0.34 * (1.0 + limbN * 0.035);
+
+  // emission field (HDR, tonemapped at the end)
+  // white-hot core, gaussian-ish
+  float E = 3.6 * exp(-pow(r / discR, 2.0) * 1.35);
+
+  // turbulent photosphere inside the disc
+  float surf = fbm(vec3(c * 2.6, t * 0.10)) * 0.5
+             + fbm(vec3(c * 6.5, 7.0 + t * 0.17)) * 0.30;
+  E *= 0.85 + 0.45 * surf + uFlare * 0.25;
+
+  // flame tongues licking outward past the limb
+  float tongues = 0.55 + 0.8 * fbm(vec3(ang * 3.0, r * 4.5 - t * 0.45, t * 0.12));
+  E += 1.5 * exp(-max(r - discR, 0.0) * 10.0) * tongues * smoothstep(discR - 0.02, discR, r);
+
+  // wide chromatic halo tail
+  E += 0.55 / (1.0 + pow(r * 3.1, 2.6));
+
+  // faint slow-rotating rays
+  E *= 1.0 + 0.10 * sin(ang * 9.0 + t * 0.06) * smoothstep(discR, 1.1, r);
+  E *= 1.0 + uFlare * 0.5;
+
+  // temperature ramp + filmic tonemap: smooth blowout to white
+  vec3 ember = vec3(0.52, 0.10, 0.02);
+  vec3 orange = vec3(1.0, 0.42, 0.08);
+  vec3 gold  = vec3(1.0, 0.80, 0.38);
+  vec3 white = vec3(1.0, 0.97, 0.90);
+  vec3 col = ember * E;
+  col = mix(col, orange * E, smoothstep(0.25, 0.9, E));
+  col = mix(col, gold * E, smoothstep(0.9, 1.9, E));
+  col = mix(col, white * E, smoothstep(1.9, 3.2, E));
+  col = 1.0 - exp(-col * 1.35); // tonemap: the shine
+
+  float alpha = clamp(max(max(col.r, col.g), col.b) * 1.15, 0.0, 1.0);
+  gl_FragColor = vec4(col, alpha);
 }
 `;
+
 
 // Each particle follows its own cubic Bézier from the sun's limb, meanders
 // under the news, and lands somewhere along the rail — aRand picks the
@@ -221,44 +205,23 @@ export function initSun(canvas) {
     uFlare: { value: 0 },
   };
 
+  // one HDR billboard IS the sun: disc, flames, halo and rays live in a
+  // single emission shader (see SUN_BILLBOARD_FRAG)
   const sun = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 96, 96),
-    new THREE.ShaderMaterial({ vertexShader: SUN_VERT, fragmentShader: SUN_FRAG, uniforms })
+    new THREE.PlaneGeometry(2, 2),
+    new THREE.ShaderMaterial({
+      vertexShader: SUN_BILLBOARD_VERT,
+      fragmentShader: SUN_BILLBOARD_FRAG,
+      uniforms,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      // the y-down pixel camera flips winding — without this the plane
+      // is silently back-face culled
+      side: THREE.DoubleSide,
+    })
   );
   scene.add(sun);
-
-  const corona = new THREE.Mesh(
-    new THREE.PlaneGeometry(5.6, 5.6),
-    new THREE.ShaderMaterial({
-      vertexShader:
-        'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-      fragmentShader: CORONA_FRAG,
-      uniforms,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    })
-  );
-  corona.position.z = -1;
-  scene.add(corona);
-
-  // the blaze layer over the disc — this is what makes it SHINE
-  const glow = new THREE.Mesh(
-    new THREE.PlaneGeometry(2.9, 2.9),
-    new THREE.ShaderMaterial({
-      vertexShader:
-        'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-      fragmentShader: GLOW_FRAG,
-      uniforms,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      depthTest: false,
-    })
-  );
-  glow.position.z = 2;
-  glow.renderOrder = 3;
-  scene.add(glow);
 
   // dense, phase-uniform stream = smooth and gapless
   const COUNT = 2400;
@@ -336,9 +299,8 @@ export function initSun(canvas) {
       anchor.cyDoc = wireH + 44;
     }
     anchor.r = r;
-    sun.scale.setScalar(r);
-    corona.scale.setScalar(r * 1.35); // wider halo plane
-    glow.scale.setScalar(r);
+    // the billboard's disc occupies 0.34 of its half-size
+    sun.scale.setScalar(r / 0.34);
 
     streamUniforms.uSunR.value = r;
     // rail geometry mirrors the CSS: right:12px, canvas 14px wide,
@@ -354,9 +316,6 @@ export function initSun(canvas) {
     // glue the sun to the header (canvas is viewport-fixed)
     const cy = anchor.cyDoc - (window.scrollY || 0);
     sun.position.set(anchor.cx, cy, 0);
-    sun.rotation.y = uniforms.uTime.value * 0.045; // slow solar rotation
-    corona.position.set(anchor.cx, cy, -1);
-    glow.position.set(anchor.cx, cy, 2);
     streamUniforms.uSun.value.set(anchor.cx, cy);
     renderer.render(scene, camera);
   }
