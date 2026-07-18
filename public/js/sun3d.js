@@ -71,6 +71,9 @@ void main(){
 }
 `;
 
+// A star, not a textured ball: light first. Blinding white-gold core,
+// fiery limb with noise-driven flame licks; granulation is only a faint
+// breath over the glare.
 const SUN_FRAG = NOISE_GLSL + `
 uniform float uTime;
 uniform float uFlare;
@@ -78,22 +81,40 @@ varying vec3 vNormal;
 varying vec3 vPos;
 void main(){
   vec3 p = normalize(vPos);
-  // fine, low-contrast granulation — molten gold, not mud
-  float n1 = fbm(p * 4.5 + vec3(uTime * 0.045, uTime * 0.028, 0.0));
-  float n2 = fbm(p * 11.0 - vec3(0.0, uTime * 0.07, uTime * 0.035));
-  float heat = clamp(0.82 + 0.30 * n1 + 0.18 * n2 + uFlare * 0.25, 0.0, 1.6);
-  vec3 ember = vec3(0.62, 0.16, 0.03);
-  vec3 orange = vec3(0.98, 0.45, 0.08);
-  vec3 gold  = vec3(1.0, 0.80, 0.32);
-  vec3 hot   = vec3(1.0, 0.97, 0.88);
-  vec3 col = mix(ember, orange, smoothstep(0.3, 0.7, heat));
-  col = mix(col, gold, smoothstep(0.7, 1.0, heat));
-  col = mix(col, hot, smoothstep(1.0, 1.35, heat));
-  // bright molten core, deeper orange limb — the classic photosphere read
-  float facing = dot(normalize(vNormal), vec3(0.0, 0.0, 1.0));
-  col *= 0.62 + 0.55 * smoothstep(0.0, 0.85, facing);
-  col += vec3(1.0, 0.5, 0.15) * pow(1.0 - abs(facing), 2.4) * (0.65 + uFlare * 0.5);
+  float n1 = fbm(p * 4.0 + vec3(uTime * 0.05, uTime * 0.03, 0.0));
+  float n2 = fbm(p * 9.0 - vec3(0.0, uTime * 0.07, uTime * 0.035));
+  float granule = 0.5 + 0.5 * n1 + 0.3 * n2;
+
+  float facing = clamp(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0)), 0.0, 1.0);
+  vec3 limb  = vec3(1.0, 0.30, 0.05);
+  vec3 fire  = vec3(1.0, 0.55, 0.12);
+  vec3 gold  = vec3(1.0, 0.85, 0.45);
+  vec3 white = vec3(1.0, 0.98, 0.92);
+  vec3 col = mix(limb, fire, smoothstep(0.0, 0.35, facing));
+  col = mix(col, gold, smoothstep(0.35, 0.75, facing));
+  col = mix(col, white, smoothstep(0.68, 0.98, facing));
+
+  // living surface: a faint shimmer, never a dark blotch
+  col *= 0.9 + 0.14 * granule + uFlare * 0.1;
+
+  // flame licks around the limb
+  float rimN = fbm(vec3(p.x * 6.0, p.y * 6.0, uTime * 0.25));
+  col += vec3(1.0, 0.45, 0.10) * pow(1.0 - facing, 3.0) * (0.7 + 0.7 * rimN + uFlare * 0.8);
+
   gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+// The shine itself: an additive radial blaze drawn OVER the disc.
+const GLOW_FRAG = `
+uniform float uFlare;
+varying vec2 vUv;
+void main(){
+  float r = length(vUv - 0.5) * 2.0;
+  float core = pow(smoothstep(1.0, 0.0, r), 2.0);
+  float halo = pow(smoothstep(1.0, 0.15, r), 1.4) * 0.35;
+  vec3 col = mix(vec3(1.0, 0.72, 0.28), vec3(1.0, 0.96, 0.85), core);
+  gl_FragColor = vec4(col, (core * 0.9 + halo) * (1.0 + uFlare * 0.5));
 }
 `;
 
@@ -221,6 +242,24 @@ export function initSun(canvas) {
   corona.position.z = -1;
   scene.add(corona);
 
+  // the blaze layer over the disc — this is what makes it SHINE
+  const glow = new THREE.Mesh(
+    new THREE.PlaneGeometry(2.9, 2.9),
+    new THREE.ShaderMaterial({
+      vertexShader:
+        'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+      fragmentShader: GLOW_FRAG,
+      uniforms,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false,
+    })
+  );
+  glow.position.z = 2;
+  glow.renderOrder = 3;
+  scene.add(glow);
+
   // dense, phase-uniform stream = smooth and gapless
   const COUNT = 2400;
   const geo = new THREE.BufferGeometry();
@@ -282,22 +321,24 @@ export function initSun(canvas) {
     camera.updateProjectionMatrix();
 
     const wireH = 36;
-    // anchor the sun EXACTLY over the wordmark's center, a fixed gap above
-    // its top edge — measured from the DOM, so it is always perfect
+    // the sun is BACKGROUND: centered exactly ON the wordmark (both axes),
+    // the text burns on top of the disc — measured from the DOM
     const wm = document.querySelector('.wordmark');
     const rect = wm ? wm.getBoundingClientRect() : null;
-    const r = 46;
+    // fits exactly between the clocks band and the tabs bar — no flat cuts
+    const r = 36;
     const sy = window.scrollY || 0;
     if (rect) {
       anchor.cx = rect.left + rect.width / 2;
-      anchor.cyDoc = rect.top + sy - 14 - r; // 14px air between disc and text
+      anchor.cyDoc = rect.top + rect.height / 2 + sy;
     } else {
       anchor.cx = 150;
-      anchor.cyDoc = wireH + 60;
+      anchor.cyDoc = wireH + 44;
     }
     anchor.r = r;
     sun.scale.setScalar(r);
     corona.scale.setScalar(r * 1.35); // wider halo plane
+    glow.scale.setScalar(r);
 
     streamUniforms.uSunR.value = r;
     // rail geometry mirrors the CSS: right:12px, canvas 14px wide,
@@ -315,6 +356,7 @@ export function initSun(canvas) {
     sun.position.set(anchor.cx, cy, 0);
     sun.rotation.y = uniforms.uTime.value * 0.045; // slow solar rotation
     corona.position.set(anchor.cx, cy, -1);
+    glow.position.set(anchor.cx, cy, 2);
     streamUniforms.uSun.value.set(anchor.cx, cy);
     renderer.render(scene, camera);
   }

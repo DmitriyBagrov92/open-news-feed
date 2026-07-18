@@ -334,10 +334,10 @@ a:hover { text-decoration: underline; }
   margin: 0 auto;
   /* the sun burns centered ABOVE the wordmark; content sits on the
      bottom edge of the band — tight, no dead air */
-  align-items: flex-end;
-  /* 102px top = wire band (36) + sun diameter (92) + air, so the disc
-     clears the clocks band exactly */
-  padding: 102px var(--pad) 16px;
+  align-items: center;
+  /* compact header: the sun is BACKGROUND behind the wordmark — the
+     paddings give the disc exactly band-bottom → tabs-top to live in */
+  padding: 34px var(--pad) 24px;
   position: relative;
 }
 
@@ -368,7 +368,7 @@ a:hover { text-decoration: underline; }
 /* CSS solar-disc fallback where the 3D scene is off (small screens) */
 @media (max-width: 899px) {
   .sun-scene { display: none; }
-  .masthead { align-items: center; padding: 18px var(--pad) 14px; }
+  .masthead { padding: 18px var(--pad) 14px; }
   .wordmark::before {
     content: "";
     position: absolute;
