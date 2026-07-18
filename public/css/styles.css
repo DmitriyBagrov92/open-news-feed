@@ -65,10 +65,11 @@
   --pill-bg: #111927;
   --pill-fg: #FFFFFF;
 
-  --wire-bg: #0C0C15;
-  --wire-ink: #A8A2B4;
-  --wire-strong: #F7F3EA;
-  --wire-rule: rgb(255 180 90 / 0.22);
+  /* daylight clocks band: light, airy, sky-tinted */
+  --wire-bg: #FFFFFF;
+  --wire-ink: #5D6675;
+  --wire-strong: #111927;
+  --wire-rule: rgb(17 25 39 / 0.10);
 
   --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04);
   --shadow-hover: 0 12px 28px rgb(16 24 40 / 0.10);
@@ -182,6 +183,10 @@ a:hover { text-decoration: underline; }
   border-bottom: 1px solid var(--wire-rule);
   overflow: hidden;
 }
+:root[data-theme="light"] .wire {
+  background: linear-gradient(100deg, #FDFEFF, #EFF6FC 38%, #E7F1FA 60%, #FDFEFF);
+}
+:root[data-theme="light"] .wire-clock { text-shadow: none; }
 
 /* the plasma timeline renders behind the clocks */
 .wire-canvas {
@@ -236,10 +241,10 @@ a:hover { text-decoration: underline; }
   background: linear-gradient(180deg, #E86A1A, #7A2D0E 45%, #3A1408 80%, #170A05);
   box-shadow: 0 0 0 1px rgb(255 180 90 / 0.20), 0 0 18px rgb(255 196 107 / 0.10);
 }
-/* daylight: the rail is water, not lava */
+/* daylight: the rail is water, not lava — light channel, deep-blue flow */
 :root[data-theme="light"] .timescale-canvas {
-  background: linear-gradient(180deg, #1897CE, #0C5A8F 45%, #083A61 80%, #052540);
-  box-shadow: 0 0 0 1px rgb(30 140 220 / 0.25), 0 0 18px rgb(80 180 240 / 0.12);
+  background: linear-gradient(180deg, #CFE7F7, #9CC8E8 45%, #6FA9D4 80%, #4C89BC);
+  box-shadow: 0 0 0 1px rgb(30 140 220 / 0.22), 0 0 14px rgb(80 180 240 / 0.15);
 }
 
 .timescale-end {

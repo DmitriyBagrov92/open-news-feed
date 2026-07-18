@@ -167,11 +167,12 @@ void main(){
     alpha = 1.0;
   }
 
-  // blue atmospheric halo outside the disc
+  // atmosphere: a TIGHT sky-blue rim — on a white page a wide dark halo
+  // reads as a smudge and gets cut by the UI bars below
   float outside = step(discR, r);
-  float halo = exp(-max(r - discR, 0.0) * 9.0) * outside;
-  col += vec3(0.35, 0.65, 1.0) * halo * (0.6 + uFlare * 0.4);
-  alpha = max(alpha, halo * 0.85);
+  float halo = exp(-max(r - discR, 0.0) * 26.0) * outside;
+  col += vec3(0.62, 0.80, 0.98) * halo;
+  alpha = max(alpha, halo * 0.55);
 
   gl_FragColor = vec4(col, alpha);
 }

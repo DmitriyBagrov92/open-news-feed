@@ -72,18 +72,26 @@ void main() {
   col = mix(col, c3, smoothstep(0.5, 0.78, s));
   col = mix(col, c4, smoothstep(0.8, 1.0, s));
 
-  // news density lights the axis: quiet stretches stay near-void
+  // news density powers the flow; fresh news flares in from the NOW edge
   float energy = 0.14 + 0.6 * d;
-  // fresh-news flare bleeding in from the NOW edge
   energy += u_pulse * exp(-(1.0 - ax) * 14.0) * 0.9;
 
   float vig = smoothstep(0.0, 0.22, cx) * smoothstep(1.0, 0.78, cx);
-  col *= energy * (0.35 + 0.65 * vig);
+  float lum = energy * (0.35 + 0.65 * vig);
 
-  // hairline NOW cursor at the fresh end of the axis: white-hot / sea-foam
+  // dark theme: emission on void (quiet stays black, busy burns)
+  vec3 fire = col * lum;
+  // light theme: the mapping INVERTS for a white page — quiet water stays
+  // pale, busy water runs deep blue
+  vec3 pale = vec3(0.88, 0.945, 0.99);
+  vec3 deep = mix(vec3(0.12, 0.47, 0.78), vec3(0.02, 0.20, 0.46), s);
+  vec3 waterCol = mix(pale, deep, clamp(lum * 1.25, 0.0, 1.0));
+  col = mix(fire, waterCol, u_water);
+
+  // hairline NOW cursor at the fresh end of the axis
   float nowLine = smoothstep(0.9955, 0.997, ax) * smoothstep(0.9995, 0.998, ax);
-  vec3 nowCol = mix(vec3(1.0, 0.88, 0.6), vec3(0.75, 0.95, 1.0), u_water);
-  col += nowLine * nowCol * (0.5 + 0.5 * sin(u_time * 2.2));
+  vec3 nowCol = mix(vec3(1.0, 0.88, 0.6), vec3(0.03, 0.30, 0.60), u_water);
+  col = mix(col, nowCol, nowLine * (0.5 + 0.5 * sin(u_time * 2.2)));
 
   gl_FragColor = vec4(col, 1.0);
 }
