@@ -351,16 +351,17 @@ a:hover { text-decoration: underline; }
 }
 .wordmark:hover { text-decoration: none; }
 
-/* The living sun renders on #sunScene behind everything in the masthead. */
+/* The living sun renders on a full-viewport layer BEHIND the content:
+   visible in the header, in the page gutters and between the cards —
+   the plasma literally flows under the news. */
 .sun-scene {
-  position: absolute;
+  position: fixed;
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
 }
-.masthead > :not(.sun-scene) { position: relative; z-index: 1; }
 
 /* CSS solar-disc fallback where the 3D scene is off (small screens) */
 @media (max-width: 899px) {

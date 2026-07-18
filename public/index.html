@@ -57,10 +57,12 @@
   </div>
 
   <!-- 2 · Masthead -->
+  <!-- the living sun (three.js): full-viewport scene BEHIND the content —
+       the sun burns above the wordmark, plasma meanders under the news
+       and converges on the right-rail timescale -->
+  <canvas class="sun-scene" id="sunScene" aria-hidden="true"></canvas>
+
   <header class="masthead">
-    <!-- the living sun (three.js): boiling surface + corona behind the
-         wordmark, particle plasma streaming to the right corner -->
-    <canvas class="sun-scene" id="sunScene" aria-hidden="true"></canvas>
     <a class="wordmark" href="/" aria-label="Meridian — home">MER<span class="bh" aria-hidden="true">I</span><span class="sr-only">I</span>DIAN</a>
     <div class="masthead-controls">
       <div class="search" id="search">

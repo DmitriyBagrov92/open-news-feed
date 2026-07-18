@@ -1,9 +1,9 @@
-// A real, living sun behind the wordmark — three.js (vendored, CSP-safe).
-// Boiling fbm plasma surface with vertex displacement, an additive corona,
-// and a stream of glowing particles flowing from the sun to the right
-// corner where the timescale rail begins. Pauses when hidden; renders a
-// single frame under prefers-reduced-motion; app.js falls back silently
-// if WebGL or the vendor module is unavailable.
+// The living sun — three.js (vendored, CSP-safe), full-viewport scene
+// rendered BEHIND the content. The sun burns in the top-left corner under
+// the news; it emits a continuous stream of plasma particles that meander
+// on randomized curves under the cards and converge on the right-rail
+// timescale, filling it along its whole length — a smooth, gapless flow.
+// Pauses when hidden; static frame under prefers-reduced-motion.
 
 import * as THREE from '../vendor/three.module.js';
 
@@ -64,7 +64,6 @@ varying vec3 vNormal;
 varying vec3 vPos;
 void main(){
   vNormal = normal;
-  // the limb boils: small radial displacement driven by slow noise
   float d = fbm(normal * 2.4 + vec3(uTime * 0.11)) * 0.045;
   vec3 displaced = position * (1.0 + d);
   vPos = displaced;
@@ -78,13 +77,10 @@ uniform float uFlare;
 varying vec3 vNormal;
 varying vec3 vPos;
 void main(){
-  // granulation: two drifting fbm layers over the sphere surface
   vec3 p = normalize(vPos);
   float n1 = fbm(p * 3.0 + vec3(uTime * 0.05, uTime * 0.03, 0.0));
   float n2 = fbm(p * 7.5 - vec3(0.0, uTime * 0.08, uTime * 0.04));
   float heat = clamp(0.55 + 0.55 * n1 + 0.35 * n2 + uFlare * 0.25, 0.0, 1.6);
-
-  // color ramp: ember -> orange -> gold -> white-hot
   vec3 ember = vec3(0.45, 0.09, 0.02);
   vec3 orange = vec3(0.95, 0.38, 0.06);
   vec3 gold  = vec3(1.0, 0.78, 0.30);
@@ -92,12 +88,9 @@ void main(){
   vec3 col = mix(ember, orange, smoothstep(0.15, 0.6, heat));
   col = mix(col, gold, smoothstep(0.6, 0.95, heat));
   col = mix(col, hot, smoothstep(0.95, 1.35, heat));
-
-  // limb darkening + rim flare, view-dependent
   float facing = dot(normalize(vNormal), vec3(0.0, 0.0, 1.0));
   col *= 0.55 + 0.6 * smoothstep(0.0, 0.9, facing);
   col += vec3(1.0, 0.45, 0.12) * pow(1.0 - abs(facing), 2.2) * (0.55 + uFlare * 0.5);
-
   gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -110,44 +103,78 @@ void main(){
   vec2 c = vUv - 0.5;
   float r = length(c) * 2.0;
   float ang = atan(c.y, c.x);
-  // streaks rotating slowly around the disc
   float streaks = fbm(vec3(ang * 1.6, r * 3.0 - uTime * 0.12, uTime * 0.05));
   float falloff = smoothstep(1.0, 0.32, r) * (0.5 + 0.5 * streaks);
-  falloff *= smoothstep(0.28, 0.42, r); // hole for the disc itself
+  falloff *= smoothstep(0.28, 0.42, r);
   vec3 col = mix(vec3(1.0, 0.55, 0.15), vec3(1.0, 0.85, 0.5), streaks);
   gl_FragColor = vec4(col, falloff * (0.5 + uFlare * 0.6));
 }
 `;
 
+// Each particle follows its own cubic Bézier from the sun's limb, meanders
+// under the news, and lands somewhere along the rail — aRand picks the
+// curve, the wobble adds life on top.
 const PARTICLE_VERT = `
 attribute float aProgress;
 attribute float aSeed;
+attribute vec4 aRand;
 uniform float uTime;
-uniform float uWidth;
 uniform float uFlare;
+uniform vec2 uSun;    // sun center, px
+uniform float uSunR;  // sun radius, px
+uniform vec3 uRail;   // x, top, bottom of the rail, px
+uniform vec2 uSize;   // viewport px
 varying float vFade;
+varying float vHeat;
+
+vec2 bezier(vec2 p0, vec2 p1, vec2 p2, vec2 p3, float t){
+  float u = 1.0 - t;
+  return u*u*u*p0 + 3.0*u*u*t*p1 + 3.0*u*t*t*p2 + t*t*t*p3;
+}
+
 void main(){
-  float p = fract(aProgress + uTime * (0.045 + aSeed * 0.05) * (1.0 + uFlare));
-  // path: a coherent river from the sun's limb to the right corner
-  // (world units = one sun radius, so amplitudes stay sub-radius)
-  float x = mix(0.9, uWidth, pow(p, 0.85));
-  float wob = sin(p * 18.0 + aSeed * 40.0) * 0.30
-            + sin(p * 5.0 + aSeed * 13.0 + uTime * 0.7) * 0.16;
-  float spread = 0.35 + aSeed * 0.5;
-  float y = wob * spread * (0.4 + 0.6 * p);
-  vFade = smoothstep(0.0, 0.06, p) * (1.0 - smoothstep(0.82, 1.0, p));
-  vec4 mv = modelViewMatrix * vec4(x, y, 0.0, 1.0);
-  gl_PointSize = (2.6 + aSeed * 2.4) * (1.0 - p * 0.55);
+  float speed = 0.028 + aSeed * 0.03;
+  float t = fract(aProgress + uTime * speed * (1.0 + uFlare * 0.8));
+
+  // launch point on the sun's limb, biased toward the right hemisphere
+  float ang = (aRand.x - 0.5) * 2.4;
+  vec2 p0 = uSun + vec2(cos(ang), sin(ang)) * uSunR * 1.02;
+
+  // wander controls: dip under the news at a per-particle depth
+  vec2 p1 = vec2(
+    mix(uSize.x * 0.22, uSize.x * 0.5, aRand.y),
+    mix(uSun.y + 40.0, uSize.y * 0.85, aRand.z)
+  );
+  vec2 p2 = vec2(
+    mix(uSize.x * 0.55, uSize.x * 0.9, aRand.z),
+    mix(uRail.y, uSize.y * 0.95, aRand.w)
+  );
+  // destination: the rail, distributed along its WHOLE length (fills it)
+  vec2 p3 = vec2(uRail.x, mix(uRail.y, uRail.z, aRand.w));
+
+  vec2 pos = bezier(p0, p1, p2, p3, t);
+
+  // life on the path: perpendicular-ish wobble, fading as it docks
+  float wob = sin(t * 14.0 + aSeed * 40.0) + 0.5 * sin(t * 33.0 + aSeed * 17.0 + uTime * 0.8);
+  pos += vec2(wob * 6.0, wob * 9.0) * (1.0 - t) * (0.4 + aSeed * 0.6);
+
+  vFade = smoothstep(0.0, 0.05, t) * (1.0 - smoothstep(0.93, 1.0, t) * 0.65);
+  vHeat = 1.0 - t * 0.6;
+
+  vec4 mv = modelViewMatrix * vec4(pos, 0.0, 1.0);
+  gl_PointSize = (2.2 + aSeed * 2.6) * (1.0 - t * 0.35);
   gl_Position = projectionMatrix * mv;
 }
 `;
 
 const PARTICLE_FRAG = `
 varying float vFade;
+varying float vHeat;
 void main(){
   vec2 d = gl_PointCoord - 0.5;
   float a = smoothstep(0.5, 0.05, length(d)) * vFade;
-  gl_FragColor = vec4(1.0, 0.62, 0.2, a * 0.85);
+  vec3 col = mix(vec3(1.0, 0.42, 0.15), vec3(1.0, 0.75, 0.3), vHeat);
+  gl_FragColor = vec4(col, a * 0.8);
 }
 `;
 
@@ -162,8 +189,8 @@ export function initSun(canvas) {
   renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
-  // orthographic, pixel-ish units: origin at the sun's center
-  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -10, 10);
+  // pixel-space ortho camera: (0,0) top-left, y grows down
+  const camera = new THREE.OrthographicCamera(0, 100, 0, 100, -500, 500);
 
   const uniforms = {
     uTime: { value: 0 },
@@ -172,18 +199,15 @@ export function initSun(canvas) {
 
   const sun = new THREE.Mesh(
     new THREE.SphereGeometry(1, 96, 96),
-    new THREE.ShaderMaterial({
-      vertexShader: SUN_VERT,
-      fragmentShader: SUN_FRAG,
-      uniforms,
-    })
+    new THREE.ShaderMaterial({ vertexShader: SUN_VERT, fragmentShader: SUN_FRAG, uniforms })
   );
   scene.add(sun);
 
   const corona = new THREE.Mesh(
     new THREE.PlaneGeometry(5.6, 5.6),
     new THREE.ShaderMaterial({
-      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+      vertexShader:
+        'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
       fragmentShader: CORONA_FRAG,
       uniforms,
       transparent: true,
@@ -191,25 +215,34 @@ export function initSun(canvas) {
       depthWrite: false,
     })
   );
-  corona.position.z = -1.5;
+  corona.position.z = -1;
   scene.add(corona);
 
-  // particle stream: local coords, scaled/positioned per resize
-  const COUNT = 1600;
+  // dense, phase-uniform stream = smooth and gapless
+  const COUNT = 2400;
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(COUNT * 3), 3));
   const progress = new Float32Array(COUNT);
   const seed = new Float32Array(COUNT);
+  const rand = new Float32Array(COUNT * 4);
   for (let i = 0; i < COUNT; i += 1) {
-    progress[i] = Math.random();
+    progress[i] = i / COUNT; // uniform phases — no clumps, no gaps
     seed[i] = Math.random();
+    rand[i * 4] = Math.random();
+    rand[i * 4 + 1] = Math.random();
+    rand[i * 4 + 2] = Math.random();
+    rand[i * 4 + 3] = Math.random();
   }
   geo.setAttribute('aProgress', new THREE.BufferAttribute(progress, 1));
   geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+  geo.setAttribute('aRand', new THREE.BufferAttribute(rand, 4));
   const streamUniforms = {
     uTime: uniforms.uTime,
     uFlare: uniforms.uFlare,
-    uWidth: { value: 100 },
+    uSun: { value: new THREE.Vector2(140, 100) },
+    uSunR: { value: 66 },
+    uRail: { value: new THREE.Vector3(1400, 90, 800) },
+    uSize: { value: new THREE.Vector2(1440, 900) },
   };
   const stream = new THREE.Points(
     geo,
@@ -229,8 +262,6 @@ export function initSun(canvas) {
   let flare = 0;
   const start = performance.now();
 
-  // Layout: sun centered on the wordmark (left), stream running to the
-  // right edge. World units = css pixels via the ortho camera.
   function resize() {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
@@ -238,19 +269,30 @@ export function initSun(canvas) {
     const dpr = Math.min(devicePixelRatio || 1, 1.75);
     renderer.setPixelRatio(dpr);
     renderer.setSize(w, h, false);
-    const sunX = getComputedStyle(document.documentElement).getPropertyValue('--pad');
-    const pad = parseFloat(sunX) || 24;
-    // a big sun centered ABOVE the wordmark (content sits on the band's
-    // bottom edge); the river leaves its limb toward the right corner
-    const cx = pad + 95;
-    const cy = h * 0.38;
-    const r = Math.min(h * 0.38, 68);
-    camera.left = -cx / r;
-    camera.right = (w - cx) / r;
-    camera.top = cy / r;
-    camera.bottom = -(h - cy) / r;
+
+    camera.left = 0;
+    camera.right = w;
+    camera.top = 0;
+    camera.bottom = h;
     camera.updateProjectionMatrix();
-    streamUniforms.uWidth.value = (w - cx - 26) / r;
+
+    const pad = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pad')) || 24;
+    const wireH = 36;
+    // the sun: top-left, above the wordmark
+    const r = 66;
+    const cx = Math.max(pad + 95, 130);
+    const cy = wireH + 80;
+    sun.position.set(cx, cy, 0);
+    sun.scale.setScalar(r);
+    corona.position.set(cx, cy, -1);
+    corona.scale.setScalar(r);
+
+    streamUniforms.uSun.value.set(cx, cy);
+    streamUniforms.uSunR.value = r;
+    // rail geometry mirrors the CSS: right:12px, canvas 14px wide,
+    // top wire+52, bottom 26
+    streamUniforms.uRail.value.set(w - 19, wireH + 52, h - 26);
+    streamUniforms.uSize.value.set(w, h);
   }
 
   function render(now) {
@@ -293,7 +335,6 @@ export function initSun(canvas) {
   play();
 
   return {
-    // fresh news: the sun flares and the stream accelerates briefly
     pulse() {
       flare = 1;
       if (reducedMotion.matches) render(performance.now());
