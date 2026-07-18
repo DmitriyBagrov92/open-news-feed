@@ -92,8 +92,10 @@ app.post('/api/translate', wrap(async (req, res) => {
 
 app.get('/api/health', wrap((req, res) => {
   const s = store.stats();
-  res.json({
-    ok: true,
+  // ok once at least one refresh has succeeded; 503 until then so the
+  // Railway healthcheck (status-code based) is meaningful, not always-green.
+  res.status(s.updatedAt !== null ? 200 : 503).json({
+    ok: s.updatedAt !== null,
     uptime: process.uptime(),
     articles: s.articles,
     sources: s.sources,
@@ -111,9 +113,10 @@ app.use((err, req, res, next) => {
   const hasCode = typeof err.code === 'string' && /^[a-z][a-z-]*$/.test(err.code);
   const code = hasCode ? err.code : status >= 500 ? 'internal' : 'bad-request';
   if (status >= 500 && !hasCode) console.error(`[server] ${err.stack || err}`);
-  res.status(status).json({
-    error: { code, message: err.message || 'Internal error' },
-  });
+  // Uncontrolled 5xx messages may carry internals (paths, library errors) —
+  // log them above, mask them to the client.
+  const message = hasCode || status < 500 ? err.message || 'Request failed' : 'Internal error';
+  res.status(status).json({ error: { code, message } });
 });
 
 // ── boot ─────────────────────────────────────────────────────────────────────
