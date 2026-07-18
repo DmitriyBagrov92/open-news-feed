@@ -5,6 +5,7 @@ import { t, catLabel, setLocale, applyI18n } from './i18n.js';
 import { prefs, setPref, isSaved, toggleSaved } from './prefs.js';
 import { api } from './api.js';
 import { initWireClocks, refreshTimes } from './time.js';
+import { initPlasma } from './plasma.js';
 import { toast } from './toast.js';
 import { buildCard, skeletonCard, applyCardText } from './cards.js';
 import { openPreview } from './modal.js';
@@ -709,6 +710,7 @@ function boot() {
   applyI18n();
   initTheme();
   initWireClocks(document.querySelector('.wire'));
+  initPlasma(document.getElementById('plasma'));
   initSearch();
   initLangControl();
   initTabs();
