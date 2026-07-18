@@ -8,7 +8,7 @@ import { initWireClocks, refreshTimes } from './time.js';
 import { toast } from './toast.js';
 import { buildCard, skeletonCard, applyCardText } from './cards.js';
 import { openPreview } from './modal.js';
-import { summarize, translateTexts, providerLabel, toBullets } from './ai.js';
+import { summarize, translateTexts, warmTranslator, providerLabel, toBullets } from './ai.js';
 
 const PAGE_SIZE = 30;
 const POLL_MS = 90000;
@@ -83,7 +83,11 @@ const cardHandlers = {
     btn.setAttribute('aria-label', label);
     btn.title = label;
     if (!saved && state.category === 'saved') {
-      btn.closest('.card')?.remove();
+      const card = btn.closest('.card');
+      if (card) {
+        viewportObserver.unobserve(card);
+        card.remove();
+      }
       if (!grid.querySelector('.card:not(.card--skeleton)')) showEmpty('saved');
     }
   },
@@ -109,9 +113,19 @@ function makeCard(article, hero) {
 }
 
 function clearGrid() {
-  for (const card of grid.querySelectorAll('.card:not(.card--skeleton)')) card.remove();
+  for (const card of grid.querySelectorAll('.card:not(.card--skeleton)')) {
+    viewportObserver.unobserve(card);
+    card.remove();
+  }
   state.ids = new Set();
   state.articles = [];
+}
+
+// A pending "new stories" batch belongs to the view it was polled for —
+// drop it whenever the view changes (tab, search, source toggle, saved).
+function clearPending() {
+  state.pending = [];
+  newPill.hidden = true;
 }
 
 function addSkeletons(count) {
@@ -223,9 +237,23 @@ async function loadFeed({ reset = false } = {}) {
   } finally {
     if (seq === feedSeq) state.loading = false;
   }
+  maybeLoadMore();
+}
+
+// IntersectionObserver only fires on state CHANGES — if the sentinel is
+// still inside the 600px margin after a page lands (short pages, heavy
+// dedupe), no event comes and the feed stalls. Re-check explicitly.
+function maybeLoadMore() {
+  if (!state.hasMore || state.loading || state.category === 'saved') return;
+  if (sentinel.getBoundingClientRect().top < innerHeight + 600) loadFeed();
 }
 
 function renderSaved() {
+  // Supersede any in-flight feed request so its late response cannot
+  // contaminate the Saved view.
+  feedSeq += 1;
+  state.loading = false;
+  clearPending();
   clearGrid();
   removeSkeletons();
   state.hasMore = false;
@@ -279,7 +307,7 @@ async function pollNew() {
 }
 
 newPill.addEventListener('click', () => {
-  prependArticles(state.pending);
+  if (state.category !== 'saved') prependArticles(state.pending);
   state.pending = [];
   newPill.hidden = true;
   window.scrollTo({
@@ -394,6 +422,7 @@ function initSearch() {
     const next = q.length >= 2 ? q : '';
     if (next === state.q) return;
     state.q = next;
+    clearPending();
     if (state.category === 'saved') renderSaved();
     else loadFeed({ reset: true });
   };
@@ -414,7 +443,10 @@ function initLangControl() {
   const auto = $('#autoTranslate');
 
   select.value = prefs.targetLang;
-  if (select.value !== prefs.targetLang) select.value = 'en'; // unknown stored value
+  if (select.value !== prefs.targetLang) {
+    select.value = 'en'; // unknown stored value
+    setPref('targetLang', 'en'); // and persist the correction
+  }
   auto.checked = prefs.autoTranslate;
 
   const setOpen = (open) => {
@@ -447,7 +479,12 @@ function initLangControl() {
   });
 
   function translationBust() {
-    if (prefs.autoTranslate && prefs.targetLang !== 'en') reobserveCards();
+    if (prefs.autoTranslate && prefs.targetLang !== 'en') {
+      // Create/download the on-device translator NOW, while the user's
+      // gesture is active — observer callbacks have no user activation.
+      warmTranslator('en', prefs.targetLang);
+      reobserveCards();
+    }
   }
 }
 
@@ -458,6 +495,7 @@ function initTabs() {
   const activate = (cat, { load = true } = {}) => {
     state.category = cat;
     setPref('category', cat);
+    clearPending();
     for (const tab of track.querySelectorAll('.tab')) {
       const current = tab.dataset.cat === cat;
       if (current) tab.setAttribute('aria-current', 'true');
@@ -536,6 +574,7 @@ function initDrawer() {
 
   const open = () => {
     clearTimeout(closeTimer);
+    if (!sourcesData) loadSources(); // retry a failed boot-time load
     drawer.hidden = false;
     scrim.hidden = false;
     requestAnimationFrame(() =>
@@ -600,6 +639,7 @@ function renderSourcesList() {
         if (checkbox.checked) hidden.delete(source.id);
         else hidden.add(source.id);
         setPref('hiddenSources', [...hidden]);
+        clearPending();
         if (state.category === 'saved') renderSaved();
         else loadFeed({ reset: true });
       });

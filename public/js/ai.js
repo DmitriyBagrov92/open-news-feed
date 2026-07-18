@@ -67,6 +67,17 @@ async function getTranslator(sourceLang, targetLang, onProgress) {
   return instance;
 }
 
+// Eagerly create (and, if needed, download) the on-device translator while a
+// user gesture is active. Auto-translate later runs inside IntersectionObserver
+// callbacks where create() has no user activation and would be denied.
+export async function warmTranslator(sourceLang, targetLang, onProgress) {
+  try {
+    await getTranslator(sourceLang, targetLang, onProgress);
+  } catch {
+    /* best-effort: the ladder still has the server rung */
+  }
+}
+
 /* ── Summarize ladder ───────────────────────────────────────────────────── */
 
 // input: { mode:'article', title, text, targetLang }
