@@ -135,11 +135,17 @@ function clearGrid() {
   state.articles = [];
 }
 
-// A pending "new stories" batch belongs to the view it was polled for —
-// drop it whenever the view changes (tab, search, source toggle, saved).
+// Pending "new stories" AND the daily-brief panel belong to the view they
+// were produced for — drop both whenever the view changes (tab, search,
+// source toggle, saved).
 function clearPending() {
   state.pending = [];
   newPill.hidden = true;
+  const briefPanel = $('#briefPanel');
+  if (briefPanel && !briefPanel.hidden) {
+    briefPanel.hidden = true;
+    clear(briefPanel);
+  }
 }
 
 function addSkeletons(count) {
