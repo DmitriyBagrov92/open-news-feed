@@ -9,7 +9,7 @@ import { initPlasma } from './plasma.js';
 import { initTimescale } from './timescale.js';
 import { animateIn, animatePop, animateReveal } from './motion.js';
 import { toast } from './toast.js';
-import { buildCard, skeletonCard, applyCardText } from './cards.js';
+import { buildCard, skeletonCard, applyCardText, setCardCommentCount } from './cards.js';
 import { openPreview } from './modal.js';
 import { summarize, translateTexts, warmTranslator, providerLabel, toBullets } from './ai.js';
 
@@ -79,7 +79,15 @@ function visibleArticles(list) {
 /* ── Grid rendering ─────────────────────────────────────────────────────── */
 
 const cardHandlers = {
-  onOpen: (article) => openPreview(article),
+  onOpen: (article) =>
+    openPreview(article, {
+      onCountChange: (a, n) => {
+        const known = articleById.get(a.id);
+        if (known) known.commentCount = n;
+        const card = grid.querySelector(`.card[data-id="${a.id}"]`);
+        if (card) setCardCommentCount(card, n);
+      },
+    }),
   onToggleSave: (article, btn) => {
     const saved = toggleSaved(article);
     btn.classList.toggle('is-saved', saved);

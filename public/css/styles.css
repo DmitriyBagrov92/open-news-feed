@@ -996,6 +996,20 @@ a:hover { text-decoration: underline; }
 }
 
 .card-cat { color: var(--ink-2); }
+.card-foot-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.card-cmt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 0.6rem;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.card-cmt svg { width: 12px; height: 12px; }
+.card-cmt:hover { color: var(--accent); border-color: var(--hairline-strong); }
 .card:hover .card-cat { color: var(--accent); }
 
 .card-actions { display: flex; align-items: center; gap: 2px; }

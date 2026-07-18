@@ -116,8 +116,24 @@ export function buildCard(article, { variant = 'std', saved = false, onOpen, onT
 
   actions.append(translateBtn, saveBtn, openLink);
 
+  // comment-count chip: its own click target opening the preview;
+  // hidden until the article actually has comments
+  const cmtChip = el('button', {
+    class: 'card-cmt mono',
+    type: 'button',
+    'aria-label': t('card.comments', { n: article.commentCount || 0 }),
+    hidden: !(article.commentCount > 0),
+  });
+  cmtChip.append(icon('comment'), el('span', { text: String(article.commentCount || 0) }));
+  cmtChip.addEventListener('click', (e) => {
+    e.stopPropagation();
+    onOpen?.(article);
+  });
+
+  const footL = el('div', { class: 'card-foot-l' });
+  footL.append(el('span', { class: 'card-cat mono', text: catLabel(article.category) }), cmtChip);
   const foot = el('div', { class: 'card-foot' });
-  foot.append(el('span', { class: 'card-cat mono', text: catLabel(article.category) }), actions);
+  foot.append(footL, actions);
 
   const body = el('div', { class: 'card-body' });
   body.append(meta, title, desc, foot);
@@ -135,6 +151,15 @@ export function buildCard(article, { variant = 'std', saved = false, onOpen, onT
   });
 
   return card;
+}
+
+// Live update of a card's comment-count chip (after posting in the preview).
+export function setCardCommentCount(card, n) {
+  const chip = card?.querySelector('.card-cmt');
+  if (!chip) return;
+  chip.hidden = !(n > 0);
+  chip.querySelector('span').textContent = String(n);
+  chip.setAttribute('aria-label', t('card.comments', { n }));
 }
 
 export function applyCardText(card, title, description) {
