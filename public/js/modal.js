@@ -9,6 +9,7 @@ import { absTime } from './time.js';
 import { buildMedia } from './cards.js';
 import { summarize, translateTexts, splitSentences, providerLabel, toBullets } from './ai.js';
 import { animateDialog, animateReveal } from './motion.js';
+import { buildCommentsPanel } from './comments.js';
 
 let active = null; // { root, prevFocus, onKeydown }
 
@@ -46,12 +47,12 @@ function chunkParagraph(text, maxLen = 1000) {
   return chunks.length ? chunks : [text.slice(0, maxLen)];
 }
 
-export function openPreview(article) {
+export function openPreview(article, options = {}) {
   close();
 
   const root = el('div', { class: 'modal' });
   const dialog = el('div', {
-    class: 'modal-dialog',
+    class: 'modal-dialog has-comments',
     role: 'dialog',
     'aria-modal': 'true',
     'aria-label': article.title,
@@ -91,7 +92,17 @@ export function openPreview(article) {
   const body = el('div', { class: 'modal-body' });
   body.append(meta, title, actions, chip, summaryBox, note, textBox);
 
-  dialog.append(closeBtn, buildMedia(article, 'modal-media'), body);
+  // Split layout: the article column and the comments column. On mobile
+  // they stack (one scroll); at >=1000px each column scrolls on its own.
+  const articleCol = el('div', { class: 'modal-article' });
+  articleCol.append(closeBtn, buildMedia(article, 'modal-media'), body);
+  const commentsCol = el('aside', { class: 'modal-comments' });
+  commentsCol.append(
+    buildCommentsPanel(article, {
+      onCountChange: (n) => options.onCountChange?.(article, n),
+    })
+  );
+  dialog.append(articleCol, commentsCol);
   root.append(dialog);
 
   root.addEventListener('mousedown', (e) => {
@@ -102,6 +113,11 @@ export function openPreview(article) {
     if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation(); // the modal owns Escape while open
+      // a comment draft must survive a reflexive Escape: blur, don't close
+      if (e.target?.classList?.contains('cmt-input') && e.target.value.trim()) {
+        e.target.blur();
+        return;
+      }
       close();
       return;
     }
