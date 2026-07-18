@@ -11,6 +11,8 @@ secrets/
 *.log
 npm-debug.log*
 .cache/
+# Local comments database
+data/
 
 # OS / editor noise
 .DS_Store

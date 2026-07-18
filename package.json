@@ -10,7 +10,7 @@
     "verify:feeds": "node scripts/verify-feeds.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13.0"
   },
   "keywords": [
     "news",
