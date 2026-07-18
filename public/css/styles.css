@@ -387,16 +387,52 @@ a:hover { text-decoration: underline; }
   50%      { opacity: 1; transform: translate(-50%, -50%) scale(1.12); }
 }
 
-/* The meridian: a thin solar rule bisecting the wordmark top-to-bottom. */
-.wordmark::after {
+/* The I of MERIDIAN is a thin black hole: the glyph becomes a void slit
+   wrapped in a glowing accretion rim, with a faint photon ring at its
+   heart. The one thing on the page that swallows the sun's light. */
+.wordmark .bh {
+  position: relative;
+  color: transparent; /* the void replaces the glyph */
+}
+.wordmark .bh::before {
   content: "";
   position: absolute;
-  left: calc(50% - 0.16em);
-  top: -6px;
-  bottom: -6px;
-  width: 1.5px;
-  background: linear-gradient(180deg, var(--glow), var(--accent));
-  box-shadow: 0 0 8px rgb(255 196 107 / 0.55);
+  left: 38%; /* wide letter-spacing: center on the glyph, not its advance */
+  top: -0.18em;
+  bottom: -0.12em;
+  width: 0.17em;
+  transform: translateX(-50%);
+  border-radius: 0.1em;
+  background: #000;
+  box-shadow:
+    0 0 2px 1px rgb(255 190 90 / 0.95),
+    0 0 7px 2px rgb(255 150 55 / 0.55),
+    0 0 16px 6px rgb(255 115 45 / 0.28);
+  animation: bh-rim 4.5s ease-in-out infinite;
+}
+/* photon ring: light bending around the throat's midpoint */
+.wordmark .bh::after {
+  content: "";
+  position: absolute;
+  left: 38%;
+  top: 50%;
+  width: 0.62em;
+  height: 0.62em;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgb(255 200 110 / 0.55);
+  box-shadow:
+    0 0 6px rgb(255 160 60 / 0.5),
+    inset 0 0 4px rgb(255 160 60 / 0.4);
+  animation: bh-ring 4.5s ease-in-out infinite;
+}
+@keyframes bh-rim {
+  0%, 100% { box-shadow: 0 0 2px 1px rgb(255 190 90 / 0.95), 0 0 7px 2px rgb(255 150 55 / 0.55), 0 0 16px 6px rgb(255 115 45 / 0.28); }
+  50%      { box-shadow: 0 0 2px 1px rgb(255 205 120 / 1),   0 0 9px 3px rgb(255 160 60 / 0.7),  0 0 22px 8px rgb(255 125 50 / 0.38); }
+}
+@keyframes bh-ring {
+  0%, 100% { opacity: 0.75; transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
 }
 
 
