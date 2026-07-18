@@ -332,7 +332,8 @@ a:hover { text-decoration: underline; }
   gap: 12px;
   max-width: var(--max-w);
   margin: 0 auto;
-  padding: 18px var(--pad) 14px;
+  /* extra height gives the 3D sun room to burn behind the wordmark */
+  padding: 30px var(--pad) 26px;
   position: relative;
 }
 
@@ -348,30 +349,43 @@ a:hover { text-decoration: underline; }
 }
 .wordmark:hover { text-decoration: none; }
 
-/* The sun behind the wordmark: a breathing solar disc. */
-.wordmark::before {
-  content: "";
+/* The living sun renders on #sunScene behind everything in the masthead. */
+.sun-scene {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 150px;
-  height: 150px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(circle,
-    rgb(255 220 140 / 0.34) 0%,
-    rgb(255 160 60 / 0.20) 34%,
-    rgb(230 90 30 / 0.09) 58%,
-    transparent 72%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
   pointer-events: none;
-  z-index: -1;
-  animation: sun-breathe 7s ease-in-out infinite;
+}
+.masthead > :not(.sun-scene) { position: relative; z-index: 1; }
+
+/* CSS solar-disc fallback where the 3D scene is off (small screens) */
+@media (max-width: 899px) {
+  .sun-scene { display: none; }
+  .wordmark::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 150px;
+    height: 150px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgb(255 220 140 / 0.34) 0%,
+      rgb(255 160 60 / 0.20) 34%,
+      rgb(230 90 30 / 0.09) 58%,
+      transparent 72%);
+    pointer-events: none;
+    z-index: -1;
+    animation: sun-breathe 7s ease-in-out infinite;
+  }
 }
 @keyframes sun-breathe {
   0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
   50%      { opacity: 1; transform: translate(-50%, -50%) scale(1.12); }
 }
-:root[data-theme="light"] .wordmark::before { opacity: 0.55; }
 
 /* The meridian: a thin solar rule bisecting the wordmark top-to-bottom. */
 .wordmark::after {
@@ -385,28 +399,6 @@ a:hover { text-decoration: underline; }
   box-shadow: 0 0 8px rgb(255 196 107 / 0.55);
 }
 
-/* Solar plasma stream: from the wordmark's sun to the right-rail timescale.
-   Fades in from the logo and out into the rail via a mask. */
-.plasma-stream {
-  position: absolute;
-  left: calc(var(--pad) + 150px);
-  /* canvas is a replaced element: left+right would collapse to intrinsic
-     size — the width must be explicit */
-  width: calc(100% - var(--pad) - 150px - 40px);
-  top: 50%;
-  transform: translateY(-50%);
-  height: 8px;
-  border-radius: 4px;
-  pointer-events: none;
-  /* fallback when WebGL is unavailable */
-  background: linear-gradient(90deg, #7A2D0E, #E86A1A 45%, #7A2D0E);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 92%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 92%, transparent);
-  opacity: 0.85;
-}
-@media (max-width: 899px) {
-  .plasma-stream { display: none; } /* the rail it feeds is hidden too */
-}
 
 .masthead-controls {
   display: flex;

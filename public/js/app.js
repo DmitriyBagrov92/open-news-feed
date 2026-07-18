@@ -757,15 +757,22 @@ function boot() {
   applyI18n();
   initTheme();
   initWireClocks(document.querySelector('.wire'));
-  plasma = initPlasma(document.getElementById('plasma'), { vertical: true });
-  // the stream from the logo to the rail shares the solar shader
-  const stream = initPlasma(document.getElementById('plasmaStream'));
-  const railOnly = plasma;
+  const rail = initPlasma(document.getElementById('plasma'), { vertical: true });
+  // the living sun is heavy machinery (three.js) — load it dynamically so
+  // a missing vendor file or WebGL failure never breaks the app
+  let sun = null;
+  if (matchMedia('(min-width: 900px)').matches) {
+    import('./sun3d.js')
+      .then((m) => {
+        sun = m.initSun(document.getElementById('sunScene'));
+      })
+      .catch(() => {});
+  }
   plasma = {
-    setHistogram: (h) => railOnly.setHistogram(h),
+    setHistogram: (h) => rail.setHistogram(h),
     pulse: () => {
-      railOnly.pulse();
-      stream.pulse();
+      rail.pulse();
+      sun?.pulse();
     },
   };
   timescale = initTimescale({

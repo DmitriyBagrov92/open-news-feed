@@ -58,9 +58,10 @@
 
   <!-- 2 · Masthead -->
   <header class="masthead">
+    <!-- the living sun (three.js): boiling surface + corona behind the
+         wordmark, particle plasma streaming to the right corner -->
+    <canvas class="sun-scene" id="sunScene" aria-hidden="true"></canvas>
     <a class="wordmark" href="/" aria-label="Meridian — home">MERIDIAN</a>
-    <!-- solar plasma stream: flows from the logo into the right-rail timescale -->
-    <canvas class="plasma-stream" id="plasmaStream" aria-hidden="true"></canvas>
     <div class="masthead-controls">
       <div class="search" id="search">
         <input class="search-input" id="searchInput" type="search"
