@@ -332,10 +332,12 @@ a:hover { text-decoration: underline; }
   gap: 12px;
   max-width: var(--max-w);
   margin: 0 auto;
-  /* tall header: the sun burns centered ABOVE the wordmark; content sits
-     on the bottom edge of the band */
+  /* the sun burns centered ABOVE the wordmark; content sits on the
+     bottom edge of the band — tight, no dead air */
   align-items: flex-end;
-  padding: 112px var(--pad) 20px;
+  /* 102px top = wire band (36) + sun diameter (92) + air, so the disc
+     clears the clocks band exactly */
+  padding: 102px var(--pad) 16px;
   position: relative;
 }
 

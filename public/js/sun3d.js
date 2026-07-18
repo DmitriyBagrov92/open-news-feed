@@ -78,19 +78,21 @@ varying vec3 vNormal;
 varying vec3 vPos;
 void main(){
   vec3 p = normalize(vPos);
-  float n1 = fbm(p * 3.0 + vec3(uTime * 0.05, uTime * 0.03, 0.0));
-  float n2 = fbm(p * 7.5 - vec3(0.0, uTime * 0.08, uTime * 0.04));
-  float heat = clamp(0.55 + 0.55 * n1 + 0.35 * n2 + uFlare * 0.25, 0.0, 1.6);
-  vec3 ember = vec3(0.45, 0.09, 0.02);
-  vec3 orange = vec3(0.95, 0.38, 0.06);
-  vec3 gold  = vec3(1.0, 0.78, 0.30);
-  vec3 hot   = vec3(1.0, 0.97, 0.86);
-  vec3 col = mix(ember, orange, smoothstep(0.15, 0.6, heat));
-  col = mix(col, gold, smoothstep(0.6, 0.95, heat));
-  col = mix(col, hot, smoothstep(0.95, 1.35, heat));
+  // fine, low-contrast granulation — molten gold, not mud
+  float n1 = fbm(p * 4.5 + vec3(uTime * 0.045, uTime * 0.028, 0.0));
+  float n2 = fbm(p * 11.0 - vec3(0.0, uTime * 0.07, uTime * 0.035));
+  float heat = clamp(0.82 + 0.30 * n1 + 0.18 * n2 + uFlare * 0.25, 0.0, 1.6);
+  vec3 ember = vec3(0.62, 0.16, 0.03);
+  vec3 orange = vec3(0.98, 0.45, 0.08);
+  vec3 gold  = vec3(1.0, 0.80, 0.32);
+  vec3 hot   = vec3(1.0, 0.97, 0.88);
+  vec3 col = mix(ember, orange, smoothstep(0.3, 0.7, heat));
+  col = mix(col, gold, smoothstep(0.7, 1.0, heat));
+  col = mix(col, hot, smoothstep(1.0, 1.35, heat));
+  // bright molten core, deeper orange limb — the classic photosphere read
   float facing = dot(normalize(vNormal), vec3(0.0, 0.0, 1.0));
-  col *= 0.55 + 0.6 * smoothstep(0.0, 0.9, facing);
-  col += vec3(1.0, 0.45, 0.12) * pow(1.0 - abs(facing), 2.2) * (0.55 + uFlare * 0.5);
+  col *= 0.62 + 0.55 * smoothstep(0.0, 0.85, facing);
+  col += vec3(1.0, 0.5, 0.15) * pow(1.0 - abs(facing), 2.4) * (0.65 + uFlare * 0.5);
   gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -104,10 +106,11 @@ void main(){
   float r = length(c) * 2.0;
   float ang = atan(c.y, c.x);
   float streaks = fbm(vec3(ang * 1.6, r * 3.0 - uTime * 0.12, uTime * 0.05));
-  float falloff = smoothstep(1.0, 0.32, r) * (0.5 + 0.5 * streaks);
-  falloff *= smoothstep(0.28, 0.42, r);
+  // wide, soft halo — the glow owns the space around the sun
+  float falloff = smoothstep(1.0, 0.2, r) * (0.55 + 0.45 * streaks);
+  falloff *= smoothstep(0.16, 0.3, r);
   vec3 col = mix(vec3(1.0, 0.55, 0.15), vec3(1.0, 0.85, 0.5), streaks);
-  gl_FragColor = vec4(col, falloff * (0.5 + uFlare * 0.6));
+  gl_FragColor = vec4(col, falloff * (0.55 + uFlare * 0.6));
 }
 `;
 
@@ -261,6 +264,8 @@ export function initSun(canvas) {
   let raf = 0;
   let flare = 0;
   const start = performance.now();
+  // document-space anchor: the sun stays glued to the header as it scrolls
+  const anchor = { cx: 150, cyDoc: 100, r: 46 };
 
   function resize() {
     const w = canvas.clientWidth;
@@ -276,18 +281,24 @@ export function initSun(canvas) {
     camera.bottom = h;
     camera.updateProjectionMatrix();
 
-    const pad = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pad')) || 24;
     const wireH = 36;
-    // the sun: top-left, above the wordmark
-    const r = 66;
-    const cx = Math.max(pad + 95, 130);
-    const cy = wireH + 80;
-    sun.position.set(cx, cy, 0);
+    // anchor the sun EXACTLY over the wordmark's center, a fixed gap above
+    // its top edge — measured from the DOM, so it is always perfect
+    const wm = document.querySelector('.wordmark');
+    const rect = wm ? wm.getBoundingClientRect() : null;
+    const r = 46;
+    const sy = window.scrollY || 0;
+    if (rect) {
+      anchor.cx = rect.left + rect.width / 2;
+      anchor.cyDoc = rect.top + sy - 14 - r; // 14px air between disc and text
+    } else {
+      anchor.cx = 150;
+      anchor.cyDoc = wireH + 60;
+    }
+    anchor.r = r;
     sun.scale.setScalar(r);
-    corona.position.set(cx, cy, -1);
-    corona.scale.setScalar(r);
+    corona.scale.setScalar(r * 1.35); // wider halo plane
 
-    streamUniforms.uSun.value.set(cx, cy);
     streamUniforms.uSunR.value = r;
     // rail geometry mirrors the CSS: right:12px, canvas 14px wide,
     // top wire+52, bottom 26
@@ -299,6 +310,12 @@ export function initSun(canvas) {
     uniforms.uTime.value = (now - start) / 1000;
     flare = Math.max(0, flare - 0.008);
     uniforms.uFlare.value = flare;
+    // glue the sun to the header (canvas is viewport-fixed)
+    const cy = anchor.cyDoc - (window.scrollY || 0);
+    sun.position.set(anchor.cx, cy, 0);
+    sun.rotation.y = uniforms.uTime.value * 0.045; // slow solar rotation
+    corona.position.set(anchor.cx, cy, -1);
+    streamUniforms.uSun.value.set(anchor.cx, cy);
     renderer.render(scene, camera);
   }
 
@@ -331,6 +348,11 @@ export function initSun(canvas) {
     resize();
     if (reducedMotion.matches) render(performance.now());
   }).observe(canvas);
+  // the wordmark's width settles once the display font loads — re-anchor
+  document.fonts?.ready?.then(() => {
+    resize();
+    if (reducedMotion.matches) render(performance.now());
+  });
 
   play();
 
