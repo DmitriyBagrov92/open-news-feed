@@ -1,0 +1,82 @@
+// Thin client for the Meridian HTTP API (docs/ARCHITECTURE.md).
+// Every failure is normalized to ApiError { status, code, message }.
+
+export class ApiError extends Error {
+  constructor(status, code, message) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status; // HTTP status; 0 for network failures
+    this.code = code;     // machine code, e.g. 'premium-only', 'network'
+  }
+}
+
+function qs(params) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params || {})) {
+    if (value == null || value === '') continue;
+    search.set(key, String(value));
+  }
+  const str = search.toString();
+  return str ? '?' + str : '';
+}
+
+async function request(path, options) {
+  let res;
+  try {
+    res = await fetch(path, options);
+  } catch {
+    throw new ApiError(0, 'network', 'Network request failed');
+  }
+  if (!res.ok) {
+    let code = 'http-' + res.status;
+    let message = res.statusText || 'Request failed';
+    try {
+      const body = await res.json();
+      if (body?.error) {
+        code = body.error.code || code;
+        message = body.error.message || message;
+      }
+    } catch {
+      /* non-JSON error body */
+    }
+    throw new ApiError(res.status, code, message);
+  }
+  try {
+    return await res.json();
+  } catch {
+    throw new ApiError(res.status, 'bad-json', 'Invalid JSON response');
+  }
+}
+
+function post(path, body) {
+  return request(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+export const api = {
+  // params: { category, q, sources, exclude, page, pageSize, lang, since }
+  news(params) {
+    return request('/api/news' + qs(params));
+  },
+
+  sources() {
+    return request('/api/sources');
+  },
+
+  article(url) {
+    return request('/api/article' + qs({ url }));
+  },
+
+  // body: { mode:'brief', articles, targetLang } | { mode:'article', title, text, targetLang }
+  summarize(body) {
+    return post('/api/summarize', body);
+  },
+
+  // texts: string[] (≤ 20, each ≤ 1000 chars) → { translations, provider }
+  translate(texts, target, source = 'en') {
+    return post('/api/translate', { texts, target, source });
+  },
+};
