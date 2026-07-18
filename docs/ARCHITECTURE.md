@@ -23,8 +23,9 @@ the frontend (`public/**`). Both sides must conform to it exactly.
                │ same-origin JSON API (no CORS needed)
 ┌──────────────▼─────────────────────────────────────────┐
 │  public/ (vanilla ES modules, no build step)           │
-│  index.html · css/styles.css · js/app.js · js/api.js   │
-│  js/prefs.js · js/ai.js · js/i18n.js                   │
+│  index.html · css/styles.css · js/{app, api, prefs,    │
+│  ai, i18n, cards, modal, time, plasma, motion, toast,  │
+│  dom, boot}.js · vendor/motion.js (vendored framework) │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -160,9 +161,10 @@ agree:
 ```
 
 Future premium response `200`: `{ "summary": "…", "provider": "…" }` — the
-client must already handle this shape (try server → on 501 fall back to
-browser AI → extractive), so enabling premium later requires zero client
-changes.
+client must already handle this shape. Client ladder order: browser
+built-in Summarizer first (free, on-device, private), then the server
+endpoint (501 continues in the free version), then the local extractive
+summarizer — so enabling premium later requires zero client changes.
 
 ### `POST /api/translate`
 
@@ -185,9 +187,11 @@ Used as the Railway healthcheck path.
 ## Backend behavior
 
 - **Refresh loop.** On boot, fetch all enabled sources concurrently (per-source
-  timeout 12s), then re-fetch every `REFRESH_MINUTES` (default 5). A failing
-  source keeps its last good articles and is retried on the next cycle; log a
-  single warning line per failure. Never let one bad source break the cycle.
+  timeout 12s), then re-fetch every `REFRESH_MINUTES` (default 5). Keyed API
+  sources additionally respect a 15-minute minimum interval between
+  *successful* fetches (free-quota protection); a failed attempt is retried on
+  the next cycle. A failing source keeps its last good articles; log a single
+  warning line per failure. Never let one bad source break the cycle.
 - **Normalization.** Strip HTML from titles/descriptions, decode entities,
   clamp description at 500 chars on a word boundary. Discard items without a
   title+link, or with an unparsable/absent date, or older than 7 days.

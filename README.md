@@ -22,6 +22,10 @@ tracking — your preferences never leave your browser.
 - **AI daily brief** via the browser's built-in Summarizer API (on-device),
   with a local extractive fallback for every other browser. No keys, no server
   cost.
+- **Cosmic design.** Deep-space dark theme by default with the timeline
+  rendered as a living WebGL plasma band behind live world clocks (30fps,
+  GPU, zero dependencies; static under reduced motion), plus a clean
+  light "dawn" variant.
 - **No auth, no tracking.** Preferences (theme, language, hidden sources,
   saved articles) live in `localStorage` only.
 - **i18n-ready.** English now; add a language by adding a feed list and a
@@ -30,7 +34,7 @@ tracking — your preferences never leave your browser.
 ## Quickstart
 
 ```bash
-git clone https://github.com/<you>/open-news-feed.git
+git clone https://github.com/DmitriyBagrov92/open-news-feed.git
 cd open-news-feed
 npm install
 npm start
