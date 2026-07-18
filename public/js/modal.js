@@ -172,7 +172,11 @@ export function openPreview(article) {
           text: paragraphs.join('\n\n'),
           targetLang: prefs.targetLang || 'en',
         },
-        { onProgress: (pct) => { summarizeBtn.textContent = t('ai.downloading', { pct }); } }
+        {
+          onProgress: (pct) => {
+            summarizeBtn.textContent = pct == null ? t('modal.summarizing') : t('ai.downloading', { pct });
+          },
+        }
       );
       while (summaryBox.firstChild) summaryBox.firstChild.remove();
       const head = el('div', { class: 'modal-summary-head' });
@@ -241,7 +245,9 @@ export function openPreview(article) {
       }
       const result = await translateTexts(units, target, {
         sourceLang,
-        onProgress: (pct) => { translateBtn.textContent = t('ai.downloading', { pct }); },
+        onProgress: (pct) => {
+          if (pct != null) translateBtn.textContent = t('ai.downloading', { pct });
+        },
       });
       if (!result) {
         toast(t('lang.unavailable'));

@@ -566,17 +566,27 @@ function initBrief() {
   const panel = $('#briefPanel');
 
   btn.addEventListener('click', async () => {
-    const pool = state.category === 'saved' ? prefs.saved : state.articles;
-    if (!pool.length) {
-      toast(t('brief.empty'));
-      return;
-    }
     btn.disabled = true;
     btn.textContent = t('brief.working');
     try {
+      // summarize exactly what the reader is looking at: the freshest
+      // stories of the ACTIVE view (category + search + hidden sources),
+      // fetched explicitly rather than trusted to scroll-dependent state
+      let pool;
+      if (state.category === 'saved') {
+        pool = prefs.saved.slice(0, 20);
+      } else {
+        const res = await api.news(buildParams({ pageSize: 20 }));
+        pool = visibleArticles(res.articles);
+      }
+      if (!pool.length) {
+        toast(t('brief.empty'));
+        return;
+      }
       const result = await summarize(
         {
           mode: 'brief',
+          topic: state.category === 'all' ? '' : catLabel(state.category),
           articles: pool.slice(0, 20).map((a) => ({
             title: a.title,
             description: a.description || '',
@@ -584,7 +594,12 @@ function initBrief() {
           })),
           targetLang: prefs.targetLang || 'en',
         },
-        { onProgress: (pct) => { btn.textContent = t('ai.downloading', { pct }); } }
+        {
+          // pct === null: download done, model is thinking
+          onProgress: (pct) => {
+            btn.textContent = pct == null ? t('brief.working') : t('ai.downloading', { pct });
+          },
+        }
       );
       clear(panel);
       const head = el('div', { class: 'brief-panel-head' });

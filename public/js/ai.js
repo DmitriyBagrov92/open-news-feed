@@ -13,15 +13,43 @@ let summarizer = null;
 let summarizerKey = '';
 const translators = new Map(); // "en>de" → Translator instance
 
-function monitorFor(onProgress) {
-  return (m) => {
+// Reject when a promise neither settles nor shows life within `ms`.
+function withTimeout(promise, ms, tag) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(tag + ' timed out')), ms)
+    ),
+  ]);
+}
+
+// create() with a stall watchdog: model downloads may legitimately take
+// minutes, so we only abort when PROGRESS stops (no downloadprogress event
+// and no resolution for stallMs). A hung create() can otherwise freeze the
+// UI at "100%" forever.
+async function createGuarded(createFn, onProgress, stallMs = 25000) {
+  const ctrl = new AbortController();
+  let lastLife = Date.now();
+  const monitor = (m) => {
     m.addEventListener('downloadprogress', (e) => {
+      lastLife = Date.now();
       const ratio = e.total ? e.loaded / e.total : e.loaded;
       if (typeof onProgress === 'function') {
         onProgress(Math.max(0, Math.min(100, Math.round(ratio * 100))));
       }
     });
   };
+  const watchdog = setInterval(() => {
+    if (Date.now() - lastLife > stallMs) {
+      clearInterval(watchdog);
+      ctrl.abort(new Error('model download stalled'));
+    }
+  }, 5000);
+  try {
+    return await createFn(monitor, ctrl.signal);
+  } finally {
+    clearInterval(watchdog);
+  }
 }
 
 /* ── Browser Summarizer ─────────────────────────────────────────────────── */
@@ -41,7 +69,10 @@ async function getSummarizer(targetLang, onProgress) {
     summarizer = null;
     summarizerKey = '';
   }
-  const instance = await Summarizer.create({ ...options, monitor: monitorFor(onProgress) });
+  const instance = await createGuarded(
+    (monitor, signal) => Summarizer.create({ ...options, monitor, signal }),
+    onProgress
+  );
   summarizer = instance;
   summarizerKey = key;
   return instance;
@@ -58,11 +89,16 @@ async function getTranslator(sourceLang, targetLang, onProgress) {
     targetLanguage: targetLang,
   });
   if (availability === 'unavailable') return null;
-  const instance = await Translator.create({
-    sourceLanguage: sourceLang,
-    targetLanguage: targetLang,
-    monitor: monitorFor(onProgress),
-  });
+  const instance = await createGuarded(
+    (monitor, signal) =>
+      Translator.create({
+        sourceLanguage: sourceLang,
+        targetLanguage: targetLang,
+        monitor,
+        signal,
+      }),
+    onProgress
+  );
   translators.set(key, instance);
   return instance;
 }
@@ -90,20 +126,30 @@ export async function summarize(input, { onProgress } = {}) {
         .map((a) => `${a.title} — ${a.description || ''} (${a.source})`)
         .join('\n')
     : input.text || '';
+  const topic = isBrief && input.topic ? input.topic + ' ' : '';
   const context = isBrief
-    ? 'Independent news headlines from many sources. Extract the most important stories as 5-7 key points.'
+    ? `Independent ${topic}news headlines from many sources. Extract the most important stories as 5-7 key points.`
     : `A news article titled: ${input.title || ''}`;
 
   try {
     const s = await getSummarizer(input.targetLang, onProgress);
     if (s) {
-      const summary = await s.summarize(corpus.slice(0, 20000), { context });
+      // model is ready: tell the UI we moved from downloading to working
+      if (typeof onProgress === 'function') onProgress(null);
+      // cap the corpus — on-device inference over huge inputs takes ages —
+      // and never let a hung inference freeze the button: time out and
+      // fall down the ladder to the local digest
+      const summary = await withTimeout(
+        s.summarize(corpus.slice(0, 6000), { context }),
+        35000,
+        'on-device summarize'
+      );
       if (summary && summary.trim()) {
         return { summary: summary.trim(), provider: 'on-device' };
       }
     }
   } catch {
-    /* feature blocked / download refused / summarize failed — next rung */
+    /* blocked / download stalled / inference timed out — next rung */
   }
 
   try {
@@ -133,9 +179,10 @@ export async function translateTexts(texts, targetLang, { sourceLang = 'en', onP
   try {
     const tr = await getTranslator(sourceLang, targetLang, onProgress);
     if (tr) {
+      if (typeof onProgress === 'function') onProgress(null);
       const out = [];
       for (const text of texts) {
-        out.push(text.trim() ? await tr.translate(text) : text);
+        out.push(text.trim() ? await withTimeout(tr.translate(text), 20000, 'on-device translate') : text);
       }
       return { texts: out, provider: 'on-device' };
     }
