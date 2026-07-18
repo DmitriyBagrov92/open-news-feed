@@ -118,6 +118,65 @@ void main(){
 }
 `;
 
+// Daylight mode: the Earth. A shaded globe with fbm continents, drifting
+// clouds, an ocean glint and a blue atmospheric halo. Normal blending:
+// additive light is invisible on a white page.
+const EARTH_FRAG = NOISE_GLSL + `
+uniform float uTime;
+uniform float uFlare;
+varying vec2 vUv;
+void main(){
+  vec2 c = (vUv - 0.5) * 2.0;
+  float r = length(c);
+  float discR = 0.34;
+  float t = uTime;
+  vec3 col = vec3(0.0);
+  float alpha = 0.0;
+
+  if (r < discR) {
+    vec2 q = c / discR;
+    float z = sqrt(max(0.0, 1.0 - dot(q, q)));
+    vec3 n = vec3(q, z);
+    // slow rotation: longitude drifts with time
+    float lon = atan(q.x, z) + t * 0.05;
+    float lat = asin(clamp(q.y, -1.0, 1.0));
+    vec3 sp = vec3(cos(lat) * cos(lon), sin(lat), cos(lat) * sin(lon));
+
+    float cont = fbm(sp * 1.9 + vec3(3.1, 0.0, 0.0));
+    float land = smoothstep(0.02, 0.14, cont);
+    float detail = fbm(sp * 6.0);
+    vec3 ocean = mix(vec3(0.02, 0.18, 0.38), vec3(0.05, 0.32, 0.58), 0.5 + 0.5 * detail);
+    vec3 verdant = vec3(0.13, 0.38, 0.16);
+    vec3 arid = vec3(0.55, 0.46, 0.25);
+    vec3 landC = mix(verdant, arid, smoothstep(-0.2, 0.6, detail));
+    col = mix(ocean, landC, land);
+
+    // cloud deck drifting over the surface
+    float cl = fbm(sp * 3.4 + vec3(t * 0.022, 0.0, t * 0.03) + vec3(7.0, 0.0, 0.0));
+    float clouds = smoothstep(0.12, 0.42, cl);
+    col = mix(col, vec3(0.95, 0.97, 1.0), clouds * 0.75);
+
+    // day light from the upper left, soft terminator
+    vec3 L = normalize(vec3(-0.45, -0.5, 0.75));
+    float diff = clamp(dot(n, L), 0.0, 1.0);
+    col *= 0.3 + 0.85 * diff;
+    // sun glint on open water
+    col += vec3(0.7, 0.85, 1.0) * pow(diff, 24.0) * (1.0 - land) * (1.0 - clouds) * 0.35;
+    // in-limb atmosphere
+    col += vec3(0.35, 0.65, 1.0) * pow(r / discR, 6.0) * 0.35;
+    alpha = 1.0;
+  }
+
+  // blue atmospheric halo outside the disc
+  float outside = step(discR, r);
+  float halo = exp(-max(r - discR, 0.0) * 9.0) * outside;
+  col += vec3(0.35, 0.65, 1.0) * halo * (0.6 + uFlare * 0.4);
+  alpha = max(alpha, halo * 0.85);
+
+  gl_FragColor = vec4(col, alpha);
+}
+`;
+
 
 // Each particle follows its own cubic Bézier from the sun's limb, meanders
 // under the news, and lands somewhere along the rail — aRand picks the
@@ -186,6 +245,19 @@ void main(){
 }
 `;
 
+// ocean droplets for daylight: deeper blues, normal blending (additive
+// sparks vanish against white)
+const PARTICLE_WATER_FRAG = `
+varying float vFade;
+varying float vHeat;
+void main(){
+  vec2 d = gl_PointCoord - 0.5;
+  float a = smoothstep(0.5, 0.05, length(d)) * vFade;
+  vec3 col = mix(vec3(0.04, 0.35, 0.72), vec3(0.30, 0.65, 0.95), vHeat);
+  gl_FragColor = vec4(col, a * 0.85);
+}
+`;
+
 export function initSun(canvas) {
   if (!canvas) return null;
   let renderer;
@@ -205,22 +277,28 @@ export function initSun(canvas) {
     uFlare: { value: 0 },
   };
 
-  // one HDR billboard IS the sun: disc, flames, halo and rays live in a
-  // single emission shader (see SUN_BILLBOARD_FRAG)
-  const sun = new THREE.Mesh(
-    new THREE.PlaneGeometry(2, 2),
-    new THREE.ShaderMaterial({
-      vertexShader: SUN_BILLBOARD_VERT,
-      fragmentShader: SUN_BILLBOARD_FRAG,
-      uniforms,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      // the y-down pixel camera flips winding — without this the plane
-      // is silently back-face culled
-      side: THREE.DoubleSide,
-    })
-  );
+  // one HDR billboard carries the star (dark) or the planet (light);
+  // materials swap with the theme. Both need DoubleSide: the y-down pixel
+  // camera flips winding, so single-sided planes are back-face culled.
+  const matSun = new THREE.ShaderMaterial({
+    vertexShader: SUN_BILLBOARD_VERT,
+    fragmentShader: SUN_BILLBOARD_FRAG,
+    uniforms,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const matEarth = new THREE.ShaderMaterial({
+    vertexShader: SUN_BILLBOARD_VERT,
+    fragmentShader: EARTH_FRAG,
+    uniforms,
+    transparent: true,
+    blending: THREE.NormalBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const sun = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), matSun);
   scene.add(sun);
 
   // dense, phase-uniform stream = smooth and gapless
@@ -249,18 +327,38 @@ export function initSun(canvas) {
     uRail: { value: new THREE.Vector3(1400, 90, 800) },
     uSize: { value: new THREE.Vector2(1440, 900) },
   };
-  const stream = new THREE.Points(
-    geo,
-    new THREE.ShaderMaterial({
-      vertexShader: PARTICLE_VERT,
-      fragmentShader: PARTICLE_FRAG,
-      uniforms: streamUniforms,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    })
-  );
+  const matFireDrops = new THREE.ShaderMaterial({
+    vertexShader: PARTICLE_VERT,
+    fragmentShader: PARTICLE_FRAG,
+    uniforms: streamUniforms,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const matWaterDrops = new THREE.ShaderMaterial({
+    vertexShader: PARTICLE_VERT,
+    fragmentShader: PARTICLE_WATER_FRAG,
+    uniforms: streamUniforms,
+    transparent: true,
+    blending: THREE.NormalBlending,
+    depthWrite: false,
+  });
+  const stream = new THREE.Points(geo, matFireDrops);
   scene.add(stream);
+
+  // element follows the theme: sun+fire in the dark, Earth+water in daylight
+  const isLight = () => document.documentElement.getAttribute('data-theme') === 'light';
+  function applyMode() {
+    const light = isLight();
+    sun.material = light ? matEarth : matSun;
+    stream.material = light ? matWaterDrops : matFireDrops;
+    if (reducedMotion.matches) render(performance.now());
+  }
+  new MutationObserver(applyMode).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
+  // initial applyMode() runs below, after render/reducedMotion exist
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   let raf = 0;
@@ -355,6 +453,7 @@ export function initSun(canvas) {
     if (reducedMotion.matches) render(performance.now());
   });
 
+  applyMode();
   play();
 
   return {

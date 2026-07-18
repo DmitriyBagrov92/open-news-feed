@@ -16,6 +16,7 @@ uniform float u_time;    // seconds since load (flow motion)
 uniform float u_clock;   // UTC time of day, 0..1 (palette phase)
 uniform float u_pulse;   // fresh-news flare at the NOW edge, 0..1
 uniform float u_vert;    // 0 = horizontal band, 1 = vertical rail (NOW on top)
+uniform float u_water;   // 0 = solar plasma (dark theme), 1 = ocean water (light)
 uniform vec2  u_res;
 uniform float u_hist[24]; // news density along the axis, oldest -> now, 0..1
 
@@ -56,13 +57,17 @@ void main() {
           + 0.5 * sin(p.x * 2.3 - t * 1.7 * churn);
   float s = v * 0.2 + 0.5;
 
-  // Solar plasma: ember void -> magma -> solar orange -> white-hot gold.
+  // Two elements, one flow. Dark: solar plasma (ember -> magma -> gold).
+  // Light: ocean water (abyss -> deep blue -> azure -> foam).
   // The palette breathes with the real time of day (u_clock).
   float phase = u_clock * 6.2831853;
-  vec3 c1 = vec3(0.07, 0.02, 0.03);
-  vec3 c2 = vec3(0.45 + 0.05 * sin(phase), 0.12, 0.04);
-  vec3 c3 = vec3(0.93, 0.42 + 0.05 * sin(phase + 1.7), 0.10);
-  vec3 c4 = vec3(1.00, 0.86 + 0.04 * cos(phase), 0.55);
+  vec3 c1 = mix(vec3(0.07, 0.02, 0.03), vec3(0.02, 0.09, 0.18), u_water);
+  vec3 c2 = mix(vec3(0.45 + 0.05 * sin(phase), 0.12, 0.04),
+                vec3(0.04, 0.28 + 0.04 * sin(phase), 0.55), u_water);
+  vec3 c3 = mix(vec3(0.93, 0.42 + 0.05 * sin(phase + 1.7), 0.10),
+                vec3(0.10, 0.55 + 0.05 * sin(phase + 1.7), 0.85), u_water);
+  vec3 c4 = mix(vec3(1.00, 0.86 + 0.04 * cos(phase), 0.55),
+                vec3(0.78, 0.94 + 0.03 * cos(phase), 1.00), u_water);
   vec3 col = mix(c1, c2, smoothstep(0.05, 0.5, s));
   col = mix(col, c3, smoothstep(0.5, 0.78, s));
   col = mix(col, c4, smoothstep(0.8, 1.0, s));
@@ -75,9 +80,10 @@ void main() {
   float vig = smoothstep(0.0, 0.22, cx) * smoothstep(1.0, 0.78, cx);
   col *= energy * (0.35 + 0.65 * vig);
 
-  // hairline NOW cursor at the fresh end of the axis, white-hot
+  // hairline NOW cursor at the fresh end of the axis: white-hot / sea-foam
   float nowLine = smoothstep(0.9955, 0.997, ax) * smoothstep(0.9995, 0.998, ax);
-  col += nowLine * vec3(1.0, 0.88, 0.6) * (0.5 + 0.5 * sin(u_time * 2.2));
+  vec3 nowCol = mix(vec3(1.0, 0.88, 0.6), vec3(0.75, 0.95, 1.0), u_water);
+  col += nowLine * nowCol * (0.5 + 0.5 * sin(u_time * 2.2));
 
   gl_FragColor = vec4(col, 1.0);
 }
@@ -127,9 +133,18 @@ export function initPlasma(canvas, { vertical = false } = {}) {
   const uClock = gl.getUniformLocation(program, 'u_clock');
   const uPulse = gl.getUniformLocation(program, 'u_pulse');
   const uVert = gl.getUniformLocation(program, 'u_vert');
+  const uWater = gl.getUniformLocation(program, 'u_water');
   const uRes = gl.getUniformLocation(program, 'u_res');
   const uHist = gl.getUniformLocation(program, 'u_hist');
   gl.uniform1f(uVert, vertical ? 1 : 0);
+
+  // element follows the theme: fire in the dark, water in daylight
+  const isLight = () => document.documentElement.getAttribute('data-theme') === 'light';
+  let water = isLight() ? 1 : 0;
+  new MutationObserver(() => {
+    water = isLight() ? 1 : 0;
+    if (reducedMotion.matches) draw(performance.now());
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
   // sensible default until the first histogram arrives
   let hist = new Float32Array(24).fill(0.45);
@@ -157,6 +172,7 @@ export function initPlasma(canvas, { vertical = false } = {}) {
     pulseLevel = Math.max(0, pulseLevel - 0.006); // ~6s decay at 60fps
     gl.uniform1f(uTime, (now - start) / 1000);
     gl.uniform1f(uClock, clock);
+    gl.uniform1f(uWater, water);
     gl.uniform1f(uPulse, pulseLevel);
     gl.uniform2f(uRes, canvas.width, canvas.height);
     gl.uniform1fv(uHist, hist);
