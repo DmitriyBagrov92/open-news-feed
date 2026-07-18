@@ -1,0 +1,30 @@
+{
+  "name": "open-news-feed",
+  "version": "1.0.0",
+  "description": "Meridian — an open-source world news feed with live translation and AI briefs. Aggregates dozens of open sources, sorted by freshness.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "verify:feeds": "node scripts/verify-feeds.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "news",
+    "rss",
+    "aggregator",
+    "feed",
+    "open-source"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "compression": "^1.8.0",
+    "express": "^4.21.2",
+    "linkedom": "^0.18.5",
+    "rss-parser": "^3.13.0"
+  }
+}

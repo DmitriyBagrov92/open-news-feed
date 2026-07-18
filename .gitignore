@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Secrets — API keys live here, never commit them
+.env
+.env.*
+!.env.example
+secrets/
+
+# Logs & runtime
+*.log
+npm-debug.log*
+.cache/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
