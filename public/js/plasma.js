@@ -56,13 +56,13 @@ void main() {
           + 0.5 * sin(p.x * 2.3 - t * 1.7 * churn);
   float s = v * 0.2 + 0.5;
 
-  // palette phase drifts with the real time of day (u_clock).
-  // Professional blue family: navy -> royal -> azure -> cyan.
+  // Solar plasma: ember void -> magma -> solar orange -> white-hot gold.
+  // The palette breathes with the real time of day (u_clock).
   float phase = u_clock * 6.2831853;
-  vec3 c1 = vec3(0.02, 0.04, 0.10);
-  vec3 c2 = vec3(0.08 + 0.04 * sin(phase), 0.20, 0.58 + 0.06 * cos(phase));
-  vec3 c3 = vec3(0.14, 0.42 + 0.06 * sin(phase + 1.7), 0.84);
-  vec3 c4 = vec3(0.28 + 0.05 * cos(phase), 0.78, 0.97);
+  vec3 c1 = vec3(0.07, 0.02, 0.03);
+  vec3 c2 = vec3(0.45 + 0.05 * sin(phase), 0.12, 0.04);
+  vec3 c3 = vec3(0.93, 0.42 + 0.05 * sin(phase + 1.7), 0.10);
+  vec3 c4 = vec3(1.00, 0.86 + 0.04 * cos(phase), 0.55);
   vec3 col = mix(c1, c2, smoothstep(0.05, 0.5, s));
   col = mix(col, c3, smoothstep(0.5, 0.78, s));
   col = mix(col, c4, smoothstep(0.8, 1.0, s));
@@ -75,9 +75,9 @@ void main() {
   float vig = smoothstep(0.0, 0.22, cx) * smoothstep(1.0, 0.78, cx);
   col *= energy * (0.35 + 0.65 * vig);
 
-  // hairline NOW cursor at the fresh end of the axis
+  // hairline NOW cursor at the fresh end of the axis, white-hot
   float nowLine = smoothstep(0.9955, 0.997, ax) * smoothstep(0.9995, 0.998, ax);
-  col += nowLine * vec3(0.45, 0.9, 1.0) * (0.5 + 0.5 * sin(u_time * 2.2));
+  col += nowLine * vec3(1.0, 0.88, 0.6) * (0.5 + 0.5 * sin(u_time * 2.2));
 
   gl_FragColor = vec4(col, 1.0);
 }

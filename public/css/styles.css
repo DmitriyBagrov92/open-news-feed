@@ -6,34 +6,38 @@
 
 /* ── 1 · Tokens ─────────────────────────────────────────────────────────── */
 
-/* Deep-space dark is the base theme: calm navy surfaces, steel-blue
-   accents, plasma timescale. Light is the "dawn" variant. */
+/* SOLAR COSMIC is the design: deep space, and the sun as the one source
+   of light. Meridian = solar noon — the wordmark sits on a solar disc and
+   its plasma flows into the right-rail timescale. Amber is the single
+   interactive accent; everything else stays void. A white "daylight"
+   variant remains behind the theme toggle. */
 :root {
   color-scheme: dark;
-  --paper: #070B14;
-  --surface: #0E1524;
-  --ink: #E9EEF6;
-  --ink-2: #8492A8;
-  --accent: #5B8DEF;
-  --glow: #38C6F4;
-  --live: #F45062;
-  --hairline: #1C2536;
-  --hairline-strong: rgb(91 141 239 / 0.45);
+  --paper: #0A0B12;
+  --surface: #12141F;
+  --ink: #F2EFE9;
+  --ink-2: #A29DAD;
+  --accent: #F5A83C;   /* solar amber */
+  --glow: #FFC46B;     /* gold flare */
+  --live: #FF6B4A;     /* solar red */
+  --hairline: #232436;
+  --hairline-strong: rgb(245 168 60 / 0.45);
   /* text on accent fills (buttons, selection) and the new-stories pill —
      tuned per theme to clear WCAG AA on small mono text */
-  --on-accent: #070B14;
-  --pill-bg: #F45062;
-  --pill-fg: #070B14;
+  --on-accent: #140D02;
+  --pill-bg: #F5A83C;
+  --pill-fg: #140D02;
 
-  /* wire strip: deep navy band */
-  --wire-bg: #0A101E;
-  --wire-ink: #9FADC4;
-  --wire-strong: #F2F6FC;
-  --wire-rule: rgb(110 150 240 / 0.20);
+  /* wire strip: void band, warm rule */
+  --wire-bg: #0C0C15;
+  --wire-ink: #A8A2B4;
+  --wire-strong: #F7F3EA;
+  --wire-rule: rgb(255 180 90 / 0.22);
 
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35);
   --shadow-hover: 0 14px 34px rgb(0 0 0 / 0.5);
   --shadow-modal: 0 28px 80px rgb(0 0 0 / 0.65);
-  --scrim: rgb(4 6 12 / 0.68);
+  --scrim: rgb(6 6 10 / 0.7);
 
   --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
   --font-ui: "Archivo", system-ui, -apple-system, sans-serif;
@@ -41,60 +45,34 @@
 
   --wire-h: 36px;
   --pad: clamp(16px, 4vw, 32px);
-  --max-w: 1280px;
-  --radius: 10px;
-}
-
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    color-scheme: light;
-    --paper: #F4F6F9;
-    --surface: #FFFFFF;
-    --ink: #17202C;
-    --ink-2: #5A6474;
-    --accent: #2B5BD7;
-    --glow: #0E8FB5;
-    --live: #C43C50;
-    --hairline: #E1E5EC;
-    --hairline-strong: rgb(43 91 215 / 0.4);
-    --on-accent: #FFFFFF;
-    --pill-bg: #B23349;
-    --pill-fg: #FFFFFF;
-
-    --wire-bg: #0A101E; /* the clocks band stays deep in both themes */
-    --wire-ink: #9FADC4;
-    --wire-strong: #F2F6FC;
-    --wire-rule: rgb(110 150 240 / 0.20);
-
-    --shadow-hover: 0 10px 26px rgb(23 32 44 / 0.12);
-    --shadow-modal: 0 24px 64px rgb(23 32 44 / 0.28);
-    --scrim: rgb(23 32 44 / 0.5);
-  }
+  --max-w: 1360px;
+  --radius: 12px;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --paper: #F4F6F9;
+  --paper: #F7F8FA;
   --surface: #FFFFFF;
-  --ink: #17202C;
-  --ink-2: #5A6474;
-  --accent: #2B5BD7;
-  --glow: #0E8FB5;
-  --live: #C43C50;
-  --hairline: #E1E5EC;
-  --hairline-strong: rgb(43 91 215 / 0.4);
+  --ink: #111927;
+  --ink-2: #5D6675;
+  --accent: #C77208;   /* solar amber, daylight-legible */
+  --glow: #B36105;
+  --live: #D33A4E;
+  --hairline: #E7EAF0;
+  --hairline-strong: rgb(199 114 8 / 0.4);
   --on-accent: #FFFFFF;
-  --pill-bg: #B23349;
+  --pill-bg: #111927;
   --pill-fg: #FFFFFF;
 
-  --wire-bg: #0A101E;
-  --wire-ink: #9FADC4;
-  --wire-strong: #F2F6FC;
-  --wire-rule: rgb(110 150 240 / 0.20);
+  --wire-bg: #0C0C15;
+  --wire-ink: #A8A2B4;
+  --wire-strong: #F7F3EA;
+  --wire-rule: rgb(255 180 90 / 0.22);
 
-  --shadow-hover: 0 10px 26px rgb(23 32 44 / 0.12);
-  --shadow-modal: 0 24px 64px rgb(23 32 44 / 0.28);
-  --scrim: rgb(23 32 44 / 0.5);
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04);
+  --shadow-hover: 0 12px 28px rgb(16 24 40 / 0.10);
+  --shadow-modal: 0 24px 64px rgb(16 24 40 / 0.24);
+  --scrim: rgb(17 25 39 / 0.46);
 }
 
 /* ── 2 · Base ───────────────────────────────────────────────────────────── */
@@ -115,8 +93,8 @@ body {
   overflow-x: hidden;
 }
 
-/* Cosmic atmosphere: two faint nebula glows breathing at the page edges
-   (base/dark theme only — the dawn variant stays clean paper). */
+/* Cosmic atmosphere: a faint solar corona bleeding from the logo corner
+   and an ember glow at the far edge. Daylight theme stays clean paper. */
 body::before {
   content: "";
   position: fixed;
@@ -124,11 +102,8 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(46vw 34vh at 82% -6%, rgb(50 100 230 / 0.10), transparent 68%),
-    radial-gradient(38vw 30vh at 8% 104%, rgb(30 150 210 / 0.07), transparent 70%);
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) body::before { content: none; }
+    radial-gradient(40vw 30vh at 12% -4%, rgb(255 150 40 / 0.12), transparent 65%),
+    radial-gradient(34vw 40vh at 103% 50%, rgb(255 120 50 / 0.07), transparent 70%);
 }
 :root[data-theme="light"] body::before { content: none; }
 
@@ -201,7 +176,7 @@ a:hover { text-decoration: underline; }
   top: 0;
   z-index: 50;
   height: var(--wire-h);
-  background: linear-gradient(100deg, #0A101E, #101B36 34%, #14264E 55%, #0E1830 78%, #0A101E);
+  background: linear-gradient(100deg, #0C0C15, #1C1020 34%, #2A1418 55%, #170F1B 78%, #0C0C15);
   color: var(--wire-ink);
   border-bottom: 1px solid var(--wire-rule);
   overflow: hidden;
@@ -235,7 +210,8 @@ a:hover { text-decoration: underline; }
    cursor mirrors the scroll position; click/drag seeks the feed. */
 .timescale {
   position: fixed;
-  top: calc(var(--wire-h) + 118px);
+  /* top reaches up to meet the plasma stream flowing from the logo */
+  top: calc(var(--wire-h) + 52px);
   bottom: 26px;
   right: 12px;
   width: 56px;
@@ -256,8 +232,8 @@ a:hover { text-decoration: underline; }
   display: block;
   border-radius: 7px;
   /* fallback when WebGL is unavailable */
-  background: linear-gradient(180deg, #14264E, #1B3B7A 40%, #10214A 75%, #0A101E);
-  box-shadow: 0 0 0 1px rgb(110 150 240 / 0.18), 0 0 18px rgb(56 198 244 / 0.10);
+  background: linear-gradient(180deg, #E86A1A, #7A2D0E 45%, #3A1408 80%, #170A05);
+  box-shadow: 0 0 0 1px rgb(255 180 90 / 0.20), 0 0 18px rgb(255 196 107 / 0.10);
 }
 
 .timescale-end {
@@ -287,7 +263,7 @@ a:hover { text-decoration: underline; }
   height: 2px;
   background: var(--glow);
   border-radius: 1px;
-  box-shadow: 0 0 8px rgb(56 198 244 / 0.75);
+  box-shadow: 0 0 8px rgb(255 196 107 / 0.75);
   pointer-events: none;
   transition: top 0.12s linear;
 }
@@ -372,7 +348,32 @@ a:hover { text-decoration: underline; }
 }
 .wordmark:hover { text-decoration: none; }
 
-/* The meridian: a thin plasma rule bisecting the wordmark top-to-bottom. */
+/* The sun behind the wordmark: a breathing solar disc. */
+.wordmark::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150px;
+  height: 150px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgb(255 220 140 / 0.34) 0%,
+    rgb(255 160 60 / 0.20) 34%,
+    rgb(230 90 30 / 0.09) 58%,
+    transparent 72%);
+  pointer-events: none;
+  z-index: -1;
+  animation: sun-breathe 7s ease-in-out infinite;
+}
+@keyframes sun-breathe {
+  0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 1; transform: translate(-50%, -50%) scale(1.12); }
+}
+:root[data-theme="light"] .wordmark::before { opacity: 0.55; }
+
+/* The meridian: a thin solar rule bisecting the wordmark top-to-bottom. */
 .wordmark::after {
   content: "";
   position: absolute;
@@ -381,7 +382,30 @@ a:hover { text-decoration: underline; }
   bottom: -6px;
   width: 1.5px;
   background: linear-gradient(180deg, var(--glow), var(--accent));
-  box-shadow: 0 0 8px rgb(56 198 244 / 0.45);
+  box-shadow: 0 0 8px rgb(255 196 107 / 0.55);
+}
+
+/* Solar plasma stream: from the wordmark's sun to the right-rail timescale.
+   Fades in from the logo and out into the rail via a mask. */
+.plasma-stream {
+  position: absolute;
+  left: calc(var(--pad) + 150px);
+  /* canvas is a replaced element: left+right would collapse to intrinsic
+     size — the width must be explicit */
+  width: calc(100% - var(--pad) - 150px - 40px);
+  top: 50%;
+  transform: translateY(-50%);
+  height: 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  /* fallback when WebGL is unavailable */
+  background: linear-gradient(90deg, #7A2D0E, #E86A1A 45%, #7A2D0E);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 92%, transparent);
+  opacity: 0.85;
+}
+@media (max-width: 899px) {
+  .plasma-stream { display: none; } /* the rail it feeds is hidden too */
 }
 
 .masthead-controls {
@@ -403,12 +427,8 @@ a:hover { text-decoration: underline; }
 .icon-btn:hover { color: var(--accent); background: var(--surface); }
 .icon-btn svg { width: 20px; height: 20px; }
 
-/* theme toggle: show sun in (default) cosmic dark, moon in light */
+/* theme toggle: sun on the (default) solar-cosmic theme, moon on daylight */
 .icon-moon { display: none; }
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .icon-moon { display: block; }
-  :root:not([data-theme="dark"]) .icon-sun { display: none; }
-}
 :root[data-theme="light"] .icon-moon { display: block; }
 :root[data-theme="light"] .icon-sun { display: none; }
 
@@ -657,7 +677,19 @@ a:hover { text-decoration: underline; }
   /* entrance handled by Motion (js/motion.js) */
 }
 .pill[hidden] { display: none; }
-.pill:hover { filter: brightness(1.07); }
+.pill:hover { filter: brightness(1.12); }
+/* live dot inside the pill — the red is a signal, not a background */
+.pill::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--live);
+  vertical-align: 1px;
+  animation: pulse 1.6s ease-in-out infinite;
+}
 
 /* freshly loaded cards glow briefly so the eye finds them without any
    scroll movement */
@@ -665,7 +697,7 @@ a:hover { text-decoration: underline; }
   animation: fresh-glow 3.5s ease-out forwards;
 }
 @keyframes fresh-glow {
-  0% { box-shadow: 0 0 0 1.5px var(--glow), 0 0 22px rgb(56 198 244 / 0.35); }
+  0% { box-shadow: 0 0 0 1.5px var(--glow), 0 0 22px rgb(255 196 107 / 0.35); }
   100% { box-shadow: 0 0 0 0 transparent; }
 }
 
@@ -711,11 +743,36 @@ a:hover { text-decoration: underline; }
   padding: 20px var(--pad) 40px;
 }
 
+/* Dynamic mosaic: card shapes follow their content (hero 2x2, wide 2x1,
+   std, compact text) and dense flow packs the maximum onto each screen. */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
   grid-auto-flow: dense;
-  gap: 18px;
+  gap: 14px;
+}
+
+/* text cards: no media, tight — a solar top-rule keeps them on-theme */
+.card--text {
+  border-top: 2px solid rgb(245 168 60 / 0.55);
+}
+.card--text .card-body { gap: 7px; padding: 12px 14px 11px; }
+.card--text .card-title { font-size: 1rem; -webkit-line-clamp: 4; }
+.card--text .card-desc { font-size: 0.84rem; -webkit-line-clamp: 2; }
+
+@media (min-width: 700px) {
+  /* wide cards: image beside text, double column.
+     .card.card--wide outranks the later .card{flex-direction:column} */
+  .card.card--wide { grid-column: span 2; flex-direction: row; }
+  .card--wide .card-media {
+    width: 44%;
+    flex: none;
+    aspect-ratio: auto;
+    min-height: 100%;
+  }
+  .card--wide .card-media img { height: 100%; object-fit: cover; }
+  .card--wide .card-body { flex: 1; min-width: 0; }
+  .card--wide .card-title { font-size: 1.16rem; }
 }
 
 .sentinel { height: 2px; }
@@ -730,6 +787,7 @@ a:hover { text-decoration: underline; }
   border-radius: var(--radius);
   overflow: hidden;
   cursor: pointer;
+  box-shadow: var(--shadow-card);
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   animation: card-in 0.3s ease backwards;
 }
@@ -775,10 +833,11 @@ a:hover { text-decoration: underline; }
   display: flex;
   align-items: center;
   justify-content: center;
+  /* solar duotone: hues constrained to the ember→gold range in cards.js */
   background: linear-gradient(
     135deg,
-    hsl(var(--tile-hue, 215) 38% 52%),
-    hsl(calc(var(--tile-hue, 215) + 45) 42% 30%)
+    hsl(var(--tile-hue, 30) 62% 46%),
+    hsl(calc(var(--tile-hue, 30) - 16) 68% 22%)
   );
 }
 .tile-letter {
@@ -794,8 +853,8 @@ a:hover { text-decoration: underline; }
 .card-body {
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  padding: 14px 16px 13px;
+  gap: 8px;
+  padding: 12px 14px 12px;
   flex: 1;
 }
 
@@ -846,11 +905,11 @@ a:hover { text-decoration: underline; }
 }
 
 .card-desc {
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: 0.87rem;
+  line-height: 1.48;
   color: var(--ink-2);
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -864,7 +923,8 @@ a:hover { text-decoration: underline; }
   padding-top: 4px;
 }
 
-.card-cat { color: var(--accent); }
+.card-cat { color: var(--ink-2); }
+.card:hover .card-cat { color: var(--accent); }
 
 .card-actions { display: flex; align-items: center; gap: 2px; }
 .card-actions .icon-btn { width: 32px; height: 32px; }

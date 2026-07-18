@@ -14,7 +14,7 @@ import { openPreview } from './modal.js';
 import { summarize, translateTexts, warmTranslator, providerLabel, toBullets } from './ai.js';
 
 const PAGE_SIZE = 30;
-const POLL_MS = 45000; // fresh news should surface fast
+const POLL_MS = 30000; // conditional requests are ~200 bytes when quiet
 const TIME_REFRESH_MS = 30000;
 const CATEGORIES = ['all', 'world', 'business', 'technology', 'science', 'sports', 'culture', 'health', 'saved'];
 
@@ -37,7 +37,6 @@ const state = {
   ids: new Set(),
   articles: [],
   newestAt: null,     // publishedAt of the newest article shown in the feed
-  globalLatestId: null,
   pending: [],        // new stories waiting behind the pill
 };
 
@@ -59,8 +58,8 @@ function applyTheme() {
 }
 
 function effectiveTheme() {
-  if (prefs.theme === 'light' || prefs.theme === 'dark') return prefs.theme;
-  return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  // solar cosmic is the design default; daylight is an explicit choice
+  return prefs.theme === 'light' ? 'light' : 'dark';
 }
 
 /* ── Feed query ─────────────────────────────────────────────────────────── */
@@ -111,10 +110,20 @@ const cardHandlers = {
   },
 };
 
-function makeCard(article, hero) {
-  const card = buildCard(article, { hero, saved: isSaved(article.id), ...cardHandlers });
+function makeCard(article, variant) {
+  const card = buildCard(article, { variant, saved: isSaved(article.id), ...cardHandlers });
   viewportObserver.observe(card);
   return card;
+}
+
+// Mosaic variant assignment: the card's shape follows its content.
+// No image → compact text card (packs tight); every ~7th image card goes
+// wide for rhythm; index 0 of a fresh page is the hero.
+function variantFor(article, index, withHero) {
+  if (withHero && index === 0 && article.image) return 'hero';
+  if (!article.image) return 'text';
+  if (index % 7 === 3) return 'wide';
+  return 'std';
 }
 
 function clearGrid() {
@@ -160,7 +169,7 @@ function appendArticles(list, withHero = false) {
     state.ids.add(article.id);
     state.articles.push(article);
     articleById.set(article.id, article);
-    const card = makeCard(article, withHero && i === 0 && Boolean(article.image));
+    const card = makeCard(article, variantFor(article, i, withHero));
     added.push(card);
     frag.append(card);
   });
@@ -176,7 +185,7 @@ function prependArticles(list) {
   for (const article of fresh) {
     state.ids.add(article.id);
     articleById.set(article.id, article);
-    const card = makeCard(article, false);
+    const card = makeCard(article, article.image ? 'std' : 'text');
     card.classList.add('card--fresh');
     card.addEventListener('animationend', () => card.classList.remove('card--fresh'), { once: true });
     frag.append(card);
@@ -250,7 +259,6 @@ async function loadFeed({ reset = false } = {}) {
     if (reset) {
       // articles are sorted publishedAt DESC by contract
       state.newestAt = res.articles[0]?.publishedAt || null;
-      state.globalLatestId = state.globalLatestId || res.latestId;
     }
     if (!grid.querySelector('.card:not(.card--skeleton)')) {
       showEmpty(state.q ? 'search' : 'feed');
@@ -309,23 +317,27 @@ sentinelObserver.observe(sentinel);
 
 /* ── New-stories polling ────────────────────────────────────────────────── */
 
+// Optimized client-side polling: ONE conditional request against the current
+// view — `since=<newest visible>` with the active filters. Nothing new means
+// a ~200-byte empty response. Runs on a timeout chain (not setInterval),
+// sleeps while the tab is hidden and fires immediately on return.
+let pollTimer = null;
+
 async function pollNew() {
   if (document.hidden || !navigator.onLine) return;
+  if (state.category === 'saved' || !state.newestAt || state.loading) return;
   try {
-    const res = await api.news({ pageSize: 1 });
-    if (!state.globalLatestId) {
-      state.globalLatestId = res.latestId;
-      return;
-    }
-    if (res.latestId === state.globalLatestId) return;
-    state.globalLatestId = res.latestId;
-    plasma.pulse(); // flare the NOW edge of the timeline
-    if (state.category === 'saved' || !state.newestAt) return;
-    const delta = await api.news(buildParams({ since: state.newestAt, pageSize: 100 }));
-    const fresh = visibleArticles(delta.articles).filter((a) => !state.ids.has(a.id));
+    const res = await api.news(buildParams({ since: state.newestAt, pageSize: 100 }));
+    const known = new Set(state.pending.map((a) => a.id));
+    const fresh = visibleArticles(res.articles).filter(
+      (a) => !state.ids.has(a.id) && !known.has(a.id)
+    );
     if (!fresh.length) return;
-    state.pending = fresh;
-    const label = fresh.length === 1 ? t('feed.newStory') : t('feed.newStories', { n: fresh.length });
+    // newest first; merge ahead of anything already buffered
+    state.pending = [...fresh, ...state.pending];
+    plasma.pulse(); // flare the NOW edge of the timescale
+    const n = state.pending.length;
+    const label = n === 1 ? t('feed.newStory') : t('feed.newStories', { n });
     newPill.textContent = label + ' — ' + t('feed.load');
     const wasHidden = newPill.hidden;
     newPill.hidden = false;
@@ -333,6 +345,14 @@ async function pollNew() {
   } catch {
     /* polling is best-effort */
   }
+}
+
+function schedulePoll(delay = POLL_MS) {
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(async () => {
+    await pollNew();
+    schedulePoll();
+  }, delay);
 }
 
 // LOAD button: inserts the buffered stories with no scroll jump — anchored
@@ -738,6 +758,16 @@ function boot() {
   initTheme();
   initWireClocks(document.querySelector('.wire'));
   plasma = initPlasma(document.getElementById('plasma'), { vertical: true });
+  // the stream from the logo to the rail shares the solar shader
+  const stream = initPlasma(document.getElementById('plasmaStream'));
+  const railOnly = plasma;
+  plasma = {
+    setHistogram: (h) => railOnly.setHistogram(h),
+    pulse: () => {
+      railOnly.pulse();
+      stream.pulse();
+    },
+  };
   timescale = initTimescale({
     container: $('#timescale'),
     ticksEl: $('#timescaleTicks'),
@@ -766,8 +796,12 @@ function boot() {
   else loadFeed({ reset: true });
 
   loadSources();
-  pollNew(); // primes globalLatestId
-  setInterval(pollNew, POLL_MS);
+  schedulePoll();
+  // returning to the tab: check for news immediately instead of waiting
+  // out the interval (polls are skipped entirely while hidden)
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) schedulePoll(1500);
+  });
   setInterval(() => refreshTimes(), TIME_REFRESH_MS);
 }
 

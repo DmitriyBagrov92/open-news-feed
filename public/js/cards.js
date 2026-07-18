@@ -4,11 +4,12 @@ import { el, icon, iconButton } from './dom.js';
 import { t, catLabel } from './i18n.js';
 import { relTime, freshness } from './time.js';
 
-// Stable hue (0–359) from a source id, for the image-fallback duotone.
+// Stable hue from a source id, constrained to the solar ember→gold range
+// (12°–48°) so every fallback tile belongs to the cosmic palette.
 export function hashHue(str) {
   let h = 0;
   for (let i = 0; i < str.length; i += 1) h = (h * 31 + str.charCodeAt(i)) % 360;
-  return h;
+  return 12 + (h % 37);
 }
 
 export function fallbackTile(source) {
@@ -53,9 +54,12 @@ export function buildMedia(article, className, { minWidth = 0 } = {}) {
 }
 
 // handlers: { onOpen(article), onToggleSave(article, btn), onTranslate(article, card) }
-export function buildCard(article, { hero = false, saved = false, onOpen, onToggleSave, onTranslate } = {}) {
+// variant: 'hero' (2x2 lead) | 'wide' (2-col, image beside text) |
+//          'std' (image on top) | 'text' (no image — compact, mediaLESS)
+export function buildCard(article, { variant = 'std', saved = false, onOpen, onToggleSave, onTranslate } = {}) {
+  const hero = variant === 'hero';
   const card = el('article', {
-    class: 'card' + (hero ? ' card--hero' : ''),
+    class: 'card card--' + variant,
     tabindex: '0',
     // Conveys to AT that Enter/Space opens the preview (wired below).
     role: 'button',
@@ -63,7 +67,11 @@ export function buildCard(article, { hero = false, saved = false, onOpen, onTogg
     'aria-label': t('card.preview', { title: article.title }),
   });
 
-  card.append(buildMedia(article, 'card-media', { minWidth: hero ? 620 : 0 }));
+  // text cards skip media entirely — the mosaic packs more of them per
+  // screen; their solar top-rule (CSS) keeps them on-theme
+  if (variant !== 'text') {
+    card.append(buildMedia(article, 'card-media', { minWidth: hero ? 620 : 0 }));
+  }
 
   const meta = el('div', { class: 'card-meta mono' });
   meta.append(
