@@ -30,6 +30,10 @@ export function buildMedia(article, className, { minWidth = 0 } = {}) {
       decoding: 'async',
     });
     img.addEventListener('error', () => img.replaceWith(fallbackTile(article.source)), { once: true });
+    // fade in once decoded (cached images may be complete before append)
+    const reveal = () => img.classList.add('is-loaded');
+    if (img.complete && img.naturalWidth) reveal();
+    else img.addEventListener('load', reveal, { once: true });
     if (minWidth > 0) {
       img.addEventListener(
         'load',

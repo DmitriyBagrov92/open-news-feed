@@ -6,33 +6,34 @@
 
 /* ── 1 · Tokens ─────────────────────────────────────────────────────────── */
 
-/* Cosmic dark is the base theme: deep-space void, nebula-violet accents,
-   plasma timeline. Light is the "dawn" variant. */
+/* Deep-space dark is the base theme: calm navy surfaces, steel-blue
+   accents, plasma timescale. Light is the "dawn" variant. */
 :root {
   color-scheme: dark;
-  --paper: #05070F;
-  --surface: #0C1120;
-  --ink: #EAEEFF;
-  --ink-2: #7E8BAD;
-  --accent: #8B7CFF;
-  --glow: #3EE8FF;
-  --live: #FF4D6D;
-  --hairline: #1D2440;
+  --paper: #070B14;
+  --surface: #0E1524;
+  --ink: #E9EEF6;
+  --ink-2: #8492A8;
+  --accent: #5B8DEF;
+  --glow: #38C6F4;
+  --live: #F45062;
+  --hairline: #1C2536;
+  --hairline-strong: rgb(91 141 239 / 0.45);
   /* text on accent fills (buttons, selection) and the new-stories pill —
      tuned per theme to clear WCAG AA on small mono text */
-  --on-accent: #05070F;
-  --pill-bg: #FF4D6D;
-  --pill-fg: #05070F;
+  --on-accent: #070B14;
+  --pill-bg: #F45062;
+  --pill-fg: #070B14;
 
-  /* wire strip: plasma canvas behind, deep fallback gradient beneath it */
-  --wire-bg: #0A0620;
-  --wire-ink: #A9B4D6;
-  --wire-strong: #F4F6FF;
-  --wire-rule: rgb(140 130 255 / 0.22);
+  /* wire strip: deep navy band */
+  --wire-bg: #0A101E;
+  --wire-ink: #9FADC4;
+  --wire-strong: #F2F6FC;
+  --wire-rule: rgb(110 150 240 / 0.20);
 
-  --shadow-hover: 0 0 0 1px rgb(139 124 255 / 0.35), 0 14px 36px rgb(0 0 0 / 0.55);
-  --shadow-modal: 0 0 0 1px rgb(139 124 255 / 0.22), 0 28px 80px rgb(0 0 0 / 0.7);
-  --scrim: rgb(3 4 10 / 0.68);
+  --shadow-hover: 0 14px 34px rgb(0 0 0 / 0.5);
+  --shadow-modal: 0 28px 80px rgb(0 0 0 / 0.65);
+  --scrim: rgb(4 6 12 / 0.68);
 
   --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
   --font-ui: "Archivo", system-ui, -apple-system, sans-serif;
@@ -47,51 +48,53 @@
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     color-scheme: light;
-    --paper: #EEF1FA;
+    --paper: #F4F6F9;
     --surface: #FFFFFF;
-    --ink: #10142B;
-    --ink-2: #575F7E;
-    --accent: #4A3DF0;
-    --glow: #0FA8C9;
-    --live: #E0335C;
-    --hairline: #D8DCEC;
+    --ink: #17202C;
+    --ink-2: #5A6474;
+    --accent: #2B5BD7;
+    --glow: #0E8FB5;
+    --live: #C43C50;
+    --hairline: #E1E5EC;
+    --hairline-strong: rgb(43 91 215 / 0.4);
     --on-accent: #FFFFFF;
-    --pill-bg: #BB2649;
+    --pill-bg: #B23349;
     --pill-fg: #FFFFFF;
 
-    --wire-bg: #0A0620; /* the plasma band stays cosmic in both themes */
-    --wire-ink: #A9B4D6;
-    --wire-strong: #F4F6FF;
-    --wire-rule: rgb(140 130 255 / 0.22);
+    --wire-bg: #0A101E; /* the clocks band stays deep in both themes */
+    --wire-ink: #9FADC4;
+    --wire-strong: #F2F6FC;
+    --wire-rule: rgb(110 150 240 / 0.20);
 
-    --shadow-hover: 0 10px 28px rgb(16 20 43 / 0.14);
-    --shadow-modal: 0 24px 64px rgb(16 20 43 / 0.3);
-    --scrim: rgb(16 20 43 / 0.5);
+    --shadow-hover: 0 10px 26px rgb(23 32 44 / 0.12);
+    --shadow-modal: 0 24px 64px rgb(23 32 44 / 0.28);
+    --scrim: rgb(23 32 44 / 0.5);
   }
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --paper: #EEF1FA;
+  --paper: #F4F6F9;
   --surface: #FFFFFF;
-  --ink: #10142B;
-  --ink-2: #575F7E;
-  --accent: #4A3DF0;
-  --glow: #0FA8C9;
-  --live: #E0335C;
-  --hairline: #D8DCEC;
+  --ink: #17202C;
+  --ink-2: #5A6474;
+  --accent: #2B5BD7;
+  --glow: #0E8FB5;
+  --live: #C43C50;
+  --hairline: #E1E5EC;
+  --hairline-strong: rgb(43 91 215 / 0.4);
   --on-accent: #FFFFFF;
-  --pill-bg: #BB2649;
+  --pill-bg: #B23349;
   --pill-fg: #FFFFFF;
 
-  --wire-bg: #0A0620;
-  --wire-ink: #A9B4D6;
-  --wire-strong: #F4F6FF;
-  --wire-rule: rgb(140 130 255 / 0.22);
+  --wire-bg: #0A101E;
+  --wire-ink: #9FADC4;
+  --wire-strong: #F2F6FC;
+  --wire-rule: rgb(110 150 240 / 0.20);
 
-  --shadow-hover: 0 10px 28px rgb(16 20 43 / 0.14);
-  --shadow-modal: 0 24px 64px rgb(16 20 43 / 0.3);
-  --scrim: rgb(16 20 43 / 0.5);
+  --shadow-hover: 0 10px 26px rgb(23 32 44 / 0.12);
+  --shadow-modal: 0 24px 64px rgb(23 32 44 / 0.28);
+  --scrim: rgb(23 32 44 / 0.5);
 }
 
 /* ── 2 · Base ───────────────────────────────────────────────────────────── */
@@ -121,8 +124,8 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(46vw 34vh at 82% -6%, rgb(88 60 220 / 0.16), transparent 68%),
-    radial-gradient(38vw 30vh at 8% 104%, rgb(28 160 220 / 0.10), transparent 70%);
+    radial-gradient(46vw 34vh at 82% -6%, rgb(50 100 230 / 0.10), transparent 68%),
+    radial-gradient(38vw 30vh at 8% 104%, rgb(30 150 210 / 0.07), transparent 70%);
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) body::before { content: none; }
@@ -198,8 +201,7 @@ a:hover { text-decoration: underline; }
   top: 0;
   z-index: 50;
   height: var(--wire-h);
-  /* static cosmic gradient — the visible state when WebGL is unavailable */
-  background: linear-gradient(100deg, #0A0620, #241250 30%, #3A1160 52%, #10265A 74%, #0A0620);
+  background: linear-gradient(100deg, #0A101E, #101B36 34%, #14264E 55%, #0E1830 78%, #0A101E);
   color: var(--wire-ink);
   border-bottom: 1px solid var(--wire-rule);
   overflow: hidden;
@@ -254,8 +256,8 @@ a:hover { text-decoration: underline; }
   display: block;
   border-radius: 7px;
   /* fallback when WebGL is unavailable */
-  background: linear-gradient(180deg, #10265A, #3A1160 40%, #241250 75%, #0A0620);
-  box-shadow: 0 0 0 1px rgb(140 130 255 / 0.18), 0 0 18px rgb(62 232 255 / 0.10);
+  background: linear-gradient(180deg, #14264E, #1B3B7A 40%, #10214A 75%, #0A101E);
+  box-shadow: 0 0 0 1px rgb(110 150 240 / 0.18), 0 0 18px rgb(56 198 244 / 0.10);
 }
 
 .timescale-end {
@@ -285,7 +287,7 @@ a:hover { text-decoration: underline; }
   height: 2px;
   background: var(--glow);
   border-radius: 1px;
-  box-shadow: 0 0 8px rgb(62 232 255 / 0.75);
+  box-shadow: 0 0 8px rgb(56 198 244 / 0.75);
   pointer-events: none;
   transition: top 0.12s linear;
 }
@@ -379,7 +381,7 @@ a:hover { text-decoration: underline; }
   bottom: -6px;
   width: 1.5px;
   background: linear-gradient(180deg, var(--glow), var(--accent));
-  box-shadow: 0 0 8px rgb(62 232 255 / 0.45);
+  box-shadow: 0 0 8px rgb(56 198 244 / 0.45);
 }
 
 .masthead-controls {
@@ -515,6 +517,7 @@ a:hover { text-decoration: underline; }
   border-bottom: 2px solid transparent;
   white-space: nowrap;
   flex: none;
+  transition: color 0.18s ease, border-color 0.18s ease;
 }
 .tab:hover { color: var(--ink); }
 .tab[aria-current="true"] {
@@ -662,7 +665,7 @@ a:hover { text-decoration: underline; }
   animation: fresh-glow 3.5s ease-out forwards;
 }
 @keyframes fresh-glow {
-  0% { box-shadow: 0 0 0 1.5px var(--glow), 0 0 22px rgb(62 232 255 / 0.35); }
+  0% { box-shadow: 0 0 0 1.5px var(--glow), 0 0 22px rgb(56 198 244 / 0.35); }
   100% { box-shadow: 0 0 0 0 transparent; }
 }
 
@@ -710,9 +713,9 @@ a:hover { text-decoration: underline; }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   grid-auto-flow: dense;
-  gap: 16px;
+  gap: 18px;
 }
 
 .sentinel { height: 2px; }
@@ -731,10 +734,21 @@ a:hover { text-decoration: underline; }
   animation: card-in 0.3s ease backwards;
 }
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  border-color: var(--hairline-strong);
   box-shadow: var(--shadow-hover);
 }
 .card:hover .card-title { color: var(--accent); }
+
+/* photos fade in once decoded instead of popping */
+.card-media img {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.card-media img.is-loaded { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .card-media img { opacity: 1; transition: none; }
+}
 
 @keyframes card-in {
   from { opacity: 0; transform: translateY(6px); }
@@ -864,8 +878,8 @@ a:hover { text-decoration: underline; }
 
 /* Hero card */
 @media (min-width: 900px) {
-  /* hero: double width, single row — images are never upscaled into a
-     blurry 2x2 wall; a small-source image demotes to the duotone tile */
+  /* hero: double width; small-source images demote to the duotone tile,
+     so no photo is ever upscaled into blur */
   .card--hero { grid-column: span 2; }
   .card--hero .card-media { aspect-ratio: 21 / 9; }
   .card--hero .card-body { gap: 11px; padding: 18px 22px 17px; }
@@ -876,6 +890,15 @@ a:hover { text-decoration: underline; }
   }
   .card--hero .card-desc { -webkit-line-clamp: 2; font-size: 0.95rem; }
   .card--hero .tile-letter { font-size: clamp(4rem, 9vw, 6rem); }
+}
+
+@media (min-width: 1100px) {
+  /* full editorial lead: 2x2 with a taller image and roomier text
+     (og:image enrichment supplies real high-res photos) */
+  .card--hero { grid-row: span 2; }
+  .card--hero .card-media { aspect-ratio: 16 / 10; }
+  .card--hero .card-title { font-size: clamp(1.7rem, 2.2vw, 2.15rem); }
+  .card--hero .card-desc { -webkit-line-clamp: 3; font-size: 0.98rem; }
 }
 
 /* ── 10 · Skeletons ─────────────────────────────────────────────────────── */

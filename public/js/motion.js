@@ -10,16 +10,21 @@ function lib() {
 
 export const EASE_OUT = [0.22, 1, 0.36, 1];
 
-// Staggered entrance for a batch of cards.
+// Staggered entrance for a batch of cards. Only the first screenful gets
+// the stagger — a 30-card tail of delays reads as lag, not polish.
 export function animateIn(elements) {
   const m = lib();
   const list = [...elements];
   if (!m || !list.length) return;
+  const staggered = list.slice(0, 12);
   m.animate(
-    list,
-    { opacity: [0, 1], transform: ['translateY(14px)', 'translateY(0)'] },
-    { duration: 0.5, delay: m.stagger(0.045, { startDelay: 0.02 }), ease: EASE_OUT }
+    staggered,
+    { opacity: [0, 1], transform: ['translateY(12px)', 'translateY(0)'] },
+    { duration: 0.45, delay: m.stagger(0.04, { startDelay: 0.02 }), ease: EASE_OUT }
   );
+  if (list.length > 12) {
+    m.animate(list.slice(12), { opacity: [0, 1] }, { duration: 0.3, ease: 'easeOut' });
+  }
 }
 
 // Dialog / drawer entrance.

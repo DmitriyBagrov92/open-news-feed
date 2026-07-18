@@ -56,12 +56,13 @@ void main() {
           + 0.5 * sin(p.x * 2.3 - t * 1.7 * churn);
   float s = v * 0.2 + 0.5;
 
-  // palette phase drifts with the real time of day (u_clock)
+  // palette phase drifts with the real time of day (u_clock).
+  // Professional blue family: navy -> royal -> azure -> cyan.
   float phase = u_clock * 6.2831853;
-  vec3 c1 = vec3(0.04, 0.02, 0.12);
-  vec3 c2 = vec3(0.30 + 0.10 * sin(phase), 0.13, 0.70 + 0.08 * cos(phase));
-  vec3 c3 = vec3(0.80, 0.16 + 0.08 * sin(phase + 1.7), 0.55);
-  vec3 c4 = vec3(0.10 + 0.06 * cos(phase), 0.76, 0.96);
+  vec3 c1 = vec3(0.02, 0.04, 0.10);
+  vec3 c2 = vec3(0.08 + 0.04 * sin(phase), 0.20, 0.58 + 0.06 * cos(phase));
+  vec3 c3 = vec3(0.14, 0.42 + 0.06 * sin(phase + 1.7), 0.84);
+  vec3 c4 = vec3(0.28 + 0.05 * cos(phase), 0.78, 0.97);
   vec3 col = mix(c1, c2, smoothstep(0.05, 0.5, s));
   col = mix(col, c3, smoothstep(0.5, 0.78, s));
   col = mix(col, c4, smoothstep(0.8, 1.0, s));
