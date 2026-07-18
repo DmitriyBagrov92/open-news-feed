@@ -56,6 +56,7 @@ const TABLES = {
     // feed
     'feed.newStories': '{n} NEW STORIES',
     'feed.newStory': '1 NEW STORY',
+    'feed.load': 'LOAD',
     'feed.empty': 'Nothing here right now.',
     'feed.emptyHint': 'Sources refresh every few minutes — check back shortly.',
     'feed.emptySearch': 'No stories match “{q}”.',

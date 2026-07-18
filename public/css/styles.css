@@ -38,10 +38,15 @@
   --font-ui: "Archivo", system-ui, -apple-system, sans-serif;
   --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  --wire-h: 36px;
+  /* the plasma timeline band: clocks row + 24h scale */
+  --wire-h: 64px;
   --pad: clamp(16px, 4vw, 32px);
   --max-w: 1280px;
   --radius: 10px;
+}
+
+@media (max-width: 560px) {
+  :root { --wire-h: 54px; }
 }
 
 @media (prefers-color-scheme: light) {
@@ -217,18 +222,51 @@ a:hover { text-decoration: underline; }
 .wire-track {
   position: relative;
   z-index: 1;
-}
-
-.wire-track {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0;
-  height: 100%;
+  height: calc(var(--wire-h) - 22px);
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 4px var(--pad) 0;
+  overflow: hidden;
+}
+
+/* 24h scale row pinned to the bottom of the band */
+.timeline-scale {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  bottom: 3px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   max-width: var(--max-w);
   margin: 0 auto;
   padding: 0 var(--pad);
-  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: var(--wire-ink);
+  opacity: 0.85;
+  text-shadow: 0 1px 5px rgb(4 3 14 / 0.9);
+}
+.timeline-scale .timeline-now {
+  color: var(--wire-strong);
+  font-weight: 600;
+}
+.timeline-scale .timeline-now::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--glow);
+  vertical-align: 1px;
+  animation: pulse 2.2s ease-in-out infinite;
 }
 
 .wire-clock {
@@ -570,6 +608,16 @@ a:hover { text-decoration: underline; }
 }
 .pill[hidden] { display: none; }
 .pill:hover { filter: brightness(1.07); }
+
+/* freshly loaded cards glow briefly so the eye finds them without any
+   scroll movement */
+.card--fresh {
+  animation: fresh-glow 3.5s ease-out forwards;
+}
+@keyframes fresh-glow {
+  0% { box-shadow: 0 0 0 1.5px var(--glow), 0 0 22px rgb(62 232 255 / 0.35); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
 
 @keyframes pill-in {
   from { opacity: 0; transform: translate(-50%, -8px); }

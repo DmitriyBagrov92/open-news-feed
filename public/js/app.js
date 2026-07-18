@@ -6,6 +6,7 @@ import { prefs, setPref, isSaved, toggleSaved } from './prefs.js';
 import { api } from './api.js';
 import { initWireClocks, refreshTimes } from './time.js';
 import { initPlasma } from './plasma.js';
+import { initTimelineScale } from './timeline.js';
 import { animateIn, animatePop, animateReveal } from './motion.js';
 import { toast } from './toast.js';
 import { buildCard, skeletonCard, applyCardText } from './cards.js';
@@ -13,7 +14,7 @@ import { openPreview } from './modal.js';
 import { summarize, translateTexts, warmTranslator, providerLabel, toBullets } from './ai.js';
 
 const PAGE_SIZE = 30;
-const POLL_MS = 90000;
+const POLL_MS = 45000; // fresh news should surface fast
 const TIME_REFRESH_MS = 30000;
 const CATEGORIES = ['all', 'world', 'business', 'technology', 'science', 'sports', 'culture', 'health', 'saved'];
 
@@ -43,6 +44,7 @@ const state = {
 const articleById = new Map();
 const translationCache = new Map(); // "id:lang" → { title, description }
 let translateBroken = false;        // stop retrying auto-translate after a hard failure
+let plasma = { setHistogram() {}, pulse() {} }; // replaced in boot()
 
 /* ── Theme ──────────────────────────────────────────────────────────────── */
 
@@ -172,11 +174,24 @@ function prependArticles(list) {
   for (const article of fresh) {
     state.ids.add(article.id);
     articleById.set(article.id, article);
-    frag.append(makeCard(article, false));
+    const card = makeCard(article, false);
+    card.classList.add('card--fresh');
+    card.addEventListener('animationend', () => card.classList.remove('card--fresh'), { once: true });
+    frag.append(card);
   }
   state.articles = [...fresh, ...state.articles];
   const cards = [...frag.children];
+
+  // Scroll anchoring: inserting above must not move what the reader is
+  // looking at. Anchor on the current first card and compensate exactly.
+  const anchor = grid.querySelector('.card:not(.card--skeleton)');
+  const anchorTop = anchor ? anchor.getBoundingClientRect().top : null;
   grid.prepend(frag);
+  if (anchor && anchorTop !== null && window.scrollY > 80) {
+    const delta = anchor.getBoundingClientRect().top - anchorTop;
+    if (delta) window.scrollBy({ top: delta, left: 0, behavior: 'instant' });
+  }
+
   animateIn(cards);
   state.newestAt = fresh[0].publishedAt;
   hideEmpty();
@@ -294,20 +309,23 @@ sentinelObserver.observe(sentinel);
 async function pollNew() {
   if (document.hidden || !navigator.onLine) return;
   try {
-    const res = await api.news({ pageSize: 1 });
+    // histogram feeds the plasma timeline on every poll
+    const res = await api.news({ pageSize: 1, histogram: 1 });
+    if (res.timeline) plasma.setHistogram(res.timeline);
     if (!state.globalLatestId) {
       state.globalLatestId = res.latestId;
       return;
     }
     if (res.latestId === state.globalLatestId) return;
     state.globalLatestId = res.latestId;
+    plasma.pulse(); // flare the NOW edge of the timeline
     if (state.category === 'saved' || !state.newestAt) return;
     const delta = await api.news(buildParams({ since: state.newestAt, pageSize: 100 }));
     const fresh = visibleArticles(delta.articles).filter((a) => !state.ids.has(a.id));
     if (!fresh.length) return;
     state.pending = fresh;
-    newPill.textContent =
-      fresh.length === 1 ? t('feed.newStory') : t('feed.newStories', { n: fresh.length });
+    const label = fresh.length === 1 ? t('feed.newStory') : t('feed.newStories', { n: fresh.length });
+    newPill.textContent = label + ' — ' + t('feed.load');
     const wasHidden = newPill.hidden;
     newPill.hidden = false;
     if (wasHidden) animatePop(newPill);
@@ -316,14 +334,12 @@ async function pollNew() {
   }
 }
 
+// LOAD button: inserts the buffered stories with no scroll jump — anchored
+// insertion keeps the viewport still; the fresh-glow marks where they landed.
 newPill.addEventListener('click', () => {
   if (state.category !== 'saved') prependArticles(state.pending);
   state.pending = [];
   newPill.hidden = true;
-  window.scrollTo({
-    top: 0,
-    behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-  });
 });
 
 /* ── Card translation (manual + auto) ───────────────────────────────────── */
@@ -720,7 +736,8 @@ function boot() {
   applyI18n();
   initTheme();
   initWireClocks(document.querySelector('.wire'));
-  initPlasma(document.getElementById('plasma'));
+  plasma = initPlasma(document.getElementById('plasma'));
+  initTimelineScale(document.getElementById('timelineScale'));
   initSearch();
   initLangControl();
   initTabs();
