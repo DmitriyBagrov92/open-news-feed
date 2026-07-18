@@ -566,7 +566,7 @@ a:hover { text-decoration: underline; }
   color: var(--pill-fg);
   border-radius: 999px;
   box-shadow: var(--shadow-hover);
-  animation: pill-in 0.25s ease;
+  /* entrance handled by Motion (js/motion.js) */
 }
 .pill[hidden] { display: none; }
 .pill:hover { filter: brightness(1.07); }
@@ -615,9 +615,9 @@ a:hover { text-decoration: underline; }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   grid-auto-flow: dense;
-  gap: 20px;
+  gap: 16px;
 }
 
 .sentinel { height: 2px; }
@@ -769,16 +769,18 @@ a:hover { text-decoration: underline; }
 
 /* Hero card */
 @media (min-width: 900px) {
-  .card--hero { grid-column: span 2; grid-row: span 2; }
-  .card--hero .card-media { aspect-ratio: auto; flex: 1 1 auto; min-height: 250px; }
-  .card--hero .card-body { flex: none; gap: 11px; padding: 18px 22px 17px; }
+  /* hero: double width, single row — images are never upscaled into a
+     blurry 2x2 wall; a small-source image demotes to the duotone tile */
+  .card--hero { grid-column: span 2; }
+  .card--hero .card-media { aspect-ratio: 21 / 9; }
+  .card--hero .card-body { gap: 11px; padding: 18px 22px 17px; }
   .card--hero .card-title {
-    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-size: clamp(1.45rem, 2.4vw, 2rem);
     font-weight: 500;
     line-height: 1.16;
   }
   .card--hero .card-desc { -webkit-line-clamp: 2; font-size: 0.95rem; }
-  .card--hero .tile-letter { font-size: clamp(5rem, 12vw, 8rem); }
+  .card--hero .tile-letter { font-size: clamp(4rem, 9vw, 6rem); }
 }
 
 /* ── 10 · Skeletons ─────────────────────────────────────────────────────── */
@@ -868,7 +870,7 @@ a:hover { text-decoration: underline; }
   background: var(--surface);
   border-radius: 14px;
   box-shadow: var(--shadow-modal);
-  animation: modal-in 0.22s ease;
+  /* entrance handled by Motion (js/motion.js) */
 }
 
 @keyframes modal-in {
@@ -926,9 +928,11 @@ a:hover { text-decoration: underline; }
 
 .modal-title {
   font-family: var(--font-serif);
-  font-size: clamp(1.45rem, 3.4vw, 1.9rem);
-  font-weight: 500;
-  line-height: 1.2;
+  font-size: clamp(1.55rem, 3.6vw, 2.1rem);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  max-width: 26ch;
 }
 
 .modal-actions {
@@ -972,15 +976,26 @@ a:hover { text-decoration: underline; }
   color: var(--ink-2);
 }
 
+/* Article body: proper reading typography — serif, generous leading,
+   bounded measure, a larger lede paragraph. */
 .modal-text {
   display: flex;
   flex-direction: column;
-  gap: 0.9em;
-  font-size: 0.96rem;
-  line-height: 1.62;
+  gap: 1.05em;
+  font-family: var(--font-serif);
+  font-size: 1.08rem;
+  font-weight: 400;
+  line-height: 1.72;
+  letter-spacing: 0.005em;
   color: var(--ink);
+  max-width: 64ch;
 }
 .modal-text p { overflow-wrap: break-word; }
+.modal-text p:first-child {
+  font-size: 1.22rem;
+  line-height: 1.58;
+  font-weight: 500;
+}
 
 .modal-note {
   font-size: 0.83rem;

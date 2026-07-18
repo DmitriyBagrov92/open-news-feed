@@ -16,14 +16,18 @@ uniform vec2 u_res;
 void main() {
   vec2 uv = gl_FragCoord.xy / u_res;
   vec2 p = uv * vec2(7.0, 1.8);
-  float t = u_time * 0.28;
+  float t = u_time * 0.24;
+
+  // gentle domain warp keeps the flow organic instead of stripey
+  p.x += 0.4 * sin(p.y * 1.9 + t * 0.7);
+  p.y += 0.25 * sin(p.x * 1.1 - t * 0.5);
 
   float v = sin(p.x + t)
           + sin((p.y + t) * 1.4)
           + sin((p.x + p.y + t) * 0.6)
           + sin(length(p - vec2(3.5 + sin(t * 0.35) * 2.5, 0.9)) * 2.0 - t)
           + 0.5 * sin(p.x * 2.3 - t * 1.7);
-  float s = v * 0.21 + 0.5;
+  float s = v * 0.2 + 0.5;
 
   // void indigo -> nebula violet -> magenta -> plasma cyan
   vec3 c1 = vec3(0.04, 0.02, 0.12);
@@ -41,7 +45,9 @@ void main() {
 }
 `;
 
-const FPS_INTERVAL = 1000 / 30; // the band is small; 30fps is plenty
+// Full-rate rAF: the plasma must read as continuously alive. The band
+// renders at half resolution, so even 120Hz displays cost almost nothing.
+const FPS_INTERVAL = 0;
 
 function compile(gl, type, source) {
   const shader = gl.createShader(type);

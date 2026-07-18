@@ -20,11 +20,20 @@
     "open-source"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DmitriyBagrov92/open-news-feed.git"
+  },
+  "homepage": "https://github.com/DmitriyBagrov92/open-news-feed#readme",
+  "bugs": {
+    "url": "https://github.com/DmitriyBagrov92/open-news-feed/issues"
+  },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
     "compression": "^1.8.0",
     "express": "^4.21.2",
     "linkedom": "^0.18.5",
+    "motion": "^12.42.2",
     "rss-parser": "^3.13.0"
   }
 }

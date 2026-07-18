@@ -8,6 +8,7 @@ import { toast } from './toast.js';
 import { absTime } from './time.js';
 import { buildMedia } from './cards.js';
 import { summarize, translateTexts, splitSentences, providerLabel, toBullets } from './ai.js';
+import { animateDialog, animateReveal } from './motion.js';
 
 let active = null; // { root, prevFocus, onKeydown }
 
@@ -121,6 +122,7 @@ export function openPreview(article) {
 
   active = { root, prevFocus: document.activeElement, onKeydown };
   document.body.append(root);
+  animateDialog(dialog);
   document.body.style.overflow = 'hidden';
   closeBtn.focus();
 
@@ -182,6 +184,7 @@ export function openPreview(article) {
       for (const line of toBullets(result.summary)) list.append(el('li', { text: line }));
       summaryBox.append(head, list);
       summaryBox.hidden = false;
+      animateReveal(summaryBox);
     } catch {
       toast(t('brief.error'));
     } finally {

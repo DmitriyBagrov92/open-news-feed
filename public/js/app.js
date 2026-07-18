@@ -6,6 +6,7 @@ import { prefs, setPref, isSaved, toggleSaved } from './prefs.js';
 import { api } from './api.js';
 import { initWireClocks, refreshTimes } from './time.js';
 import { initPlasma } from './plasma.js';
+import { animateIn, animatePop, animateReveal } from './motion.js';
 import { toast } from './toast.js';
 import { buildCard, skeletonCard, applyCardText } from './cards.js';
 import { openPreview } from './modal.js';
@@ -150,14 +151,18 @@ function appendArticles(list, withHero = false) {
     }
   }
   const frag = document.createDocumentFragment();
+  const added = [];
   ordered.forEach((article, i) => {
     if (state.ids.has(article.id)) return;
     state.ids.add(article.id);
     state.articles.push(article);
     articleById.set(article.id, article);
-    frag.append(makeCard(article, withHero && i === 0 && Boolean(article.image)));
+    const card = makeCard(article, withHero && i === 0 && Boolean(article.image));
+    added.push(card);
+    frag.append(card);
   });
   grid.append(frag);
+  animateIn(added);
 }
 
 function prependArticles(list) {
@@ -170,7 +175,9 @@ function prependArticles(list) {
     frag.append(makeCard(article, false));
   }
   state.articles = [...fresh, ...state.articles];
+  const cards = [...frag.children];
   grid.prepend(frag);
+  animateIn(cards);
   state.newestAt = fresh[0].publishedAt;
   hideEmpty();
 }
@@ -301,7 +308,9 @@ async function pollNew() {
     state.pending = fresh;
     newPill.textContent =
       fresh.length === 1 ? t('feed.newStory') : t('feed.newStories', { n: fresh.length });
+    const wasHidden = newPill.hidden;
     newPill.hidden = false;
+    if (wasHidden) animatePop(newPill);
   } catch {
     /* polling is best-effort */
   }
@@ -553,6 +562,7 @@ function initBrief() {
       for (const line of toBullets(result.summary, 7)) list.append(el('li', { text: line }));
       panel.append(head, list);
       panel.hidden = false;
+      animateReveal(panel);
     } catch {
       toast(t('brief.error'));
     } finally {

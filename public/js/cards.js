@@ -18,7 +18,9 @@ export function fallbackTile(source) {
   return tile;
 }
 
-export function buildMedia(article, className) {
+// minWidth: demote images too small for their slot to the duotone tile
+// instead of upscaling them into blur (heroes need real resolution).
+export function buildMedia(article, className, { minWidth = 0 } = {}) {
   const media = el('div', { class: className });
   if (article.image) {
     const img = el('img', {
@@ -28,6 +30,17 @@ export function buildMedia(article, className) {
       decoding: 'async',
     });
     img.addEventListener('error', () => img.replaceWith(fallbackTile(article.source)), { once: true });
+    if (minWidth > 0) {
+      img.addEventListener(
+        'load',
+        () => {
+          if (img.naturalWidth && img.naturalWidth < minWidth) {
+            img.replaceWith(fallbackTile(article.source));
+          }
+        },
+        { once: true }
+      );
+    }
     media.append(img);
   } else {
     media.append(fallbackTile(article.source));
@@ -46,7 +59,7 @@ export function buildCard(article, { hero = false, saved = false, onOpen, onTogg
     'aria-label': t('card.preview', { title: article.title }),
   });
 
-  card.append(buildMedia(article, 'card-media'));
+  card.append(buildMedia(article, 'card-media', { minWidth: hero ? 620 : 0 }));
 
   const meta = el('div', { class: 'card-meta mono' });
   meta.append(
