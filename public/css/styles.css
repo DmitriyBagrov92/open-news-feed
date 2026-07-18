@@ -7,6 +7,7 @@
 /* ── 1 · Tokens ─────────────────────────────────────────────────────────── */
 
 :root {
+  color-scheme: light;
   --paper: #F2F4F7;
   --surface: #FFFFFF;
   --ink: #121D2B;
@@ -14,6 +15,11 @@
   --accent: #2547F4;
   --live: #E5484D;
   --hairline: #D9E0E8;
+  /* text on accent fills (buttons, selection) and the new-stories pill —
+     tuned per theme to clear WCAG AA on small mono text */
+  --on-accent: #FFFFFF;
+  --pill-bg: #C22B31;
+  --pill-fg: #FFFFFF;
 
   /* wire strip: inverted ink band in light theme */
   --wire-bg: #121D2B;
@@ -37,6 +43,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --paper: #0B1220;
     --surface: #131C2C;
     --ink: #E8EDF4;
@@ -44,6 +51,9 @@
     --accent: #5B7CFF;
     --live: #FF6369;
     --hairline: #223048;
+    --on-accent: #0B1220;
+    --pill-bg: #FF6369;
+    --pill-fg: #0B1220;
 
     /* wire strip blends with the page in dark */
     --wire-bg: #0B1220;
@@ -58,6 +68,7 @@
 }
 
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --paper: #0B1220;
   --surface: #131C2C;
   --ink: #E8EDF4;
@@ -65,6 +76,9 @@
   --accent: #5B7CFF;
   --live: #FF6369;
   --hairline: #223048;
+  --on-accent: #0B1220;
+  --pill-bg: #FF6369;
+  --pill-fg: #0B1220;
 
   --wire-bg: #0B1220;
   --wire-ink: #8DA0B5;
@@ -115,7 +129,11 @@ a:hover { text-decoration: underline; }
   outline-offset: 2px;
 }
 
-::selection { background: var(--accent); color: #fff; }
+::selection { background: var(--accent); color: var(--on-accent); }
+
+/* Safety net: author display rules (e.g. flex boxes) must never defeat the
+   hidden attribute. */
+[hidden] { display: none !important; }
 
 .sr-only {
   position: absolute;
@@ -426,7 +444,7 @@ a:hover { text-decoration: underline; }
   white-space: nowrap;
   flex: none;
 }
-.btn:hover { background: var(--accent); color: #fff; }
+.btn:hover { background: var(--accent); color: var(--on-accent); }
 .btn:disabled { opacity: 0.55; pointer-events: none; }
 
 .brief-panel {
@@ -504,8 +522,8 @@ a:hover { text-decoration: underline; }
   transform: translateX(-50%);
   z-index: 80;
   padding: 9px 18px;
-  background: var(--live);
-  color: #fff;
+  background: var(--pill-bg);
+  color: var(--pill-fg);
   border-radius: 999px;
   box-shadow: var(--shadow-hover);
   animation: pill-in 0.25s ease;
@@ -819,14 +837,16 @@ a:hover { text-decoration: underline; }
 }
 
 .modal-close {
-  position: absolute;
+  /* sticky, not absolute: stays reachable while a long article scrolls
+     (the dialog itself is the scroll container) */
+  position: sticky;
   top: 10px;
-  right: 10px;
   z-index: 2;
   width: 36px;
   height: 36px;
+  margin: 10px 10px -46px auto;
   border-radius: 50%;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   background: var(--surface);
@@ -1055,7 +1075,25 @@ a:hover { text-decoration: underline; }
     z-index: 5;
     margin-right: 0;
   }
+  /* keep the toggle itself tappable above the overlaying input so touch
+     users can collapse the search again */
+  .search.open > .icon-btn {
+    position: relative;
+    z-index: 6;
+    background: var(--paper);
+  }
   .brief-tagline { display: none; }
+}
+
+/* Comfortable touch targets on coarse pointers (cards' 32px actions and the
+   36px masthead icons are below the 40px floor) */
+@media (pointer: coarse) {
+  .icon-btn,
+  .card-actions .icon-btn,
+  .brief-panel-head .icon-btn {
+    width: 42px;
+    height: 42px;
+  }
 }
 
 /* ── 16 · Reduced motion ────────────────────────────────────────────────── */

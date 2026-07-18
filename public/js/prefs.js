@@ -31,7 +31,10 @@ function sanitize(raw) {
           a && typeof a === 'object' &&
           typeof a.id === 'string' &&
           typeof a.title === 'string' &&
-          typeof a.url === 'string'
+          // localStorage is user-writable — a corrupted javascript: URL must
+          // never become a clickable href
+          typeof a.url === 'string' && /^https?:\/\//i.test(a.url) &&
+          (a.image == null || (typeof a.image === 'string' && /^https?:\/\//i.test(a.image)))
       )
     : [];
   return p;

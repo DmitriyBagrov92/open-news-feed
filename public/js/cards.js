@@ -40,6 +40,8 @@ export function buildCard(article, { hero = false, saved = false, onOpen, onTogg
   const card = el('article', {
     class: 'card' + (hero ? ' card--hero' : ''),
     tabindex: '0',
+    // Conveys to AT that Enter/Space opens the preview (wired below).
+    role: 'button',
     'data-id': article.id,
     'aria-label': t('card.preview', { title: article.title }),
   });
