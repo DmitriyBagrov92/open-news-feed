@@ -87,6 +87,7 @@ Query params (all optional):
 | `pageSize` | int    | `30`    | max 100                                      |
 | `lang`     | string | `en`    | article language                             |
 | `since`    | string | —       | ISO date; only articles newer than this      |
+| `histogram`| `1`    | —       | include per-hour counts for the last 24h     |
 
 Response `200`:
 
@@ -97,7 +98,10 @@ Response `200`:
   "page": 1,
   "pageSize": 30,
   "updatedAt": "2026-07-18T09:35:12.000Z",  // last successful refresh
-  "latestId": "a1b2c3…"          // id of the newest article (for new-items polling)
+  "latestId": "a1b2c3…",         // id of the newest article (for new-items polling)
+  "timeline": [0, 3, …]          // only with histogram=1: 24 hourly counts,
+                                 // oldest hour first (index 23 = now) —
+                                 // drives the plasma-timeline visualization
 }
 ```
 

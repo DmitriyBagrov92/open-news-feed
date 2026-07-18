@@ -56,8 +56,11 @@ function rateLimit(req) {
 // ── API routes ───────────────────────────────────────────────────────────────
 
 app.get('/api/news', wrap((req, res) => {
-  const { category, q, sources, exclude, page, pageSize, lang, since } = req.query;
-  res.json(store.query({ category, q, sources, exclude, page, pageSize, lang, since }));
+  const { category, q, sources, exclude, page, pageSize, lang, since, histogram } = req.query;
+  res.json(store.query({
+    category, q, sources, exclude, page, pageSize, lang, since,
+    histogram: histogram === '1',
+  }));
 }));
 
 app.get('/api/sources', wrap((req, res) => {
