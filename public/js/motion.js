@@ -38,6 +38,92 @@ export function animateDialog(element) {
   );
 }
 
+// FLIP zoom: the element appears to grow out of fromRect (a grid card).
+// The "from" state is set inline BEFORE animating so there is no one-frame
+// flash of the full-size dialog. Resolves when done; undefined when no lib.
+export function animateZoomFrom(element, fromRect) {
+  const m = lib();
+  if (!m || !element || !fromRect) return;
+  const to = element.getBoundingClientRect();
+  if (!to.width || !to.height) return;
+  const dx = fromRect.left - to.left;
+  const dy = fromRect.top - to.top;
+  const sx = fromRect.width / to.width;
+  const sy = fromRect.height / to.height;
+  element.style.transformOrigin = '0 0';
+  element.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+  element.style.opacity = '0';
+  // transform and opacity run as two animations: the vendored build is
+  // happier than with per-value options, and the fast opacity ramp masks
+  // the aspect-ratio distortion of the non-uniform scale. The identity
+  // target must be spelled out — the build parses 'none' as a zero matrix.
+  const move = m.animate(
+    element,
+    { transform: 'translate(0px, 0px) scale(1, 1)' },
+    { duration: 0.42, ease: EASE_OUT }
+  );
+  m.animate(element, { opacity: 1 }, { duration: 0.2, ease: 'linear' });
+  // cleanup two frames after finish: Motion re-commits the final keyframe
+  // styles on its own next frame, which would overwrite an immediate clear
+  return move.finished.catch(() => {}).then(
+    () =>
+      new Promise((resolve) => {
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            element.style.transform = '';
+            element.style.transformOrigin = '';
+            element.style.opacity = '';
+            resolve();
+          })
+        );
+      })
+  );
+}
+
+// Inverse FLIP: identity → toRect. Opacity stays solid while shrinking and
+// melts at the end. No style cleanup — the element is removed right after.
+export function animateZoomTo(element, toRect) {
+  const m = lib();
+  if (!m || !element || !toRect) return;
+  const from = element.getBoundingClientRect();
+  if (!from.width || !from.height) return;
+  const dx = toRect.left - from.left;
+  const dy = toRect.top - from.top;
+  const sx = toRect.width / from.width;
+  const sy = toRect.height / from.height;
+  element.style.transformOrigin = '0 0';
+  const move = m.animate(
+    element,
+    { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})` },
+    { duration: 0.3, ease: [0.4, 0, 0.7, 0.4] }
+  );
+  m.animate(element, { opacity: 0 }, { duration: 0.18, delay: 0.12, ease: 'linear' });
+  return move.finished.catch(() => {});
+}
+
+// Exit fallback when the origin card is gone or off-screen.
+export function animateDialogOut(element) {
+  const m = lib();
+  if (!m || !element) return;
+  return m
+    .animate(element, { opacity: 0, transform: 'scale(0.97)' }, { duration: 0.2, ease: 'easeIn' })
+    .finished.catch(() => {});
+}
+
+// Scrim fades (the backdrop is a separate element so the dialog's zoom
+// reads as growing out of the card, not fading in with the background).
+export function animateFadeIn(element) {
+  const m = lib();
+  if (!m || !element) return;
+  m.animate(element, { opacity: [0, 1] }, { duration: 0.25, ease: 'linear' });
+}
+
+export function animateFadeOut(element) {
+  const m = lib();
+  if (!m || !element) return;
+  return m.animate(element, { opacity: 0 }, { duration: 0.22, ease: 'linear' }).finished.catch(() => {});
+}
+
 // Springy pop for the new-stories pill.
 export function animatePop(element) {
   const m = lib();

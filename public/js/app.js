@@ -81,6 +81,7 @@ function visibleArticles(list) {
 const cardHandlers = {
   onOpen: (article) =>
     openPreview(article, {
+      cardFor: (a) => grid.querySelector(`.card[data-id="${CSS.escape(a.id)}"]`),
       onCountChange: (a, n) => {
         const known = articleById.get(a.id);
         if (known) known.commentCount = n;

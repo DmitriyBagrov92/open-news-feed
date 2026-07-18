@@ -8,10 +8,18 @@ import { toast } from './toast.js';
 import { absTime } from './time.js';
 import { buildMedia } from './cards.js';
 import { summarize, translateTexts, splitSentences, providerLabel, toBullets } from './ai.js';
-import { animateDialog, animateReveal } from './motion.js';
+import {
+  animateDialog,
+  animateReveal,
+  animateZoomFrom,
+  animateZoomTo,
+  animateDialogOut,
+  animateFadeIn,
+  animateFadeOut,
+} from './motion.js';
 import { buildCommentsPanel } from './comments.js';
 
-let active = null; // { root, prevFocus, onKeydown }
+let active = null; // { root, dialog, scrim, prevFocus, onKeydown, cardFor, closing }
 
 function focusables(container) {
   return [...container.querySelectorAll(
@@ -19,12 +27,43 @@ function focusables(container) {
   )].filter((node) => node.offsetParent !== null || node === document.activeElement);
 }
 
-function close() {
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function inViewport(rect) {
+  return rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth;
+}
+
+// Exit: the dialog zooms back into its grid card (or fades if the card is
+// gone/off-screen), then the modal is torn down. `instant` skips the
+// animation — used when a new preview opens over a closing one.
+async function close({ instant = false } = {}) {
+  if (!active || active.closing) return;
+  active.closing = true;
+  const { root, dialog, scrim, prevFocus, onKeydown, cardFor } = active;
+  // removing the listener now self-guards a second Escape mid-animation
+  document.removeEventListener('keydown', onKeydown, true);
+  if (!instant) {
+    // measure while body scroll is still locked — restoring it first could
+    // bring the scrollbar back and shift the grid under the animation
+    const card = cardFor?.();
+    const rect = card ? card.getBoundingClientRect() : null;
+    const out = rect && inViewport(rect) ? animateZoomTo(dialog, rect) : animateDialogOut(dialog);
+    await Promise.race([Promise.all([out, animateFadeOut(scrim)]), wait(500)]);
+    if (active?.root !== root) return; // a newer preview already took over
+  }
+  root.remove();
+  document.body.style.overflow = '';
+  (cardFor?.() ?? prevFocus)?.focus?.();
+  active = null;
+}
+
+// Instant teardown of whatever preview exists — open OR mid-exit-animation
+// (close() refuses re-entry via the closing flag, so this is separate).
+function teardown() {
   if (!active) return;
   document.removeEventListener('keydown', active.onKeydown, true);
   active.root.remove();
   document.body.style.overflow = '';
-  active.prevFocus?.focus?.();
   active = null;
 }
 
@@ -48,9 +87,10 @@ function chunkParagraph(text, maxLen = 1000) {
 }
 
 export function openPreview(article, options = {}) {
-  close();
+  teardown();
 
   const root = el('div', { class: 'modal' });
+  const scrim = el('div', { class: 'modal-scrim' });
   const dialog = el('div', {
     class: 'modal-dialog has-comments',
     role: 'dialog',
@@ -103,7 +143,7 @@ export function openPreview(article, options = {}) {
     })
   );
   dialog.append(articleCol, commentsCol);
-  root.append(dialog);
+  root.append(scrim, dialog);
 
   root.addEventListener('mousedown', (e) => {
     if (e.target === root) close();
@@ -136,9 +176,20 @@ export function openPreview(article, options = {}) {
   };
   document.addEventListener('keydown', onKeydown, true);
 
-  active = { root, prevFocus: document.activeElement, onKeydown };
+  active = {
+    root,
+    dialog,
+    scrim,
+    prevFocus: document.activeElement,
+    onKeydown,
+    cardFor: () => options.cardFor?.(article) ?? null,
+    closing: false,
+  };
   document.body.append(root);
-  animateDialog(dialog);
+  const origin = options.cardFor?.(article);
+  animateFadeIn(scrim);
+  if (origin) animateZoomFrom(dialog, origin.getBoundingClientRect());
+  else animateDialog(dialog);
   document.body.style.overflow = 'hidden';
   closeBtn.focus();
 

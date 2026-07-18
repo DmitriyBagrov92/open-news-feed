@@ -1118,11 +1118,19 @@ a:hover { text-decoration: underline; }
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: var(--scrim);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: clamp(10px, 3vw, 32px);
+}
+
+/* separate element so it fades independently of the dialog's zoom;
+   pointer-events none keeps the backdrop-click check (e.target === root) */
+.modal-scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+  pointer-events: none;
 }
 
 .modal-dialog {
