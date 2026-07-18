@@ -11,9 +11,11 @@ import { summarize, translateTexts, rateLimitOk } from './lib/ai.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.disable('x-powered-by');
-// Railway terminates TLS at a proxy; trust it so req.ip is the client address
-// (the per-IP rate limiter depends on this).
-app.set('trust proxy', 1);
+// Behind exactly one proxy (Railway's edge) X-Forwarded-For is trustworthy
+// and req.ip is the real client. Directly exposed (local, bare VPS), a
+// spoofed XFF would mint a fresh rate-limit bucket per request — so trust
+// is opt-out via TRUST_PROXY=0 for proxyless deployments.
+if (process.env.TRUST_PROXY !== '0') app.set('trust proxy', 1);
 
 const CSP = [
   "default-src 'self'",
