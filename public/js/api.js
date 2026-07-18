@@ -48,15 +48,30 @@ async function request(path, options) {
   }
 }
 
-function post(path, body) {
+function post(path, body, headers = {}) {
   return request(path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...headers },
     body: JSON.stringify(body),
   });
 }
 
 export const api = {
+  // ── anonymous comments (X-Author-Id is the opaque identity token) ──────
+  comments(articleId, { page, pageSize, sort, authorId } = {}) {
+    return request('/api/comments' + qs({ article: articleId, page, pageSize, sort }), {
+      headers: authorId ? { 'X-Author-Id': authorId } : {},
+    });
+  },
+
+  postComment(articleId, body, authorId) {
+    return post('/api/comments', { articleId, body }, { 'X-Author-Id': authorId });
+  },
+
+  voteComment(commentId, value, authorId) {
+    return post(`/api/comments/${commentId}/vote`, { value }, { 'X-Author-Id': authorId });
+  },
+
   // params: { category, q, sources, exclude, page, pageSize, lang, since }
   news(params) {
     return request('/api/news' + qs(params));

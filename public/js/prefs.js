@@ -12,6 +12,7 @@ const DEFAULTS = Object.freeze({
   category: 'all',
   density: 'comfortable',   // reserved by the contract
   saved: [],                // full Article objects — the Saved tab works offline
+  authorId: null,           // anonymous comment identity (lazy UUID)
 });
 
 function sanitize(raw) {
@@ -22,6 +23,8 @@ function sanitize(raw) {
   if (typeof p.category !== 'string') p.category = 'all';
   if (typeof p.density !== 'string') p.density = 'comfortable';
   p.autoTranslate = Boolean(p.autoTranslate);
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (typeof p.authorId !== 'string' || !UUID_RE.test(p.authorId)) p.authorId = null;
   p.hiddenSources = Array.isArray(p.hiddenSources)
     ? p.hiddenSources.filter((id) => typeof id === 'string')
     : [];
@@ -74,4 +77,14 @@ export function toggleSaved(article) {
   else prefs.saved.unshift(article);
   savePrefs();
   return index < 0;
+}
+
+// Anonymous comment identity: created lazily on first use, stable per
+// device, rotates only when the user clears their storage.
+export function ensureAuthorId() {
+  if (!prefs.authorId) {
+    prefs.authorId = crypto.randomUUID();
+    savePrefs();
+  }
+  return prefs.authorId;
 }

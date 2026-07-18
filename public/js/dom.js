@@ -31,6 +31,9 @@ const ICONS = {
   external: '<path d="M7 17 17 7"/><path d="M9 7h8v8"/>',
   close: '<path d="M6 6l12 12M18 6 6 18"/>',
   sparkle: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/>',
+  comment: '<path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/>',
+  up: '<path d="M12 19V6"/><path d="m5 12 7-7 7 7"/>',
+  down: '<path d="M12 5v13"/><path d="m19 12-7 7-7-7"/>',
 };
 
 export function icon(name) {
