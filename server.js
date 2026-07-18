@@ -7,6 +7,10 @@ import compression from 'compression';
 import * as store from './lib/store.js';
 import { extractArticle, ExtractError } from './lib/extract.js';
 import { summarize, translateTexts, rateLimitOk } from './lib/ai.js';
+import { createLimiter } from './lib/ratelimit.js';
+import {
+  initComments, listComments, addComment, setVote, commentCounts, CommentError,
+} from './lib/comments.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -57,10 +61,84 @@ function rateLimit(req) {
 
 app.get('/api/news', wrap((req, res) => {
   const { category, q, sources, exclude, page, pageSize, lang, since, histogram } = req.query;
-  res.json(store.query({
+  const result = store.query({
     category, q, sources, exclude, page, pageSize, lang, since,
     histogram: histogram === '1',
+  });
+  // Attach comment counts. Copy the articles — store.query returns live
+  // references into the store; mutating them would poison later responses.
+  // A comments failure must never break the feed.
+  try {
+    const counts = commentCounts(result.articles.map((a) => a.id));
+    result.articles = result.articles.map((a) => ({
+      ...a,
+      commentCount: counts.get(a.id) || 0,
+    }));
+  } catch {
+    /* feed stays count-less */
+  }
+  res.json(result);
+}));
+
+// ── comments ────────────────────────────────────────────────────────────────
+
+const commentPostLimiter = createLimiter({ limit: 5 });
+const ARTICLE_ID_RE = /^[0-9a-f]{12}$/;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const COMMENT_ID_RE = /^[0-9a-f]{16}$/;
+
+function optionalAuthor(req) {
+  const id = req.get('x-author-id');
+  return id && UUID_RE.test(id) ? id.toLowerCase() : null;
+}
+
+function requireAuthor(req) {
+  const id = optionalAuthor(req);
+  if (!id) throw httpError(400, 'bad-author', 'X-Author-Id header (UUID) is required');
+  return id;
+}
+
+app.get('/api/comments', wrap((req, res) => {
+  rateLimit(req);
+  const { article, page, pageSize, sort } = req.query;
+  if (!article || !ARTICLE_ID_RE.test(article)) {
+    throw httpError(400, 'bad-article', 'Query parameter "article" must be a 12-hex article id');
+  }
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Vary', 'X-Author-Id');
+  res.json(listComments({
+    articleId: article, page, pageSize, sort, authorId: optionalAuthor(req),
   }));
+}));
+
+app.post('/api/comments', wrap((req, res) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  if (!commentPostLimiter(ip)) {
+    throw httpError(429, 'rate-limited', 'Too many comments, slow down');
+  }
+  const authorId = requireAuthor(req);
+  const { articleId, body } = req.body || {};
+  if (!articleId || !ARTICLE_ID_RE.test(articleId)) {
+    throw httpError(400, 'bad-article', '"articleId" must be a 12-hex article id');
+  }
+  if (!store.getArticle(articleId)) {
+    throw httpError(404, 'unknown-article', 'Comments are closed for archived stories');
+  }
+  res.status(201).json(addComment({ articleId, authorId, body }));
+}));
+
+app.post('/api/comments/:id/vote', wrap((req, res) => {
+  rateLimit(req);
+  const authorId = requireAuthor(req);
+  const { id } = req.params;
+  if (!COMMENT_ID_RE.test(id)) throw httpError(400, 'bad-comment', 'Malformed comment id');
+  const { value } = req.body || {};
+  if (value !== 1 && value !== -1 && value !== 0) {
+    throw httpError(400, 'bad-vote', '"value" must be 1, -1 or 0');
+  }
+  const result = setVote({ commentId: id, authorId, value });
+  if (!result) throw httpError(404, 'unknown-comment', 'No such comment');
+  res.json(result);
 }));
 
 app.get('/api/sources', wrap((req, res) => {
@@ -114,7 +192,10 @@ app.use('/api', (req, res, next) => next(httpError(404, 'not-found', 'Unknown AP
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  const status = err instanceof ExtractError ? err.status : err.status || err.statusCode || 500;
+  const status =
+    err instanceof ExtractError || err instanceof CommentError
+      ? err.status
+      : err.status || err.statusCode || 500;
   const hasCode = typeof err.code === 'string' && /^[a-z][a-z-]*$/.test(err.code);
   const code = hasCode ? err.code : status >= 500 ? 'internal' : 'bad-request';
   if (status >= 500 && !hasCode) console.error(`[server] ${err.stack || err}`);
@@ -130,4 +211,7 @@ const PORT = Number(process.env.PORT) || 3000;
 app.listen(PORT, () => {
   console.log(`[server] Meridian listening on :${PORT}`);
 });
+initComments({ dbPath: process.env.COMMENTS_DB || './data/comments.db' }).catch((err) =>
+  console.warn(`[comments] init failed: ${err.message}`)
+);
 store.startRefreshLoop();

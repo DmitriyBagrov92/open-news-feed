@@ -37,6 +37,10 @@ Principles:
   live in `.env` (gitignored) / Railway variables.
 - **User preferences never reach the server.** Theme, language, saved articles
   etc. are stored in `localStorage` only. No auth, no cookies, no tracking.
+  ONE exception: the anonymous comment identity — a client-generated opaque
+  UUID sent as `X-Author-Id` on comment endpoints only. It is a capability
+  token: the server derives the public pseudonym/avatar from it and NEVER
+  returns or logs the raw value.
 - **English now, any language later.** Sources are registered per language;
   UI strings live in an i18n table; the API takes `lang`.
 
@@ -180,6 +184,44 @@ Response `200`: `{ "translations": ["…", "…"], "provider": "libretranslate" 
 Response `501` `{ "error": { "code": "no-provider", … } }` when no server
 translator is available (client relies on the browser Translator API first,
 and only calls this as fallback).
+
+### Comments (anonymous)
+
+Identity: the client generates `crypto.randomUUID()` once (localStorage) and
+sends it as `X-Author-Id`. The server derives the display persona
+deterministically — `sha1(authorId)` → adjective+noun name ("Amber Falcon")
+and avatar `{hue: 0..359, glyph: 0..23}` (glyph indexes a fixed client-side
+glyph set). Spoofable by design; abuse is bounded per-IP. Articles in
+`/api/news` responses carry `commentCount` (int ≥ 0; absent = unknown).
+
+**`GET /api/comments`** — query `article` (required, 12-hex), `page` (1-based),
+`pageSize` (default 20, max 50), `sort` (`new` default | `top` = up−down).
+Optional `X-Author-Id`. Always `Cache-Control: no-store`. Response `200`:
+
+```jsonc
+{ "comments": [ { "id": "16hex", "name": "Amber Falcon",
+    "avatar": { "hue": 213, "glyph": 4 },
+    "body": "…", "createdAt": "ISO", "up": 3, "down": 1,
+    "myVote": 1 | -1 | null } ],
+  "total": 37, "page": 1, "pageSize": 20,
+  "me": { "name": "…", "avatar": { … } } | null }
+```
+
+**`POST /api/comments`** — header `X-Author-Id` required; body
+`{ "articleId": "12hex", "body": "…" }` (2–1000 chars after normalization;
+article must currently exist in the store). `201` → created comment object.
+Errors: `404 unknown-article`, `429 rate-limited` (5/min/IP, its own bucket)
+`| too-fast` (≥10s per author) `| article-limit` (30/author/article),
+`409 comments-full` (500/article) `| duplicate`.
+
+**`POST /api/comments/:id/vote`** — header required; body
+`{ "value": 1 | -1 | 0 }` (0 retracts) → `200 { "up", "down", "myVote" }`;
+`404 unknown-comment`. One vote per author per comment (server-upserted).
+
+Storage: SQLite via Node's built-in `node:sqlite` at `COMMENTS_DB` (default
+`./data/comments.db`; on Railway mount a volume at `/data`). Requires
+Node ≥ 22.13; older runtimes degrade to a non-persistent in-memory backend.
+Comments are pruned on the same 7-day horizon as articles.
 
 ### `GET /api/health`
 
