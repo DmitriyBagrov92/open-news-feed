@@ -26,6 +26,11 @@ tracking — your preferences never leave your browser.
   rendered as a living WebGL plasma band behind live world clocks (30fps,
   GPU, zero dependencies; static under reduced motion), plus a clean
   light "dawn" variant.
+- **Anonymous comments.** Comment on any story, like/dislike others — no
+  signup. Names ("Amber Falcon") and avatars are derived server-side from an
+  opaque random id your browser generates once; the id itself is never shown
+  or logged. Stored in SQLite via Node's built-in `node:sqlite` — zero extra
+  dependencies.
 - **No auth, no tracking.** Preferences (theme, language, hidden sources,
   saved articles) live in `localStorage` only.
 - **i18n-ready.** English now; add a language by adding a feed list and a
@@ -46,7 +51,9 @@ Open http://localhost:3000. Optionally:
 cp .env.example .env   # then fill in any keys you have
 ```
 
-Requires Node.js >= 20. No build step.
+Requires Node.js >= 22.13 (comments use the built-in `node:sqlite`; on older
+Node the app still runs, comments just fall back to in-memory storage). No
+build step.
 
 ## Configuration
 
@@ -63,6 +70,7 @@ Every variable is optional — the app works out of the box.
 | `CURRENTS_API_KEY` | Enables the [Currents API](https://currentsapi.services) source |
 | `LIBRETRANSLATE_URL` | Server-side translation fallback: a LibreTranslate instance URL |
 | `LIBRETRANSLATE_API_KEY` | API key for that LibreTranslate instance, if it needs one |
+| `COMMENTS_DB` | SQLite file for anonymous comments (default `./data/comments.db`; point it at a mounted volume in production) |
 
 ## Deploy on Railway
 
@@ -72,6 +80,18 @@ Every variable is optional — the app works out of the box.
 2. Optionally add any of the variables above under **Variables**.
 3. The healthcheck path is `/api/health`. `PORT` is provided automatically by
    Railway — do not set it.
+4. **Comments persistence** — without a volume, comments survive restarts but
+   not redeploys (each deploy gets a fresh container disk). To keep them:
+
+   ```bash
+   railway volume add --mount-path /data
+   railway variables --set COMMENTS_DB=/data/comments.db
+   ```
+
+   The boot log tells you which mode you're in (`persistent volume`,
+   `container disk`, or `memory fallback`).
+5. Nixpacks picks a Node ≥ 22.13 automatically from `engines`; if your build
+   pins an older Node, set `NIXPACKS_NODE_VERSION=22`.
 
 ## Architecture
 
