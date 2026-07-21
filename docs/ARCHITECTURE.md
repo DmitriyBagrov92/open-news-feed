@@ -138,11 +138,24 @@ Response `200`:
   "title": "…",
   "byline": "…" | null,
   "text": "…",                 // plain text paragraphs joined by \n\n, ≤ 8000 chars
+  "blocks": [                  // structured body, or null when unavailable
+    { "type": "p" | "h2" | "h3" | "h4" | "quote", "runs": [
+        { "text": "…", "href": "https://…"?, "b": true?, "i": true? } ] },
+    { "type": "ul" | "ol", "items": [ [ /* runs */ ] ] }
+  ] | null,
   "excerpt": "…" | null,
   "image": "https://…" | null,
   "siteName": "…" | null
 }
 ```
+
+`blocks` preserves what plain text loses — links, headings (live-blog
+timeline stamps), lists, quotes, bold/italic — as text runs only: **no HTML
+crosses the wire**. `href` is always an absolute `http(s)` URL (≤ 2048
+chars) resolved server-side; clients must render runs via `textContent` and
+build anchors themselves, never via `innerHTML`. ≤ 150 blocks, sharing the
+8000-char budget with `text`. `text` remains the canonical corpus for
+summarize/translate.
 
 `422` if extraction fails — the client then falls back to the RSS description.
 

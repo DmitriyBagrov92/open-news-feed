@@ -137,12 +137,73 @@ function buildArticleView(article, { onCountChange } = {}) {
   /* ── article text ─────────────────────────────────────────────────────── */
 
   let paragraphs = [article.description || ''];
+  let richBlocks = null; // structured runs from the server — see renderBlocks
 
   const renderParagraphs = (list) => {
     while (textBox.firstChild) textBox.firstChild.remove();
     for (const para of list) {
       if (para.trim()) textBox.append(el('p', { text: para }));
     }
+  };
+
+  // Rich rendering from the server's structured blocks: links, headings
+  // (live-blog timeline stamps), lists, quotes, bold/italic. Built entirely
+  // via createElement/textContent — no markup string ever touches the DOM.
+  const renderRuns = (parent, runs) => {
+    for (const run of runs) {
+      if (typeof run?.text !== 'string' || !run.text) continue;
+      let node = document.createTextNode(run.text);
+      if (run.i) {
+        const em = el('em');
+        em.append(node);
+        node = em;
+      }
+      if (run.b) {
+        const strong = el('strong');
+        strong.append(node);
+        node = strong;
+      }
+      if (typeof run.href === 'string' && /^https?:\/\//i.test(run.href)) {
+        const a = el('a', {
+          class: 'modal-link',
+          href: run.href,
+          target: '_blank',
+          rel: 'noopener nofollow',
+        });
+        a.append(node);
+        node = a;
+      }
+      parent.append(node);
+    }
+  };
+
+  const BLOCK_TAGS = { p: 'p', h2: 'h3', h3: 'h4', h4: 'h4', quote: 'blockquote' };
+
+  const renderBlocks = (blocks) => {
+    while (textBox.firstChild) textBox.firstChild.remove();
+    for (const block of blocks) {
+      if (block?.type === 'ul' || block?.type === 'ol') {
+        if (!Array.isArray(block.items)) continue;
+        const list = el(block.type);
+        for (const item of block.items) {
+          if (!Array.isArray(item)) continue;
+          const li = el('li');
+          renderRuns(li, item);
+          if (li.textContent.trim()) list.append(li);
+        }
+        if (list.childElementCount) textBox.append(list);
+      } else if (BLOCK_TAGS[block?.type] && Array.isArray(block.runs)) {
+        // article headings render one level down: the modal h2 is the title
+        const node = el(BLOCK_TAGS[block.type]);
+        renderRuns(node, block.runs);
+        if (node.textContent.trim()) textBox.append(node);
+      }
+    }
+  };
+
+  const renderOriginal = () => {
+    if (richBlocks) renderBlocks(richBlocks);
+    else renderParagraphs(paragraphs);
   };
 
   api
@@ -152,12 +213,13 @@ function buildArticleView(article, { onCountChange } = {}) {
       const text = (res.text || '').trim();
       if (!text) throw new Error('empty');
       paragraphs = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+      richBlocks = Array.isArray(res.blocks) && res.blocks.length ? res.blocks : null;
       // a translation made from the RSS description is now stale
       translated = null;
       showingTranslation = false;
       chip.hidden = true;
       title.textContent = article.title;
-      renderParagraphs(paragraphs);
+      renderOriginal();
     })
     .catch(() => {
       // 422 (extraction failed), 403, network… → RSS description + note
@@ -217,7 +279,7 @@ function buildArticleView(article, { onCountChange } = {}) {
       chip.textContent = t('modal.chipTranslated');
     } else {
       title.textContent = article.title;
-      renderParagraphs(paragraphs);
+      renderOriginal(); // translation is plain text; the original stays rich
       chip.textContent = t('modal.chipOriginal');
     }
     chip.hidden = !translated;
