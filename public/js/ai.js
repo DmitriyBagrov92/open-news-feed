@@ -10,6 +10,7 @@ import { api } from './api.js';
 import { t } from './i18n.js';
 
 let summarizer = null;
+let serverSummarizeUnavailable = false; // 501 once → skip the rung for good
 let summarizerKey = '';
 const translators = new Map(); // "en>de" → Translator instance
 
@@ -152,14 +153,18 @@ export async function summarize(input, { onProgress } = {}) {
     /* blocked / download stalled / inference timed out — next rung */
   }
 
-  try {
-    const body = isBrief
-      ? { mode: 'brief', articles: input.articles.slice(0, 30), targetLang: input.targetLang || 'en' }
-      : { mode: 'article', title: input.title || '', text: input.text || '', targetLang: input.targetLang || 'en' };
-    const res = await api.summarize(body);
-    if (res?.summary) return { summary: res.summary, provider: res.provider || 'server' };
-  } catch {
-    /* 501 premium-only in the free version — expected; fall through */
+  if (!serverSummarizeUnavailable) {
+    try {
+      const body = isBrief
+        ? { mode: 'brief', articles: input.articles.slice(0, 30), targetLang: input.targetLang || 'en' }
+        : { mode: 'article', title: input.title || '', text: input.text || '', targetLang: input.targetLang || 'en' };
+      const res = await api.summarize(body);
+      if (res?.summary) return { summary: res.summary, provider: res.provider || 'server' };
+    } catch (err) {
+      // 501 premium-only in the free version — expected; remember it so the
+      // auto-brief doesn't re-probe (and re-log) on every run
+      if (err?.status === 501) serverSummarizeUnavailable = true;
+    }
   }
 
   const sentences = isBrief

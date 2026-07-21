@@ -132,14 +132,38 @@
     </div>
   </nav>
 
-  <!-- 4 · Daily brief -->
+  <!-- 4 · Daily brief — auto-runs on load and on fresh news; fixed height
+       so the grid below never moves -->
   <section class="brief" aria-label="Daily brief">
-    <div class="brief-bar">
-      <span class="brief-label mono" data-i18n="brief.label">Brief</span>
-      <span class="brief-tagline" data-i18n="brief.tagline">Summarize the freshest headlines</span>
-      <button class="btn" id="briefBtn" data-i18n="brief.run">Summarize</button>
+    <div class="brief-card">
+      <div class="brief-head">
+        <span class="ai-orb" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <defs>
+              <linearGradient id="aiGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="var(--ai-g1)"/>
+                <stop offset="1" stop-color="var(--ai-g2)"/>
+              </linearGradient>
+            </defs>
+            <path class="ai-orb-star" fill="url(#aiGrad)"
+              d="M11 2.8l1.9 5.2 5.2 1.9-5.2 1.9L11 17l-1.9-5.2L3.9 9.9l5.2-1.9L11 2.8Z"/>
+            <path class="ai-orb-mini" fill="url(#aiGrad)"
+              d="M18.6 14.6l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9.9-2.3Z"/>
+          </svg>
+        </span>
+        <span class="brief-label mono" data-i18n="brief.label">Brief</span>
+        <span class="brief-status mono" id="briefStatus"></span>
+        <span class="badge mono" id="briefBadge" hidden></span>
+        <button class="icon-btn brief-refresh" id="briefRefresh" type="button"
+          data-i18n-label="brief.rerun" aria-label="Refresh the brief">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/>
+          </svg>
+        </button>
+      </div>
+      <div class="brief-body" id="briefBody" aria-live="polite"></div>
     </div>
-    <div class="brief-panel" id="briefPanel" hidden></div>
   </section>
 
   <div class="banner mono" id="offlineBanner" hidden data-i18n="feed.offline">You’re offline — showing stories already loaded.</div>
