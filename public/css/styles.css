@@ -620,19 +620,25 @@ a:hover { text-decoration: underline; }
   padding: 0 var(--pad);
 }
 
+/* The card's total height is mathematically constant: fixed head + fixed
+   body + padding, overflow hidden. Nothing that happens inside — download
+   progress, badges, long summaries, font swaps — may ever move the grid. */
 .brief-card {
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: var(--radius);
   padding: 11px 16px 13px;
+  overflow: hidden;
 }
 
 .brief-head {
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;
   gap: 9px;
-  min-height: 30px;
+  height: 30px;
 }
+.brief-head .badge { flex: none; }
 
 .brief-label { color: var(--accent); flex: none; }
 
@@ -640,16 +646,40 @@ a:hover { text-decoration: underline; }
 :root {
   --ai-g1: #ffd88f;
   --ai-g2: #f5a83c;
+  --ai-glow: rgb(245 168 60 / 0.4);
+  --ai-sheen: rgb(245 168 60 / 0.22);
 }
 [data-theme="light"] {
   --ai-g1: #57aee6;
   --ai-g2: #0c6dad;
+  --ai-glow: rgb(12 109 173 / 0.4);
+  --ai-sheen: rgb(12 109 173 / 0.16);
 }
 .ai-orb {
+  position: relative;
   width: 21px;
   height: 21px;
   flex: none;
   display: inline-flex;
+}
+/* thinking ring: a dashed orbit that appears only while the model works */
+.ai-orb::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1px dashed var(--ai-glow);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.brief-card.is-thinking .ai-orb::after {
+  opacity: 1;
+  animation: ai-orbit 2.6s linear infinite;
+}
+.brief-card.is-thinking .ai-orb-star { animation-duration: 1.1s; }
+.brief-card.is-thinking .ai-orb-mini { animation-duration: 1.1s; animation-delay: 0.2s; }
+@keyframes ai-orbit {
+  to { transform: rotate(360deg); }
 }
 .ai-orb svg { width: 100%; height: 100%; overflow: visible; }
 .ai-orb-star {
@@ -674,6 +704,11 @@ a:hover { text-decoration: underline; }
   color: var(--ink-2);
   font-size: 0.62rem;
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 0 1 auto;
 }
 .brief-refresh { margin-left: auto; width: 30px; height: 30px; }
 .brief-refresh svg { width: 15px; height: 15px; }
@@ -695,6 +730,36 @@ a:hover { text-decoration: underline; }
   color: var(--ink-2);
   font-size: 0.85rem;
   margin: auto 0;
+}
+
+/* thinking state: luminous lines the model "writes" over — a light sweep
+   travels across each bar with a phase offset, like thought forming */
+.brief-think {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: auto 0;
+}
+.brief-think-bar {
+  height: 0.78rem;
+  border-radius: 6px;
+  background:
+    linear-gradient(100deg,
+      transparent 25%,
+      var(--ai-sheen) 42%,
+      var(--ai-glow) 50%,
+      var(--ai-sheen) 58%,
+      transparent 75%),
+    var(--paper);
+  background-size: 240% 100%, auto;
+  background-position: 130% 0, 0 0;
+  animation: think-sweep 1.5s ease-in-out infinite;
+}
+.brief-think-bar:nth-child(1) { width: 94%; }
+.brief-think-bar:nth-child(2) { width: 76%; animation-delay: 0.18s; }
+.brief-think-bar:nth-child(3) { width: 86%; animation-delay: 0.36s; }
+@keyframes think-sweep {
+  to { background-position: -130% 0, 0 0; }
 }
 
 .btn {

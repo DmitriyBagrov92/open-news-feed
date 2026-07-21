@@ -188,7 +188,7 @@ function clearGrid() {
 function clearPending() {
   state.pending = [];
   newPill.hidden = true;
-  scheduleBrief(1200);
+  scheduleBrief(300); // thinking state shows instantly; the run is debounced
 }
 
 function addSkeletons(count) {
@@ -670,12 +670,29 @@ let briefSeq = 0;
 let briefTimer = null;
 let briefDeferred = false; // a run was requested while the tab was hidden
 
-function briefSkeleton(body) {
+// The "model is thinking" state: sweeping light bars + the orb's orbit
+// ring (CSS drives both off .is-thinking). Idempotent.
+function briefThinking() {
+  const body = $('#briefBody');
+  if (!body) return;
+  body.closest('.brief-card')?.classList.add('is-thinking');
+  const badge = $('#briefBadge');
+  if (badge) badge.hidden = true; // the old provider tag has nothing to vouch for
+  if (body.querySelector('.brief-think')) return;
   clear(body);
-  for (let i = 0; i < 3; i += 1) body.append(el('div', { class: 'skel skel-text' }));
+  const think = el('div', { class: 'brief-think', 'aria-hidden': 'true' });
+  for (let i = 0; i < 3; i += 1) think.append(el('div', { class: 'brief-think-bar' }));
+  body.append(think);
 }
 
+function briefSettled() {
+  $('#briefBody')?.closest('.brief-card')?.classList.remove('is-thinking');
+}
+
+// Thinking appears the moment a run is requested — a category switch must
+// respond instantly even though the actual run is debounced.
 function scheduleBrief(delay = 800) {
+  briefThinking();
   clearTimeout(briefTimer);
   briefTimer = setTimeout(runBrief, delay);
 }
@@ -693,7 +710,7 @@ async function runBrief() {
   const seq = ++briefSeq; // supersedes any in-flight run
   status.textContent = t('brief.working');
   badge.hidden = true;
-  briefSkeleton(body);
+  briefThinking();
   try {
     // summarize exactly what the reader is looking at: the freshest
     // stories of the ACTIVE view (category + search + hidden sources),
@@ -707,6 +724,7 @@ async function runBrief() {
     }
     if (seq !== briefSeq) return;
     if (!pool.length) {
+      briefSettled();
       clear(body);
       status.textContent = '';
       body.append(el('p', { class: 'brief-note', text: t('brief.empty') }));
@@ -732,6 +750,7 @@ async function runBrief() {
       }
     );
     if (seq !== briefSeq) return;
+    briefSettled();
     clear(body);
     status.textContent = '';
     badge.textContent = providerLabel(result.provider);
@@ -742,6 +761,7 @@ async function runBrief() {
     animateIn(list.children); // staggered bullet reveal
   } catch {
     if (seq !== briefSeq) return;
+    briefSettled();
     clear(body);
     status.textContent = '';
     body.append(el('p', { class: 'brief-note', text: t('brief.error') }));
