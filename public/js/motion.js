@@ -124,6 +124,20 @@ export function animateFadeOut(element) {
   return m.animate(element, { opacity: 0 }, { duration: 0.22, ease: 'linear' }).finished.catch(() => {});
 }
 
+// Incoming columns on prev/next navigation slide in from the travel
+// direction. The outgoing content is swapped instantly — rapid arrow
+// mashing degrades to instant swaps instead of queueing choreography.
+export function animateSwapIn(elements, dir) {
+  const m = lib();
+  const list = [...elements];
+  if (!m || !list.length) return;
+  m.animate(
+    list,
+    { opacity: [0, 1], transform: [`translateX(${16 * dir}px)`, 'translateX(0px)'] },
+    { duration: 0.2, ease: EASE_OUT }
+  );
+}
+
 // Springy pop for the new-stories pill.
 export function animatePop(element) {
   const m = lib();

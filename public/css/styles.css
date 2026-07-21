@@ -1167,6 +1167,36 @@ a:hover { text-decoration: underline; }
   color: var(--ink-2);
   border: 1px solid var(--hairline);
 }
+/* prev/next arrows: shell siblings of the dialog inside the fixed root, so
+   they hold position during the zoom and while either column scrolls; at
+   >=1000px the dialog is near-fullscreen and they overlay its edges
+   (lightbox pattern) — hence the surface background and shadow */
+.modal-nav {
+  position: absolute;
+  top: calc(50% - 22px); /* not translateY — transform stays free */
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  color: var(--ink-2);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-modal);
+}
+.modal-nav svg { width: 18px; height: 18px; }
+.modal-nav:hover { color: var(--accent); border-color: var(--hairline-strong); }
+.modal-nav--prev { left: clamp(8px, 2vw, 22px); }
+.modal-nav--next { right: clamp(8px, 2vw, 22px); }
+@media (min-width: 700px) {
+  .modal-nav { display: flex; }
+}
+@media (pointer: coarse) {
+  .modal-nav { width: 52px; height: 52px; top: calc(50% - 26px); }
+}
+
 .modal-close:hover { color: var(--ink); }
 .modal-close svg { width: 18px; height: 18px; }
 

@@ -34,6 +34,8 @@ const ICONS = {
   comment: '<path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/>',
   up: '<path d="M12 19V6"/><path d="m5 12 7-7 7 7"/>',
   down: '<path d="M12 5v13"/><path d="m19 12-7 7-7-7"/>',
+  prev: '<path d="m15 5-7 7 7 7"/>',
+  next: '<path d="m9 5 7 7-7 7"/>',
 };
 
 export function icon(name) {

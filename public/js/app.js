@@ -82,6 +82,15 @@ const cardHandlers = {
   onOpen: (article) =>
     openPreview(article, {
       cardFor: (a) => grid.querySelector(`.card[data-id="${CSS.escape(a.id)}"]`),
+      // neighbors follow DOM order — it reflects the mosaic, prepends,
+      // filters and the saved view, unlike any of the article maps
+      getAdjacent: (a, dir) => {
+        const cards = [...grid.querySelectorAll('.card[data-id]')];
+        const i = cards.findIndex((c) => c.dataset.id === a.id);
+        if (i === -1) return null;
+        const neighbor = cards[i + dir];
+        return neighbor ? articleById.get(neighbor.dataset.id) ?? null : null;
+      },
       onCountChange: (a, n) => {
         const known = articleById.get(a.id);
         if (known) known.commentCount = n;

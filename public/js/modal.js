@@ -1,4 +1,7 @@
-// Preview modal: readability extract, on-demand summary and translation.
+// Preview modal: readability extract, on-demand summary and translation,
+// anonymous comments, prev/next story navigation with a zoom in/out of the
+// grid card. The shell (root, scrim, arrows, key handling) lives for the
+// whole preview session; everything article-specific is rebuilt per story.
 
 import { el, iconButton } from './dom.js';
 import { t, catLabel } from './i18n.js';
@@ -16,6 +19,7 @@ import {
   animateDialogOut,
   animateFadeIn,
   animateFadeOut,
+  animateSwapIn,
 } from './motion.js';
 import { buildCommentsPanel } from './comments.js';
 
@@ -86,20 +90,12 @@ function chunkParagraph(text, maxLen = 1000) {
   return chunks.length ? chunks : [text.slice(0, maxLen)];
 }
 
-export function openPreview(article, options = {}) {
-  teardown();
-
-  const root = el('div', { class: 'modal' });
-  const scrim = el('div', { class: 'modal-scrim' });
-  const dialog = el('div', {
-    class: 'modal-dialog has-comments',
-    role: 'dialog',
-    'aria-modal': 'true',
-    'aria-label': article.title,
-  });
-
+// Everything specific to one story: close button, media, text, summary,
+// translation, comments. Stale async work is guarded by articleCol.isConnected
+// — false both after navigation (column replaced) and after close.
+function buildArticleView(article, { onCountChange } = {}) {
   const closeBtn = iconButton('close', t('modal.close'), 'modal-close');
-  closeBtn.addEventListener('click', close);
+  closeBtn.addEventListener('click', () => close());
 
   const meta = el('p', {
     class: 'modal-meta mono',
@@ -132,66 +128,14 @@ export function openPreview(article, options = {}) {
   const body = el('div', { class: 'modal-body' });
   body.append(meta, title, actions, chip, summaryBox, note, textBox);
 
-  // Split layout: the article column and the comments column. On mobile
-  // they stack (one scroll); at >=1000px each column scrolls on its own.
   const articleCol = el('div', { class: 'modal-article' });
   articleCol.append(closeBtn, buildMedia(article, 'modal-media'), body);
   const commentsCol = el('aside', { class: 'modal-comments' });
   commentsCol.append(
     buildCommentsPanel(article, {
-      onCountChange: (n) => options.onCountChange?.(article, n),
+      onCountChange: (n) => onCountChange?.(article, n),
     })
   );
-  dialog.append(articleCol, commentsCol);
-  root.append(scrim, dialog);
-
-  root.addEventListener('mousedown', (e) => {
-    if (e.target === root) close();
-  });
-
-  const onKeydown = (e) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      e.stopPropagation(); // the modal owns Escape while open
-      // a comment draft must survive a reflexive Escape: blur, don't close
-      if (e.target?.classList?.contains('cmt-input') && e.target.value.trim()) {
-        e.target.blur();
-        return;
-      }
-      close();
-      return;
-    }
-    if (e.key !== 'Tab') return;
-    const items = focusables(dialog);
-    if (!items.length) return;
-    const first = items[0];
-    const last = items[items.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  };
-  document.addEventListener('keydown', onKeydown, true);
-
-  active = {
-    root,
-    dialog,
-    scrim,
-    prevFocus: document.activeElement,
-    onKeydown,
-    cardFor: () => options.cardFor?.(article) ?? null,
-    closing: false,
-  };
-  document.body.append(root);
-  const origin = options.cardFor?.(article);
-  animateFadeIn(scrim);
-  if (origin) animateZoomFrom(dialog, origin.getBoundingClientRect());
-  else animateDialog(dialog);
-  document.body.style.overflow = 'hidden';
-  closeBtn.focus();
 
   /* ── article text ─────────────────────────────────────────────────────── */
 
@@ -207,7 +151,7 @@ export function openPreview(article, options = {}) {
   api
     .article(article.url)
     .then((res) => {
-      if (!active || active.root !== root) return;
+      if (!articleCol.isConnected) return;
       const text = (res.text || '').trim();
       if (!text) throw new Error('empty');
       paragraphs = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
@@ -220,7 +164,7 @@ export function openPreview(article, options = {}) {
     })
     .catch(() => {
       // 422 (extraction failed), 403, network… → RSS description + note
-      if (!active || active.root !== root) return;
+      if (!articleCol.isConnected) return;
       paragraphs = [article.description || ''];
       renderParagraphs(paragraphs);
       note.hidden = false;
@@ -331,6 +275,122 @@ export function openPreview(article, options = {}) {
       translateBtn.textContent = t('modal.translate');
     }
   });
+
+  return { articleCol, commentsCol, closeBtn };
+}
+
+export function openPreview(article, options = {}) {
+  teardown();
+
+  let current = article;
+  const drafts = new Map(); // comment drafts survive prev/next, die with the modal
+
+  // role/aria live on the root: the nav arrows are siblings of the dialog
+  // and must sit inside the dialog for AT and inside the focus trap
+  const root = el('div', {
+    class: 'modal',
+    role: 'dialog',
+    'aria-modal': 'true',
+    'aria-label': article.title,
+  });
+  const scrim = el('div', { class: 'modal-scrim' });
+  const dialog = el('div', { class: 'modal-dialog has-comments' });
+
+  const prevBtn = iconButton('prev', t('modal.prev'), 'modal-nav modal-nav--prev');
+  const nextBtn = iconButton('next', t('modal.next'), 'modal-nav modal-nav--next');
+
+  let view = buildArticleView(article, { onCountChange: options.onCountChange });
+  dialog.append(view.articleCol, view.commentsCol);
+  root.append(scrim, prevBtn, dialog, nextBtn);
+
+  function updateArrows() {
+    const canPrev = !!options.getAdjacent?.(current, -1);
+    const canNext = !!options.getAdjacent?.(current, 1);
+    // focus rescue BEFORE hiding — a hidden activeElement drops focus to
+    // body and breaks the trap
+    if (!canPrev && document.activeElement === prevBtn) (canNext ? nextBtn : view.closeBtn).focus();
+    if (!canNext && document.activeElement === nextBtn) (canPrev ? prevBtn : view.closeBtn).focus();
+    prevBtn.hidden = !canPrev;
+    nextBtn.hidden = !canNext;
+  }
+
+  function navigate(dir) {
+    if (!active || active.closing) return;
+    const next = options.getAdjacent?.(current, dir);
+    if (!next) return;
+    const input = dialog.querySelector('.cmt-input');
+    if (input) drafts.set(current.id, input.value);
+    const nextView = buildArticleView(next, { onCountChange: options.onCountChange });
+    const draft = drafts.get(next.id);
+    if (draft) nextView.commentsCol.querySelector('.cmt-input').value = draft;
+    view.articleCol.replaceWith(nextView.articleCol);
+    view.commentsCol.replaceWith(nextView.commentsCol);
+    view = nextView;
+    current = next;
+    root.setAttribute('aria-label', current.title);
+    dialog.scrollTop = 0; // <1000px the dialog itself is the scroll container
+    updateArrows();
+    animateSwapIn([view.articleCol, view.commentsCol], dir);
+  }
+
+  prevBtn.addEventListener('click', () => navigate(-1));
+  nextBtn.addEventListener('click', () => navigate(1));
+
+  root.addEventListener('mousedown', (e) => {
+    if (e.target === root) close();
+  });
+
+  const onKeydown = (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation(); // the modal owns Escape while open
+      // a comment draft must survive a reflexive Escape: blur, don't close
+      if (e.target?.classList?.contains('cmt-input') && e.target.value.trim()) {
+        e.target.blur();
+        return;
+      }
+      close();
+      return;
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      if (e.altKey || e.metaKey || e.ctrlKey) return; // browser/word navigation
+      if (e.target.closest?.('input, textarea, select') || e.target.isContentEditable) return;
+      e.preventDefault();
+      navigate(e.key === 'ArrowLeft' ? -1 : 1);
+      return;
+    }
+    if (e.key !== 'Tab') return;
+    const items = focusables(root);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+  document.addEventListener('keydown', onKeydown, true);
+
+  active = {
+    root,
+    dialog,
+    scrim,
+    prevFocus: document.activeElement,
+    onKeydown,
+    cardFor: () => options.cardFor?.(current) ?? null,
+    closing: false,
+  };
+  document.body.append(root);
+  updateArrows();
+  const origin = options.cardFor?.(article);
+  animateFadeIn(scrim);
+  if (origin) animateZoomFrom(dialog, origin.getBoundingClientRect());
+  else animateDialog(dialog);
+  document.body.style.overflow = 'hidden';
+  view.closeBtn.focus();
 }
 
 export { close as closePreview };

@@ -105,6 +105,8 @@ const TABLES = {
     'comments.like': 'Like',
     'comments.dislike': 'Dislike',
     'card.comments': '{n} comments',
+    'modal.prev': 'Previous story',
+    'modal.next': 'Next story',
     'modal.chipTranslated': 'TRANSLATED · SHOW ORIGINAL',
     'modal.chipOriginal': 'ORIGINAL · SHOW TRANSLATION',
 
