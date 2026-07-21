@@ -192,7 +192,10 @@ sends it as `X-Author-Id`. The server derives the display persona
 deterministically — `sha1(authorId)` → adjective+noun name ("Amber Falcon")
 and avatar `{hue: 0..359, glyph: 0..23}` (glyph indexes a fixed client-side
 glyph set). Spoofable by design; abuse is bounded per-IP. Articles in
-`/api/news` responses carry `commentCount` (int ≥ 0; absent = unknown).
+`/api/news` responses carry `commentCount` (int ≥ 0; absent = unknown) plus
+article-reaction fields `up`, `down` (int ≥ 0) and `myVote`
+(`1 | -1 | null`; only non-null when the request carried `X-Author-Id` —
+`/api/news` sends `Vary: X-Author-Id`).
 
 **`GET /api/comments`** — query `article` (required, 12-hex), `page` (1-based),
 `pageSize` (default 20, max 50), `sort` (`new` default | `top` = up−down).
@@ -217,6 +220,26 @@ Errors: `404 unknown-article`, `429 rate-limited` (5/min/IP, its own bucket)
 **`POST /api/comments/:id/vote`** — header required; body
 `{ "value": 1 | -1 | 0 }` (0 retracts) → `200 { "up", "down", "myVote" }`;
 `404 unknown-comment`. One vote per author per comment (server-upserted).
+
+**`POST /api/news/:id/vote`** — like/dislike a story. Header required; body
+`{ "value": 1 | -1 | 0 }` (0 retracts) → `200 { "up", "down", "myVote" }`;
+`404 unknown-article` for stories no longer in the store. One vote per
+author per article (server-upserted, same `article_votes` storage horizon).
+
+**`GET /api/reactions`** — batch counters for live-updating the visible
+grid. Query `articles` = comma-separated 12-hex ids (max 150). Optional
+`X-Author-Id`; `Cache-Control: no-store`, `Vary: X-Author-Id`. `200`:
+
+```jsonc
+{ "reactions": { "<articleId>": {
+    "comments": 4, "up": 2, "down": 0, "myVote": 1 | -1 | null } } }
+```
+
+Every requested id gets an entry. Counters live in their own storage and
+survive an article's exit from the 7-day store window until their rows hit
+the same 7-day prune — so recently archived ids may return real non-zero
+counts; ids with no rows return zeros. Do not use this endpoint to test
+whether a story is still live.
 
 Storage: SQLite via Node's built-in `node:sqlite` at `COMMENTS_DB` (default
 `./data/comments.db`; on Railway mount a volume at `/data`). Requires

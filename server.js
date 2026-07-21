@@ -9,7 +9,8 @@ import { extractArticle, ExtractError } from './lib/extract.js';
 import { summarize, translateTexts, rateLimitOk } from './lib/ai.js';
 import { createLimiter } from './lib/ratelimit.js';
 import {
-  initComments, listComments, addComment, setVote, commentCounts, CommentError,
+  initComments, listComments, addComment, setVote, setArticleVote,
+  reactionCounts, CommentError,
 } from './lib/comments.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -65,18 +66,27 @@ app.get('/api/news', wrap((req, res) => {
     category, q, sources, exclude, page, pageSize, lang, since,
     histogram: histogram === '1',
   });
-  // Attach comment counts. Copy the articles — store.query returns live
-  // references into the store; mutating them would poison later responses.
-  // A comments failure must never break the feed.
+  // Attach comment counts and article like/dislike tallies. Copy the
+  // articles — store.query returns live references into the store; mutating
+  // them would poison later responses. A comments-backend failure must
+  // never break the feed.
   try {
-    const counts = commentCounts(result.articles.map((a) => a.id));
-    result.articles = result.articles.map((a) => ({
-      ...a,
-      commentCount: counts.get(a.id) || 0,
-    }));
+    const me = optionalAuthor(req);
+    const counts = reactionCounts(result.articles.map((a) => a.id), me);
+    result.articles = result.articles.map((a) => {
+      const r = counts.get(a.id);
+      return {
+        ...a,
+        commentCount: r?.comments || 0,
+        up: r?.up || 0,
+        down: r?.down || 0,
+        myVote: r?.myVote ?? null,
+      };
+    });
   } catch {
     /* feed stays count-less */
   }
+  res.setHeader('Vary', 'X-Author-Id');
   res.json(result);
 }));
 
@@ -139,6 +149,46 @@ app.post('/api/comments/:id/vote', wrap((req, res) => {
   const result = setVote({ commentId: id, authorId, value });
   if (!result) throw httpError(404, 'unknown-comment', 'No such comment');
   res.json(result);
+}));
+
+// ── article reactions (like/dislike on stories) ────────────────────────────
+
+app.post('/api/news/:id/vote', wrap((req, res) => {
+  rateLimit(req);
+  const authorId = requireAuthor(req);
+  const { id } = req.params;
+  if (!ARTICLE_ID_RE.test(id)) throw httpError(400, 'bad-article', 'Malformed article id');
+  if (!store.getArticle(id)) {
+    throw httpError(404, 'unknown-article', 'Voting is closed for archived stories');
+  }
+  const { value } = req.body || {};
+  if (value !== 1 && value !== -1 && value !== 0) {
+    throw httpError(400, 'bad-vote', '"value" must be 1, -1 or 0');
+  }
+  res.json(setArticleVote({ articleId: id, authorId, value }));
+}));
+
+// Batch counters for live-updating the visible grid: comment count and
+// like/dislike tallies per article. Read-only, cheap (two grouped queries).
+// Its own bucket: this is polled unattended every 30s per tab — sharing the
+// interactive 30/min bucket would starve votes/translate behind one NAT IP.
+const reactionsLimiter = createLimiter({ limit: 30 });
+app.get('/api/reactions', wrap((req, res) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  if (!reactionsLimiter(ip)) {
+    throw httpError(429, 'rate-limited', 'Too many requests, slow down');
+  }
+  const ids = String(req.query.articles || '')
+    .split(',')
+    .filter(Boolean)
+    .slice(0, 150);
+  if (!ids.length || !ids.every((id) => ARTICLE_ID_RE.test(id))) {
+    throw httpError(400, 'bad-articles', '"articles" must be a comma-separated list of 12-hex ids (max 150)');
+  }
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Vary', 'X-Author-Id');
+  const counts = reactionCounts(ids, optionalAuthor(req));
+  res.json({ reactions: Object.fromEntries(counts) });
 }));
 
 app.get('/api/sources', wrap((req, res) => {

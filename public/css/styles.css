@@ -620,26 +620,81 @@ a:hover { text-decoration: underline; }
   padding: 0 var(--pad);
 }
 
-.brief-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 14px;
+.brief-card {
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: var(--radius);
+  padding: 11px 16px 13px;
+}
+
+.brief-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 30px;
 }
 
 .brief-label { color: var(--accent); flex: none; }
 
-.brief-tagline {
-  font-size: 0.85rem;
+/* the AI mark: gradient sparkle that breathes while alive */
+:root {
+  --ai-g1: #ffd88f;
+  --ai-g2: #f5a83c;
+}
+[data-theme="light"] {
+  --ai-g1: #57aee6;
+  --ai-g2: #0c6dad;
+}
+.ai-orb {
+  width: 21px;
+  height: 21px;
+  flex: none;
+  display: inline-flex;
+}
+.ai-orb svg { width: 100%; height: 100%; overflow: visible; }
+.ai-orb-star {
+  transform-origin: 11px 9.9px;
+  animation: ai-breathe 3.2s ease-in-out infinite;
+}
+.ai-orb-mini {
+  transform-origin: 18.6px 17.9px;
+  animation: ai-twinkle 3.2s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+@keyframes ai-breathe {
+  0%, 100% { transform: scale(1); filter: none; }
+  50% { transform: scale(1.12); filter: drop-shadow(0 0 4px var(--ai-g2)); }
+}
+@keyframes ai-twinkle {
+  0%, 100% { transform: scale(0.6); opacity: 0.45; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+.brief-status {
   color: var(--ink-2);
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+.brief-refresh { margin-left: auto; width: 30px; height: 30px; }
+.brief-refresh svg { width: 15px; height: 15px; }
+
+/* fixed height: the summary streams in (skeleton -> bullets) without ever
+   moving the news grid below; long briefs scroll internally */
+.brief-body {
+  height: 7.6rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.brief-body .bullets { margin: 0; }
+.brief-note {
+  color: var(--ink-2);
+  font-size: 0.85rem;
+  margin: auto 0;
 }
 
 .btn {
@@ -658,23 +713,6 @@ a:hover { text-decoration: underline; }
 }
 .btn:hover { background: var(--accent); color: var(--on-accent); }
 .btn:disabled { opacity: 0.55; pointer-events: none; }
-
-.brief-panel {
-  margin-top: 10px;
-  padding: 18px 20px;
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius);
-}
-.brief-panel[hidden] { display: none; }
-
-.brief-panel-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.brief-panel-head .icon-btn { margin-left: auto; width: 30px; height: 30px; }
 
 .badge {
   display: inline-block;
@@ -996,7 +1034,26 @@ a:hover { text-decoration: underline; }
 }
 
 .card-cat { color: var(--ink-2); }
-.card-foot-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.card-foot-l { display: flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; }
+.card-react { display: flex; gap: 4px; }
+.card-vote {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 0.6rem;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.card-vote svg { width: 11px; height: 11px; }
+.card-vote:hover { color: var(--accent); border-color: var(--hairline-strong); }
+.card-vote[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--hairline-strong);
+  background: rgb(127 127 127 / 0.08);
+}
 .card-cmt {
   display: inline-flex;
   align-items: center;
@@ -1439,7 +1496,6 @@ a:hover { text-decoration: underline; }
     z-index: 6;
     background: var(--paper);
   }
-  .brief-tagline { display: none; }
 }
 
 /* Comfortable touch targets on coarse pointers (cards' 32px actions and the
@@ -1447,7 +1503,7 @@ a:hover { text-decoration: underline; }
 @media (pointer: coarse) {
   .icon-btn,
   .card-actions .icon-btn,
-  .brief-panel-head .icon-btn {
+  .brief-refresh {
     width: 42px;
     height: 42px;
   }
@@ -1594,6 +1650,18 @@ a:hover { text-decoration: underline; }
     background: var(--surface);
   }
   .modal-dialog.has-comments .cmt-panel { border-top: none; }
+  /* the dialog is a non-scrolling grid here — pin the close button to the
+     top-right corner of the whole story block (absolute leaves the grid
+     flow, so it doesn't become a third column) */
+  .modal-dialog.has-comments .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    margin: 0;
+    z-index: 3;
+  }
+  /* keep the comments sort toggle clear of the pinned close button */
+  .modal-dialog.has-comments .cmt-head { padding-right: 40px; }
 }
 @media (pointer: coarse) {
   .cmt-vote { padding: 8px 14px; }

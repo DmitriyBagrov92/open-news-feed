@@ -46,11 +46,9 @@ const TABLES = {
 
     // daily brief
     'brief.label': 'BRIEF',
-    'brief.tagline': 'Summarize the freshest headlines',
-    'brief.run': 'Summarize',
     'brief.working': 'Summarizing…',
-    'brief.close': 'Close brief',
-    'brief.error': 'The brief could not be built — try again.',
+    'brief.rerun': 'Refresh the brief',
+    'brief.error': 'The brief could not be built — it will retry with the next batch of stories.',
     'brief.empty': 'Nothing to summarize yet — the feed is still loading.',
 
     // feed
@@ -105,6 +103,10 @@ const TABLES = {
     'comments.like': 'Like',
     'comments.dislike': 'Dislike',
     'card.comments': '{n} comments',
+    'card.like': 'Like this story',
+    'card.dislike': 'Dislike this story',
+    'card.voteFailed': 'Could not register your vote. Try again.',
+    'card.voteClosed': 'Voting is closed for archived stories.',
     'modal.prev': 'Previous story',
     'modal.next': 'Next story',
     'modal.chipTranslated': 'TRANSLATED · SHOW ORIGINAL',

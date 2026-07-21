@@ -1,15 +1,15 @@
 // Meridian app shell: feed, tabs, search, settings, polling, auto-translate.
 
-import { el, clear, iconButton } from './dom.js';
+import { el, clear } from './dom.js';
 import { t, catLabel, setLocale, applyI18n } from './i18n.js';
-import { prefs, setPref, isSaved, toggleSaved } from './prefs.js';
+import { prefs, setPref, isSaved, toggleSaved, ensureAuthorId } from './prefs.js';
 import { api } from './api.js';
 import { initWireClocks, refreshTimes } from './time.js';
 import { initPlasma } from './plasma.js';
 import { initTimescale } from './timescale.js';
-import { animateIn, animatePop, animateReveal } from './motion.js';
+import { animateIn, animatePop } from './motion.js';
 import { toast } from './toast.js';
-import { buildCard, skeletonCard, applyCardText, setCardCommentCount } from './cards.js';
+import { buildCard, skeletonCard, applyCardText, setCardCommentCount, applyCardReactions } from './cards.js';
 import { openPreview } from './modal.js';
 import { summarize, translateTexts, warmTranslator, providerLabel, toBullets } from './ai.js';
 
@@ -98,6 +98,35 @@ const cardHandlers = {
         if (card) setCardCommentCount(card, n);
       },
     }),
+  onVote: async (article, value, card) => {
+    // one request per article at a time: a double-tap must read the state
+    // the FIRST tap produced, or "second tap retracts" inverts
+    if (votesInFlight.has(article.id)) return;
+    votesInFlight.add(article.id);
+    voteEpoch += 1; // any reactions batch now in flight is stale
+    const next = article.myVote === value ? 0 : value; // second tap retracts
+    const prev = { up: article.up || 0, down: article.down || 0, myVote: article.myVote ?? null };
+    // optimistic paint — the press must not wait out a slow round-trip
+    const opt = { ...prev, myVote: next === 0 ? null : next };
+    if (prev.myVote === 1) opt.up -= 1;
+    if (prev.myVote === -1) opt.down -= 1;
+    if (next === 1) opt.up += 1;
+    if (next === -1) opt.down += 1;
+    Object.assign(article, opt);
+    applyCardReactions(card, { comments: article.commentCount || 0, ...opt });
+    try {
+      const res = await api.voteNews(article.id, next, ensureAuthorId());
+      Object.assign(article, res); // reconcile with server truth
+      applyCardReactions(card, { comments: article.commentCount || 0, ...res });
+    } catch (err) {
+      Object.assign(article, prev);
+      applyCardReactions(card, { comments: article.commentCount || 0, ...prev });
+      toast(t(err?.code === 'unknown-article' ? 'card.voteClosed' : 'card.voteFailed'));
+    } finally {
+      votesInFlight.delete(article.id);
+      voteEpoch += 1;
+    }
+  },
   onToggleSave: (article, btn) => {
     const saved = toggleSaved(article);
     btn.classList.toggle('is-saved', saved);
@@ -153,17 +182,13 @@ function clearGrid() {
   state.articles = [];
 }
 
-// Pending "new stories" AND the daily-brief panel belong to the view they
-// were produced for — drop both whenever the view changes (tab, search,
-// source toggle, saved).
+// Pending "new stories" AND the daily brief belong to the view they were
+// produced for — drop the buffer and re-summarize whenever the view
+// changes (tab, search, source toggle, saved).
 function clearPending() {
   state.pending = [];
   newPill.hidden = true;
-  const briefPanel = $('#briefPanel');
-  if (briefPanel && !briefPanel.hidden) {
-    briefPanel.hidden = true;
-    clear(briefPanel);
-  }
+  scheduleBrief(1200);
 }
 
 function addSkeletons(count) {
@@ -274,7 +299,10 @@ async function loadFeed({ reset = false } = {}) {
     addSkeletons(grid.querySelectorAll('.card--skeleton').length + 3);
   }
   try {
-    const res = await api.news(buildParams({ page: state.page, pageSize: PAGE_SIZE }));
+    const res = await api.news(
+      buildParams({ page: state.page, pageSize: PAGE_SIZE }),
+      prefs.authorId || undefined // lights up my like/dislike state on cards
+    );
     if (seq !== feedSeq) return;
     removeSkeletons();
     appendArticles(visibleArticles(res.articles), reset);
@@ -351,7 +379,10 @@ async function pollNew() {
   if (document.hidden || !navigator.onLine) return;
   if (state.category === 'saved' || !state.newestAt || state.loading) return;
   try {
-    const res = await api.news(buildParams({ since: state.newestAt, pageSize: 100 }));
+    const res = await api.news(
+      buildParams({ since: state.newestAt, pageSize: 100 }),
+      prefs.authorId || undefined
+    );
     const known = new Set(state.pending.map((a) => a.id));
     const fresh = visibleArticles(res.articles).filter(
       (a) => !state.ids.has(a.id) && !known.has(a.id)
@@ -371,10 +402,56 @@ async function pollNew() {
   }
 }
 
+// Live counters: refresh comment counts and like/dislike tallies on the
+// cards already rendered. One batched request per poll tick. Cards near the
+// viewport go first so the 150-id cap trims the far tail, not what the
+// reader is looking at. voteEpoch discards any batch that raced a vote —
+// the response snapshot predates it and would visibly undo the press.
+const ARTICLE_ID_CLIENT_RE = /^[0-9a-f]{12}$/; // saved ids come from localStorage
+const votesInFlight = new Set();
+let voteEpoch = 0;
+
+async function refreshReactions() {
+  if (document.hidden || !navigator.onLine) return;
+  const near = [];
+  const far = [];
+  const margin = innerHeight * 2;
+  for (const c of grid.querySelectorAll('.card[data-id]')) {
+    if (!ARTICLE_ID_CLIENT_RE.test(c.dataset.id)) continue;
+    const r = c.getBoundingClientRect();
+    (r.bottom > -margin && r.top < innerHeight + margin ? near : far).push(c);
+  }
+  const cards = [...near, ...far].slice(0, 150);
+  if (!cards.length) return;
+  const epoch = voteEpoch;
+  try {
+    const res = await api.reactions(
+      cards.map((c) => c.dataset.id),
+      prefs.authorId || undefined
+    );
+    if (epoch !== voteEpoch) return; // a vote raced this batch — next tick wins
+    for (const card of cards) {
+      const r = res.reactions[card.dataset.id];
+      if (!r) continue;
+      const article = articleById.get(card.dataset.id);
+      if (article) {
+        article.commentCount = r.comments;
+        article.up = r.up;
+        article.down = r.down;
+        article.myVote = r.myVote;
+      }
+      applyCardReactions(card, r);
+    }
+  } catch {
+    /* live counters are best-effort */
+  }
+}
+
 function schedulePoll(delay = POLL_MS) {
   clearTimeout(pollTimer);
   pollTimer = setTimeout(async () => {
     await pollNew();
+    await refreshReactions();
     schedulePoll();
   }, delay);
 }
@@ -385,6 +462,7 @@ newPill.addEventListener('click', () => {
   if (state.category !== 'saved') prependArticles(state.pending);
   state.pending = [];
   newPill.hidden = true;
+  scheduleBrief(800); // fresh stories just landed — re-summarize them
 });
 
 /* ── Card translation (manual + auto) ───────────────────────────────────── */
@@ -583,69 +661,95 @@ function initTabs() {
   activate(state.category, { load: false });
 }
 
-/* ── Daily brief ────────────────────────────────────────────────────────── */
+/* ── Daily brief (automatic) ────────────────────────────────────────────── */
+
+// The brief runs by itself: on page open, whenever the view changes and
+// whenever fresh stories land in the grid. The panel is always visible with
+// a fixed height, so summaries stream in without moving the grid below.
+let briefSeq = 0;
+let briefTimer = null;
+let briefDeferred = false; // a run was requested while the tab was hidden
+
+function briefSkeleton(body) {
+  clear(body);
+  for (let i = 0; i < 3; i += 1) body.append(el('div', { class: 'skel skel-text' }));
+}
+
+function scheduleBrief(delay = 800) {
+  clearTimeout(briefTimer);
+  briefTimer = setTimeout(runBrief, delay);
+}
+
+async function runBrief() {
+  const body = $('#briefBody');
+  const status = $('#briefStatus');
+  const badge = $('#briefBadge');
+  if (!body) return;
+  if (document.hidden) {
+    briefDeferred = true; // summarizing costs CPU — wait for the reader
+    return;
+  }
+  briefDeferred = false;
+  const seq = ++briefSeq; // supersedes any in-flight run
+  status.textContent = t('brief.working');
+  badge.hidden = true;
+  briefSkeleton(body);
+  try {
+    // summarize exactly what the reader is looking at: the freshest
+    // stories of the ACTIVE view (category + search + hidden sources),
+    // fetched explicitly rather than trusted to scroll-dependent state
+    let pool;
+    if (state.category === 'saved') {
+      pool = prefs.saved.slice(0, 20);
+    } else {
+      const res = await api.news(buildParams({ pageSize: 20 }));
+      pool = visibleArticles(res.articles);
+    }
+    if (seq !== briefSeq) return;
+    if (!pool.length) {
+      clear(body);
+      status.textContent = '';
+      body.append(el('p', { class: 'brief-note', text: t('brief.empty') }));
+      return;
+    }
+    const result = await summarize(
+      {
+        mode: 'brief',
+        topic: state.category === 'all' ? '' : catLabel(state.category),
+        articles: pool.slice(0, 20).map((a) => ({
+          title: a.title,
+          description: a.description || '',
+          source: a.source?.name || '',
+        })),
+        targetLang: prefs.targetLang || 'en',
+      },
+      {
+        // pct === null: download done, model is thinking
+        onProgress: (pct) => {
+          if (seq !== briefSeq) return;
+          status.textContent = pct == null ? t('brief.working') : t('ai.downloading', { pct });
+        },
+      }
+    );
+    if (seq !== briefSeq) return;
+    clear(body);
+    status.textContent = '';
+    badge.textContent = providerLabel(result.provider);
+    badge.hidden = false;
+    const list = el('ul', { class: 'bullets' });
+    for (const line of toBullets(result.summary, 7)) list.append(el('li', { text: line }));
+    body.append(list);
+    animateIn(list.children); // staggered bullet reveal
+  } catch {
+    if (seq !== briefSeq) return;
+    clear(body);
+    status.textContent = '';
+    body.append(el('p', { class: 'brief-note', text: t('brief.error') }));
+  }
+}
 
 function initBrief() {
-  const btn = $('#briefBtn');
-  const panel = $('#briefPanel');
-
-  btn.addEventListener('click', async () => {
-    btn.disabled = true;
-    btn.textContent = t('brief.working');
-    try {
-      // summarize exactly what the reader is looking at: the freshest
-      // stories of the ACTIVE view (category + search + hidden sources),
-      // fetched explicitly rather than trusted to scroll-dependent state
-      let pool;
-      if (state.category === 'saved') {
-        pool = prefs.saved.slice(0, 20);
-      } else {
-        const res = await api.news(buildParams({ pageSize: 20 }));
-        pool = visibleArticles(res.articles);
-      }
-      if (!pool.length) {
-        toast(t('brief.empty'));
-        return;
-      }
-      const result = await summarize(
-        {
-          mode: 'brief',
-          topic: state.category === 'all' ? '' : catLabel(state.category),
-          articles: pool.slice(0, 20).map((a) => ({
-            title: a.title,
-            description: a.description || '',
-            source: a.source?.name || '',
-          })),
-          targetLang: prefs.targetLang || 'en',
-        },
-        {
-          // pct === null: download done, model is thinking
-          onProgress: (pct) => {
-            btn.textContent = pct == null ? t('brief.working') : t('ai.downloading', { pct });
-          },
-        }
-      );
-      clear(panel);
-      const head = el('div', { class: 'brief-panel-head' });
-      head.append(
-        el('span', { class: 'mono brief-label', text: t('brief.label') }),
-        el('span', { class: 'badge mono', text: providerLabel(result.provider) })
-      );
-      const closeBtn = iconButton('close', t('brief.close'));
-      closeBtn.addEventListener('click', () => { panel.hidden = true; });
-      head.append(closeBtn);
-      const list = el('ul', { class: 'bullets' });
-      for (const line of toBullets(result.summary, 7)) list.append(el('li', { text: line }));
-      panel.append(head, list);
-      panel.hidden = false;
-      animateReveal(panel);
-    } catch {
-      toast(t('brief.error'));
-    } finally {
-      btn.disabled = false;
-      btn.textContent = t('brief.run');
-    }
-  });
+  $('#briefRefresh').addEventListener('click', () => scheduleBrief(0));
 }
 
 /* ── Settings drawer ────────────────────────────────────────────────────── */
@@ -846,7 +950,10 @@ function boot() {
   // returning to the tab: check for news immediately instead of waiting
   // out the interval (polls are skipped entirely while hidden)
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) schedulePoll(1500);
+    if (!document.hidden) {
+      schedulePoll(1500);
+      if (briefDeferred) scheduleBrief(2000); // run the brief we skipped
+    }
   });
   setInterval(() => refreshTimes(), TIME_REFRESH_MS);
 }

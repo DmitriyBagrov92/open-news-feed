@@ -73,8 +73,22 @@ export const api = {
   },
 
   // params: { category, q, sources, exclude, page, pageSize, lang, since }
-  news(params) {
-    return request('/api/news' + qs(params));
+  // authorId (optional) lights up per-user myVote on the returned articles.
+  news(params, authorId) {
+    return request('/api/news' + qs(params), {
+      headers: authorId ? { 'X-Author-Id': authorId } : {},
+    });
+  },
+
+  // Batch live counters (comments + likes/dislikes) for visible articles.
+  reactions(articleIds, authorId) {
+    return request('/api/reactions' + qs({ articles: articleIds.join(',') }), {
+      headers: authorId ? { 'X-Author-Id': authorId } : {},
+    });
+  },
+
+  voteNews(articleId, value, authorId) {
+    return post(`/api/news/${articleId}/vote`, { value }, { 'X-Author-Id': authorId });
   },
 
   sources() {

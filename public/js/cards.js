@@ -56,7 +56,7 @@ export function buildMedia(article, className, { minWidth = 0 } = {}) {
 // handlers: { onOpen(article), onToggleSave(article, btn), onTranslate(article, card) }
 // variant: 'hero' (2x2 lead) | 'wide' (2-col, image beside text) |
 //          'std' (image on top) | 'text' (no image — compact, mediaLESS)
-export function buildCard(article, { variant = 'std', saved = false, onOpen, onToggleSave, onTranslate } = {}) {
+export function buildCard(article, { variant = 'std', saved = false, onOpen, onToggleSave, onTranslate, onVote } = {}) {
   const hero = variant === 'hero';
   const card = el('article', {
     class: 'card card--' + variant,
@@ -130,8 +130,33 @@ export function buildCard(article, { variant = 'std', saved = false, onOpen, onT
     onOpen?.(article);
   });
 
+  // like/dislike the story right from the grid; counts are always visible
+  // and live-refreshed by the reactions poll
+  const react = el('div', { class: 'card-react' });
+  for (const kind of ['up', 'down']) {
+    const val = kind === 'up' ? 1 : -1;
+    // mono on the button (like .card-cmt), not the span — a .mono span
+    // would take .mono's own font-size and outgrow the comment chip
+    const btn = el('button', {
+      class: 'card-vote mono card-vote--' + kind,
+      type: 'button',
+      'aria-label': t(kind === 'up' ? 'card.like' : 'card.dislike'),
+      'aria-pressed': String(article.myVote === val),
+    });
+    btn.append(icon(kind), el('span', { text: String(article[kind] || 0) }));
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onVote?.(article, val, card);
+    });
+    react.append(btn);
+  }
+
   const footL = el('div', { class: 'card-foot-l' });
-  footL.append(el('span', { class: 'card-cat mono', text: catLabel(article.category) }), cmtChip);
+  footL.append(
+    el('span', { class: 'card-cat mono', text: catLabel(article.category) }),
+    react,
+    cmtChip
+  );
   const foot = el('div', { class: 'card-foot' });
   foot.append(footL, actions);
 
@@ -160,6 +185,19 @@ export function setCardCommentCount(card, n) {
   chip.hidden = !(n > 0);
   chip.querySelector('span').textContent = String(n);
   chip.setAttribute('aria-label', t('card.comments', { n }));
+}
+
+// Live update of a card's counters from a reactions payload
+// { comments, up, down, myVote }.
+export function applyCardReactions(card, r) {
+  if (!card || !r) return;
+  setCardCommentCount(card, r.comments || 0);
+  for (const kind of ['up', 'down']) {
+    const btn = card.querySelector('.card-vote--' + kind);
+    if (!btn) continue;
+    btn.querySelector('span').textContent = String(r[kind] || 0);
+    btn.setAttribute('aria-pressed', String(r.myVote === (kind === 'up' ? 1 : -1)));
+  }
 }
 
 export function applyCardText(card, title, description) {
