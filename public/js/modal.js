@@ -94,9 +94,6 @@ function chunkParagraph(text, maxLen = 1000) {
 // translation, comments. Stale async work is guarded by articleCol.isConnected
 // — false both after navigation (column replaced) and after close.
 function buildArticleView(article, { onCountChange } = {}) {
-  const closeBtn = iconButton('close', t('modal.close'), 'modal-close');
-  closeBtn.addEventListener('click', () => close());
-
   const meta = el('p', {
     class: 'modal-meta mono',
     text: [article.source?.name, absTime(article.publishedAt), catLabel(article.category)]
@@ -129,7 +126,7 @@ function buildArticleView(article, { onCountChange } = {}) {
   body.append(meta, title, actions, chip, summaryBox, note, textBox);
 
   const articleCol = el('div', { class: 'modal-article' });
-  articleCol.append(closeBtn, buildMedia(article, 'modal-media'), body);
+  articleCol.append(buildMedia(article, 'modal-media'), body);
   const commentsCol = el('aside', { class: 'modal-comments' });
   commentsCol.append(
     buildCommentsPanel(article, {
@@ -276,7 +273,7 @@ function buildArticleView(article, { onCountChange } = {}) {
     }
   });
 
-  return { articleCol, commentsCol, closeBtn };
+  return { articleCol, commentsCol };
 }
 
 export function openPreview(article, options = {}) {
@@ -299,8 +296,13 @@ export function openPreview(article, options = {}) {
   const prevBtn = iconButton('prev', t('modal.prev'), 'modal-nav modal-nav--prev');
   const nextBtn = iconButton('next', t('modal.next'), 'modal-nav modal-nav--next');
 
+  // shell-owned close button: pinned to the top-right corner of the whole
+  // story block, surviving prev/next column swaps
+  const closeBtn = iconButton('close', t('modal.close'), 'modal-close');
+  closeBtn.addEventListener('click', () => close());
+
   let view = buildArticleView(article, { onCountChange: options.onCountChange });
-  dialog.append(view.articleCol, view.commentsCol);
+  dialog.append(closeBtn, view.articleCol, view.commentsCol);
   root.append(scrim, prevBtn, dialog, nextBtn);
 
   function updateArrows() {
@@ -308,8 +310,8 @@ export function openPreview(article, options = {}) {
     const canNext = !!options.getAdjacent?.(current, 1);
     // focus rescue BEFORE hiding — a hidden activeElement drops focus to
     // body and breaks the trap
-    if (!canPrev && document.activeElement === prevBtn) (canNext ? nextBtn : view.closeBtn).focus();
-    if (!canNext && document.activeElement === nextBtn) (canPrev ? prevBtn : view.closeBtn).focus();
+    if (!canPrev && document.activeElement === prevBtn) (canNext ? nextBtn : closeBtn).focus();
+    if (!canNext && document.activeElement === nextBtn) (canPrev ? prevBtn : closeBtn).focus();
     prevBtn.hidden = !canPrev;
     nextBtn.hidden = !canNext;
   }
@@ -390,7 +392,7 @@ export function openPreview(article, options = {}) {
   if (origin) animateZoomFrom(dialog, origin.getBoundingClientRect());
   else animateDialog(dialog);
   document.body.style.overflow = 'hidden';
-  view.closeBtn.focus();
+  closeBtn.focus();
 }
 
 export { close as closePreview };
