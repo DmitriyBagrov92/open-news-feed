@@ -13,24 +13,43 @@ function fmtClock(iso) {
 }
 
 export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, articleById, plasma, onSeekBeyond }) {
-  if (!container) return { refresh() {}, hide() {} };
+  if (!container) return { refresh() {}, hide() {}, setSource() {} };
 
   let newestT = 0;
   let oldestT = 0;
   let dragging = false;
-
-  const visibleCards = () => grid.querySelectorAll('.card:not(.card--skeleton)');
 
   function articleTime(card) {
     const article = articleById.get(card?.dataset.id);
     return article ? Date.parse(article.publishedAt) : NaN;
   }
 
+  // The rail works off a source of { t, el } points in top-to-bottom page
+  // order. The default source is the feed grid; other views (Bubble
+  // Battle) plug their own via setSource(...).
+  const gridSource = {
+    items() {
+      const out = [];
+      for (const card of grid.querySelectorAll('.card:not(.card--skeleton)')) {
+        const t = articleTime(card);
+        if (!Number.isNaN(t)) out.push({ t, el: card });
+      }
+      return out;
+    },
+    monotonic: true, // DOM order == time order in the feed
+  };
+  let source = gridSource;
+
+  function setSource(next) {
+    source = next || gridSource;
+    refresh();
+  }
+
   // ── range / ticks / density ───────────────────────────────────────────────
 
   function refresh() {
-    const cards = visibleCards();
-    if (cards.length < 3) {
+    const items = source.items();
+    if (items.length < 3) {
       container.classList.add('is-empty');
       return;
     }
@@ -39,9 +58,7 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
     let newest = -Infinity;
     let oldest = Infinity;
     const times = [];
-    for (const card of cards) {
-      const t = articleTime(card);
-      if (Number.isNaN(t)) continue;
+    for (const { t } of items) {
       times.push(t);
       if (t > newest) newest = t;
       if (t < oldest) oldest = t;
@@ -73,9 +90,9 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
 
   // ── scroll → cursor ───────────────────────────────────────────────────────
 
-  function topVisibleCard() {
-    for (const card of visibleCards()) {
-      if (card.getBoundingClientRect().bottom > HEADER_OFFSET) return card;
+  function topVisibleItem() {
+    for (const item of source.items()) {
+      if (item.el.getBoundingClientRect().bottom > HEADER_OFFSET) return item;
     }
     return null;
   }
@@ -87,10 +104,9 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
 
   function syncCursor() {
     if (dragging || newestT === oldestT) return;
-    const card = topVisibleCard();
-    const t = articleTime(card);
-    if (Number.isNaN(t)) return;
-    placeCursor((newestT - t) / (newestT - oldestT), new Date(t).toISOString());
+    const item = topVisibleItem();
+    if (!item) return;
+    placeCursor((newestT - item.t) / (newestT - oldestT), new Date(item.t).toISOString());
   }
 
   let raf = 0;
@@ -118,11 +134,23 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
     if (newestT === oldestT) return;
     const target = newestT - frac * (newestT - oldestT);
     let dest = null;
-    for (const card of visibleCards()) {
-      const t = articleTime(card);
-      if (!Number.isNaN(t) && t <= target) {
-        dest = card;
-        break;
+    if (source.monotonic) {
+      for (const item of source.items()) {
+        if (item.t <= target) {
+          dest = item.el;
+          break;
+        }
+      }
+    } else {
+      // non-monotonic sources (battle clusters are ranked, not time-
+      // sorted): jump to the story closest in time to the chosen moment
+      let best = Infinity;
+      for (const item of source.items()) {
+        const d = Math.abs(item.t - target);
+        if (d < best) {
+          best = d;
+          dest = item.el;
+        }
       }
     }
     if (!dest) {
@@ -162,6 +190,7 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
 
   return {
     refresh,
+    setSource,
     hide() {
       container.classList.add('is-empty');
     },

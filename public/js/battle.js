@@ -16,7 +16,7 @@ import { relTime } from './time.js';
 import { summarize, translateTexts, toBullets } from './ai.js';
 import { initHoverTip } from './tooltip.js';
 
-const TOPIC_BAND = 58;        // reserved height for the topic label
+const TOPIC_BAND = 44;        // reserved height for the topic label
 const CLUSTER_GAP = 84;       // clearance between clusters
 const BRIEF_FULL_H = 210;     // packing reserve for an expanded brief tile
 const BRIEF_MAX_H = 360;      // hard ceiling — rows are line-clamped anyway
@@ -43,7 +43,8 @@ function loadMatter() {
 
 // options.onArticles(articles) — app.js feeds the plasma timeline with the
 // freshness histogram of everything on this page.
-export function initBattle({ section, onArticles } = {}) {
+export function initBattle(options = {}) {
+  const { section, onArticles } = options;
   const space = section.querySelector('#battleSpace');
   const linksCanvas = section.querySelector('#battleLinks');
   const status = section.querySelector('#battleStatus');
@@ -71,7 +72,7 @@ export function initBattle({ section, onArticles } = {}) {
   const abort = { scroll: null };
 
   function levelFactor(level) {
-    return 1 + (level || 0) * 0.12; // -2 → 0.76 … +2 → 1.24
+    return 1 + (level || 0) * 0.22; // -2 → 0.56 … +2 → 1.44
   }
 
   const langActive = () => prefs.autoTranslate && (prefs.targetLang || 'en') !== 'en';
@@ -157,7 +158,9 @@ export function initBattle({ section, onArticles } = {}) {
       const a = j * 2.399963;
       const d = coreR + packR(it.r) + 6 + (j % 3) * 26;
       it.x = Math.cos(a) * d;
-      it.y = Math.sin(a) * d;
+      // bias the seed toward a wide, low silhouette — the page reads top
+      // to bottom, so vertical spread is the expensive direction
+      it.y = Math.sin(a) * d * 0.72;
     });
     for (let iter = 0; iter < 80; iter += 1) {
       let moved = false;
@@ -271,12 +274,24 @@ export function initBattle({ section, onArticles } = {}) {
       const briefW = Math.min(340, w * 0.72);
       const coreR = Math.hypot((briefW + BRIEF_CLEAR * 2) / 2, (BRIEF_FULL_H + BRIEF_CLEAR * 2) / 2) * 0.9;
       const R = layoutCluster(items, coreR);
+      // vertical band = the ACTUAL extents of the packed layout, not the
+      // bounding circle — clusters are wide and low, and the circle model
+      // left a dead zone above/below that grew with tile size and count
+      let yMin = -(BRIEF_FULL_H / 2 + BRIEF_CLEAR);
+      let yMax = BRIEF_FULL_H / 2 + BRIEF_CLEAR;
+      let xR = briefW / 2 + BRIEF_CLEAR;
+      for (const it of items) {
+        // true tile extents (+8px breath), not the inflated packing radius
+        yMin = Math.min(yMin, it.y - it.r - 8);
+        yMax = Math.max(yMax, it.y + it.r + 8);
+        xR = Math.max(xR, Math.abs(it.x) + it.r + 8);
+      }
       const topicY = yCursor;
       const anchor = {
-        x: Math.max(R + 20, Math.min(w - R - 20, w * (0.5 + (i % 2 ? 0.12 : -0.12)))),
-        y: topicY + TOPIC_BAND + R,
+        x: Math.max(xR + 20, Math.min(w - xR - 20, w * (0.5 + (i % 2 ? 0.12 : -0.12)))),
+        y: topicY + TOPIC_BAND - yMin,
       };
-      yCursor = anchor.y + R + CLUSTER_GAP;
+      yCursor = anchor.y + yMax + CLUSTER_GAP;
 
       const topicEl = el('p', { class: 'battle-topic mono', text: battle.topic.join(' · ') });
       topicEl.style.top = topicY + 'px';
@@ -538,8 +553,8 @@ export function initBattle({ section, onArticles } = {}) {
           targetLang: lang,
         });
         if (result.provider === 'local') {
-          // extractive can't contrast — build the per-lean framing rows
-          payload = { rows: leanRows(cluster, lang) };
+          // extractive can't contrast — build the distinctive-framing rows
+          payload = { rows: contrastRows(cluster) };
           if (lang !== 'en') {
             const texts = payload.rows.map((r) => r.text);
             const tr = await translateTexts(texts, lang, { sourceLang: 'en' }).catch(() => null);
@@ -589,19 +604,63 @@ export function initBattle({ section, onArticles } = {}) {
     requestAnimationFrame(() => briefEl.classList.add('is-ready'));
   }
 
-  // freshest headline per lean — the raw material of the framing gap
-  function leanRows(cluster) {
+  // Deterministic contrast analysis: what does each side say that the
+  // others DON'T. Tokens (words + capitalized phrases) unique to a lean's
+  // headlines are its distinctive framing — that difference is the row.
+  const CONTRAST_STOP = new Set(
+    ('the a an and or but for with from into over under after before because ' +
+      'says said would could should about their there these those than that this ' +
+      'have has been will more most some what when where which while news update ' +
+      'live breaking report video watch amid').split(' ')
+  );
+
+  function contrastTokens(title) {
+    const words = String(title).split(/[^A-Za-z0-9’']+/).filter(Boolean);
+    const out = new Map(); // lower → display
+    for (let i = 0; i < words.length; i += 1) {
+      const w = words[i];
+      const lower = w.toLowerCase();
+      if (lower.length < 4 || CONTRAST_STOP.has(lower)) continue;
+      const next = words[i + 1];
+      if (/^[A-Z]/.test(w) && next && /^[A-Z]/.test(next)) {
+        out.set(lower + ' ' + next.toLowerCase(), w + ' ' + next);
+      }
+      out.set(lower, /^[A-Z]/.test(w) ? w : lower);
+    }
+    return out;
+  }
+
+  function contrastRows(cluster) {
     const byLean = {};
     for (const a of cluster.battle.articles) {
-      if (!byLean[a.lean] || a.publishedAt > byLean[a.lean].publishedAt) byLean[a.lean] = a;
+      const slot = (byLean[a.lean] ??= { tokens: new Map(), sources: new Set(), freshest: a });
+      slot.sources.add(a.source?.name || '');
+      if (a.publishedAt > slot.freshest.publishedAt) slot.freshest = a;
+      for (const [lower, display] of contrastTokens(a.title)) {
+        const cur = slot.tokens.get(lower) || { display, n: 0 };
+        cur.n += 1;
+        slot.tokens.set(lower, cur);
+      }
     }
-    return ['left', 'center', 'right']
-      .filter((lean) => byLean[lean])
-      .map((lean) => ({
+    const order = ['left', 'center', 'right'].filter((l) => byLean[l]);
+    return order.map((lean) => {
+      const others = new Set(
+        order.filter((o) => o !== lean).flatMap((o) => [...byLean[o].tokens.keys()])
+      );
+      // phrases only this side uses — prefer repeated and multi-word ones
+      const distinct = [...byLean[lean].tokens.entries()]
+        .filter(([lower]) => !others.has(lower) && ![...others].some((t) => t.includes(lower)))
+        .sort((a, b) => b[1].n - a[1].n || b[0].length - a[0].length)
+        .slice(0, 3)
+        .map(([, v]) => v.display);
+      return {
         lean,
-        source: byLean[lean].source?.name || '',
-        text: byLean[lean].title,
-      }));
+        source: [...byLean[lean].sources].slice(0, 2).join(', '),
+        text: distinct.length
+          ? `${t('battle.frames')} ${distinct.map((w) => '“' + w + '”').join(', ')}`
+          : byLean[lean].freshest.title,
+      };
+    });
   }
 
   async function translateCluster(cluster) {
@@ -859,17 +918,20 @@ export function initBattle({ section, onArticles } = {}) {
     if (!active) return;
     if (reducedMotion.matches) {
       buildStatic();
+      options.onBuilt?.();
       return;
     }
     try {
       Matter = await loadMatter();
     } catch {
       buildStatic();
+      options.onBuilt?.();
       return;
     }
     if (!active) return;
     if (fresh || !clusters.length) buildPhysics();
     else applyTranslationsSoon();
+    options.onBuilt?.();
     lastScrollY = scrollY;
     abort.scroll = new AbortController();
     const signal = abort.scroll.signal;
@@ -936,5 +998,24 @@ export function initBattle({ section, onArticles } = {}) {
     clear(space);
   }
 
-  return { enter, leave, destroy };
+  // Timeline points for the right-rail timescale: every bubble, in page
+  // order (clusters top to bottom). Non-monotonic in time — battles are
+  // ranked by lean diversity, not freshness.
+  function timelineItems() {
+    const out = [];
+    for (const cluster of clusters) {
+      for (const { article, btn } of cluster.bubbles || []) {
+        out.push({ t: Date.parse(article.publishedAt), el: btn });
+      }
+    }
+    if (!out.length && staticMode) {
+      for (const btn of space.querySelectorAll('.bubble')) {
+        const article = bubbleArticle.get(btn);
+        if (article) out.push({ t: Date.parse(article.publishedAt), el: btn });
+      }
+    }
+    return out;
+  }
+
+  return { enter, leave, destroy, timelineItems };
 }

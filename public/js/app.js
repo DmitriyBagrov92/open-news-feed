@@ -753,23 +753,17 @@ let battleView = null;
 async function enterBattle() {
   document.body.classList.add('battle-mode');
   $('#battle').hidden = false;
-  timescale.hide();
   try {
     if (!battleView) {
       const mod = await import('./battle.js');
       battleView = mod.initBattle({
         section: $('#battle'),
-        // the plasma rail becomes the battle timeline: 24 buckets of the
-        // page's article freshness (bucket 23 = NOW, same as the feed)
-        onArticles: (articles) => {
-          const buckets = new Array(24).fill(0);
-          const now = Date.now();
-          for (const a of articles) {
-            const age = now - Date.parse(a.publishedAt);
-            if (age < 0 || age >= 48 * 3600_000) continue;
-            buckets[23 - Math.floor((age / (48 * 3600_000)) * 24)] += 1;
-          }
-          plasma.setHistogram(buckets);
+        // once bubbles exist, the SAME right-rail timescale drives off
+        // them: ticks, plasma density, scroll cursor and seek — like the
+        // main page, just fed by the battle's stories
+        onBuilt: () => {
+          if (state.category !== 'battle') return;
+          timescale.setSource({ items: () => battleView.timelineItems(), monotonic: false });
         },
       });
     }
@@ -784,7 +778,7 @@ function leaveBattle() {
   battleView?.leave();
   $('#battle').hidden = true;
   document.body.classList.remove('battle-mode');
-  timescale.refresh();
+  timescale.setSource(null); // back to the feed grid
 }
 
 /* ── Daily brief (automatic) ────────────────────────────────────────────── */
