@@ -26,6 +26,7 @@ const STALE_MS = 5 * 60_000;  // refetch on enter() when older than this
 const CLICK_PX = 6;           // pointer travel below this = click, not drag
 const CLICK_MS = 400;
 const BUBBLE_GAP = 12;        // minimum clearance between bubble rims
+const MIN_R = 110;            // absolute floor: no tile ever below 220px
 const FIGHT_EVERY_MS = 4500;
 
 // Matter's UMD wrapper needs `this` as root — import() would hand it
@@ -106,6 +107,7 @@ export function initBattle(options = {}) {
       'aria-label': `${article.source?.name} — ${article.title}`,
     });
     btn.style.width = btn.style.height = r * 2 + 'px';
+    setBubbleFont(btn, r);
     if (article.image && /^https?:\/\//i.test(article.image)) {
       btn.classList.add('bubble--img');
       // the URL is already encoded — only escape quotes for the css string
@@ -148,6 +150,11 @@ export function initBattle(options = {}) {
   // squares meet at corners — pack with an effective radius between the
   // half-side and the half-diagonal so relaxation can never interlock them
   const packR = (r) => r * 1.18;
+
+  // typography follows the tile: children are sized in em off this base
+  function setBubbleFont(btn, r) {
+    btn.style.fontSize = Math.max(10, Math.min(24, Math.round(r * 0.13))) + 'px';
+  }
 
   /* ── overlap-free cluster layout ───────────────────────────────────────── */
 
@@ -216,7 +223,7 @@ export function initBattle(options = {}) {
       const wrapEl = el('div', { class: 'battle-group-bubbles' });
       const cluster = { battle };
       for (const article of battle.articles) {
-        const r = Math.round(radiusFor(article, innerWidth) * sizeFactor);
+        const r = Math.max(MIN_R, Math.round(radiusFor(article, innerWidth) * sizeFactor));
         const btn = bubbleButton(article, r);
         btn.addEventListener('click', () => openBubble(cluster, article, btn));
         wrapEl.append(btn);
@@ -268,7 +275,7 @@ export function initBattle(options = {}) {
     battles.forEach((battle, i) => {
       const items = battle.articles.map((article) => ({
         article,
-        r: Math.round(radiusFor(article, innerWidth) * sizeFactor),
+        r: Math.max(MIN_R, Math.round(radiusFor(article, innerWidth) * sizeFactor)),
       }));
       // the AI brief is a colliding tile at the heart of the group; the
       // layout reserves its EXPANDED size so growth never forces a reflow
@@ -283,7 +290,7 @@ export function initBattle(options = {}) {
         const avail = w / 2 - 44;
         if (xNeed > avail) {
           const shrink = avail / xNeed;
-          for (const it of items) it.r = Math.max(56, Math.round(it.r * shrink));
+          for (const it of items) it.r = Math.max(96, Math.round(it.r * shrink));
           R = layoutCluster(items, coreR);
         }
       }
@@ -462,12 +469,13 @@ export function initBattle(options = {}) {
     }
     for (const cluster of clusters) {
       for (const bubble of cluster.bubbles) {
-        const nr = Math.round(bubble.baseR * sizeFactor);
+        const nr = Math.max(MIN_R, Math.round(bubble.baseR * sizeFactor));
         const scale = nr / bubble.r;
         if (Math.abs(scale - 1) < 0.01) continue;
         Matter.Body.scale(bubble.body, scale, scale);
         bubble.r = nr;
         bubble.btn.style.width = bubble.btn.style.height = nr * 2 + 'px';
+        setBubbleFont(bubble.btn, nr);
       }
       for (const link of cluster.links || []) {
         const a = bodyBubble.get(link.bodyA.id) || cluster.bubbles.find((b) => b.body === link.bodyA);
@@ -594,14 +602,15 @@ export function initBattle(options = {}) {
     } else {
       for (const row of payload.rows) {
         const li = el('li', { 'data-lean': row.lean });
-        li.append(el('strong', { class: 'mono', text: t('battle.' + row.lean) + ' · ' + row.source + ' ' }));
-        if (row.phrases?.length) {
-          row.phrases.forEach((p, i) => {
-            if (i) li.append(document.createTextNode(', '));
-            li.append(el('em', { class: 'battle-brief-q', text: '“' + p + '”' }));
-          });
-        } else {
-          li.append(document.createTextNode(row.fallbackTitle || row.text || ''));
+        li.append(
+          el('strong', { class: 'mono', text: t('battle.' + row.lean) + ' · ' + row.source + ' ' }),
+          el('span', { class: 'battle-stance', 'data-stance': row.stance, text: row.stanceText })
+        );
+        if (row.evidence) {
+          li.append(
+            document.createTextNode(' — '),
+            el('em', { class: 'battle-brief-q', text: '“' + row.evidence + '”' })
+          );
         }
         list.append(li);
       }
@@ -615,6 +624,30 @@ export function initBattle(options = {}) {
     const target = Math.min(BRIEF_MAX_H, inner.scrollHeight + 6);
     setBriefSize(cluster, target);
     requestAnimationFrame(() => briefEl.classList.add('is-ready'));
+  }
+
+  // Stance detection: the difference that matters is the ATTITUDE — who
+  // attacks the story's subject and who cheers it. Verb/noun lexicons of
+  // hostile vs approving headline language score each side's tone; the
+  // verdict is backed by that side's most polarized headline as evidence.
+  const STANCE_NEG = /\b(slams?|blasts?|rips?|attacks?|fail(?:s|ure|ures)?|dangerous|scandal|crisis|chaos|threats?|disaster|corrupt(?:ion)?|lies?|expos\w+|betray\w*|collaps\w+|worst|warns?|accus\w+|destroy\w*|fears?|blames?|mocks?|fraud|revisionism|problem|debacle|meltdown|dodge\w*|desperate|refus\w+|denies|deny)\b/i;
+  const STANCE_POS = /\b(wins?|won|supports?|backs?|defends?|prais\w+|boosts?|leads?|victory|success|celebrat\w+|flex\w*|triumph\w*|vows?|cheers?|surg\w+|stronger?|record|welcomes?|endors\w+|rall\w+)\b/i;
+
+  function stanceOf(articles) {
+    let score = 0;
+    let evidence = null;
+    let best = 0;
+    for (const a of articles) {
+      let v = 0;
+      if (STANCE_NEG.test(a.title)) v -= 1;
+      if (STANCE_POS.test(a.title)) v += 1;
+      score += v;
+      if (v !== 0 && Math.abs(v) >= Math.abs(best)) {
+        best = v;
+        evidence = a.title;
+      }
+    }
+    return { score, evidence };
   }
 
   // Deterministic contrast analysis: what does each side say that the
@@ -646,42 +679,25 @@ export function initBattle(options = {}) {
   function contrastRows(cluster) {
     const byLean = {};
     for (const a of cluster.battle.articles) {
-      const slot = (byLean[a.lean] ??= { tokens: new Map(), sources: new Set(), freshest: a });
+      const slot = (byLean[a.lean] ??= { articles: [], sources: new Set() });
+      slot.articles.push(a);
       slot.sources.add(a.source?.name || '');
-      if (a.publishedAt > slot.freshest.publishedAt) slot.freshest = a;
-      for (const [lower, display] of contrastTokens(a.title)) {
-        const cur = slot.tokens.get(lower) || { display, n: 0 };
-        cur.n += 1;
-        slot.tokens.set(lower, cur);
-      }
     }
-    const order = ['left', 'center', 'right'].filter((l) => byLean[l]);
-    return order.map((lean) => {
-      const others = new Set(
-        order.filter((o) => o !== lean).flatMap((o) => [...byLean[o].tokens.keys()])
-      );
-      // phrases only this side uses. STRICT filter: entities, multi-word
-      // phrases or repeats only — a lone generic noun ("bridge") reads
-      // like hallucination, and these are verbatim citations, never to be
-      // paraphrased or machine-translated.
-      const distinct = [...byLean[lean].tokens.entries()]
-        .filter(([lower, v]) =>
-          !others.has(lower) &&
-          ![...others].some((t) => t.includes(lower)) &&
-          (lower.includes(' ') || /^[A-Z]/.test(v.display) || v.n >= 2) &&
-          lower.length >= 5
-        )
-        .sort((a, b) => (b[0].includes(' ') - a[0].includes(' ')) || b[1].n - a[1].n || b[0].length - a[0].length)
-        .slice(0, 3)
-        .map(([, v]) => v.display);
-      return {
-        lean,
-        source: [...byLean[lean].sources].slice(0, 2).join(', '),
-        // citations stay in the outlet's own words and language
-        phrases: distinct,
-        fallbackTitle: byLean[lean].freshest.title,
-      };
-    });
+    const who = cluster.battle.topic[0] || '';
+    return ['left', 'center', 'right']
+      .filter((l) => byLean[l])
+      .map((lean) => {
+        const { score, evidence } = stanceOf(byLean[lean].articles);
+        const stance = score < 0 ? 'critical' : score > 0 ? 'supportive' : 'neutral';
+        return {
+          lean,
+          source: [...byLean[lean].sources].slice(0, 2).join(', '),
+          stance,
+          stanceText: t('battle.' + stance, { who }),
+          // the receipt: that side's most polarized headline, verbatim
+          evidence,
+        };
+      });
   }
 
   async function translateCluster(cluster) {

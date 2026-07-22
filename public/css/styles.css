@@ -2017,8 +2017,9 @@ body.battle-mode #newPill {
 }
 .bubble--img .bubble-src,
 .bubble--img .bubble-title { color: #fff; }
+/* inner type scales in em off the tile's own font-size (set from its r) */
 .bubble-src {
-  font-size: 0.5rem;
+  font-size: 0.58em;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-2);
@@ -2028,8 +2029,8 @@ body.battle-mode #newPill {
   text-overflow: ellipsis;
 }
 .bubble-title {
-  font-size: 0.66rem;
-  line-height: 1.25;
+  font-size: 0.92em;
+  line-height: 1.28;
   font-weight: 600;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -2038,7 +2039,7 @@ body.battle-mode #newPill {
   overflow-wrap: break-word;
 }
 .bubble-time {
-  font-size: 0.48rem;
+  font-size: 0.52em;
   letter-spacing: 0.08em;
   color: var(--ink-2);
 }
@@ -2153,8 +2154,12 @@ body.battle-mode #newPill {
 }
 .battle-brief-q {
   font-style: normal;
-  color: var(--accent);
+  color: var(--ink-2);
 }
+.battle-stance { font-weight: 650; }
+.battle-stance[data-stance="critical"] { color: var(--lean-right); }
+.battle-stance[data-stance="supportive"] { color: #3d9c6a; }
+.battle-stance[data-stance="neutral"] { color: var(--accent); }
 .battle-brief-spin {
   display: block;
   width: 16px;
