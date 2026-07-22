@@ -30,6 +30,11 @@ const TABLES = {
     'lang.pick': 'Choose a target language other than English first.',
     'lang.unavailable': 'Translation unavailable in this browser.',
 
+    // card sizing
+    'grid.size': 'Card size',
+    'grid.smaller': 'Smaller cards',
+    'grid.bigger': 'Bigger cards',
+
     // theme / settings
     'theme.toggle': 'Toggle light or dark theme',
     'settings.open': 'Settings',

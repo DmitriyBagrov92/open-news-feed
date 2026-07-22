@@ -11,6 +11,7 @@ const DEFAULTS = Object.freeze({
   hiddenSources: [],        // source ids excluded from the feed
   category: 'all',
   density: 'comfortable',   // reserved by the contract
+  gridSize: 0,              // card sizing level: -2 (dense) … 2 (large)
   saved: [],                // full Article objects — the Saved tab works offline
   authorId: null,           // anonymous comment identity (lazy UUID)
 });
@@ -22,6 +23,7 @@ function sanitize(raw) {
   if (typeof p.targetLang !== 'string') p.targetLang = 'en';
   if (typeof p.category !== 'string') p.category = 'all';
   if (typeof p.density !== 'string') p.density = 'comfortable';
+  p.gridSize = Math.max(-2, Math.min(2, Math.trunc(Number(p.gridSize)) || 0));
   p.autoTranslate = Boolean(p.autoTranslate);
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (typeof p.authorId !== 'string' || !UUID_RE.test(p.authorId)) p.authorId = null;

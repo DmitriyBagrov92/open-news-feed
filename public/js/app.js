@@ -772,6 +772,34 @@ function initBrief() {
   $('#briefRefresh').addEventListener('click', () => scheduleBrief(0));
 }
 
+/* ── Card sizing ────────────────────────────────────────────────────────── */
+
+// Five density levels around the standard mosaic; the CSS variable ladder
+// keyed off html[data-grid-size] does the actual re-layout (auto-fill).
+const GRID_SIZE_MIN = -2;
+const GRID_SIZE_MAX = 2;
+
+function initGridSize() {
+  const smaller = $('#gridSmaller');
+  const bigger = $('#gridBigger');
+  const apply = () => {
+    const level = prefs.gridSize || 0;
+    if (level) document.documentElement.dataset.gridSize = String(level);
+    else delete document.documentElement.dataset.gridSize;
+    smaller.disabled = level <= GRID_SIZE_MIN;
+    bigger.disabled = level >= GRID_SIZE_MAX;
+  };
+  const nudge = (dir) => {
+    const next = Math.max(GRID_SIZE_MIN, Math.min(GRID_SIZE_MAX, (prefs.gridSize || 0) + dir));
+    if (next === prefs.gridSize) return;
+    setPref('gridSize', next);
+    apply();
+  };
+  smaller.addEventListener('click', () => nudge(-1));
+  bigger.addEventListener('click', () => nudge(1));
+  apply();
+}
+
 /* ── Settings drawer ────────────────────────────────────────────────────── */
 
 let sourcesData = null;
@@ -953,6 +981,7 @@ function boot() {
       retry();
     },
   });
+  initGridSize(); // before the first render so the saved size paints first
   initSearch();
   initLangControl();
   initTabs();

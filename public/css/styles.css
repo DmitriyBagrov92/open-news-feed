@@ -917,12 +917,25 @@ a:hover { text-decoration: underline; }
 
 /* Dynamic mosaic: card shapes follow their content (hero 2x2, wide 2x1,
    std, compact text) and dense flow packs the maximum onto each screen. */
+/* User-adjustable card sizing: five density levels around the 235px
+   standard, persisted in localStorage (prefs.gridSize) and applied as a
+   data attribute before first paint. auto-fill re-lays the mosaic out on
+   its own; min() keeps single-column phones from overflowing. */
+:root { --card-min: 235px; }
+html[data-grid-size="-2"] { --card-min: 170px; } /* two columns even on phones */
+html[data-grid-size="-1"] { --card-min: 202px; }
+html[data-grid-size="1"] { --card-min: 280px; }
+html[data-grid-size="2"] { --card-min: 330px; }
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--card-min), 100%), 1fr));
   grid-auto-flow: dense;
   gap: 14px;
 }
+
+.zoom-ctl { display: flex; align-items: center; }
+.icon-btn:disabled { opacity: 0.35; pointer-events: none; }
 
 /* text cards: no media, tight — a solar top-rule keeps them on-theme */
 .card--text {
