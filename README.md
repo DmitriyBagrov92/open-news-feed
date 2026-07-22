@@ -9,7 +9,7 @@ tracking — your preferences never leave your browser.
 
 ## Features
 
-- **39 keyless RSS sources across 7 categories** (world, business, technology,
+- **64 keyless RSS sources across 8 categories and 15+ countries** — from BBC, NPR and Al Jazeera to TASS, CGTN, SCMP, Middle East Eye, The Jerusalem Post, Times of India and AllAfrica: one story, many national and political angles (world, business, technology,
   science, sports, culture, health) — works with zero configuration. Plus 5
   optional keyed APIs (GNews, The Guardian, NYT, NewsData.io, Currents) that
   light up when you add a key.

@@ -22,13 +22,27 @@ export const RSS_SOURCES = {
     // ── world ────────────────────────────────────────────────────────────
     { id: 'bbc-world', name: 'BBC World', category: 'world', lean: 'center', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', homepage: 'https://www.bbc.com' },
     { id: 'guardian-world', name: 'The Guardian', category: 'world', lean: 'left', url: 'https://www.theguardian.com/world/rss', homepage: 'https://www.theguardian.com' },
-    { id: 'aljazeera', name: 'Al Jazeera', category: 'world', url: 'https://www.aljazeera.com/xml/rss/all.xml', homepage: 'https://www.aljazeera.com' },
+    { id: 'aljazeera', name: 'Al Jazeera', category: 'world', lean: 'left', url: 'https://www.aljazeera.com/xml/rss/all.xml', homepage: 'https://www.aljazeera.com' },
     { id: 'npr-world', name: 'NPR World', category: 'world', lean: 'center', url: 'https://feeds.npr.org/1004/rss.xml', homepage: 'https://www.npr.org' },
     { id: 'sky-world', name: 'Sky News', category: 'world', lean: 'center', url: 'https://feeds.skynews.com/feeds/rss/world.xml', homepage: 'https://news.sky.com' },
     { id: 'dw-world', name: 'Deutsche Welle', category: 'world', lean: 'center', url: 'https://rss.dw.com/rdf/rss-en-world', homepage: 'https://www.dw.com' },
     { id: 'france24', name: 'France 24', category: 'world', lean: 'center', url: 'https://www.france24.com/en/rss', homepage: 'https://www.france24.com' },
     { id: 'abc-au', name: 'ABC News (AU)', category: 'world', url: 'https://www.abc.net.au/news/feed/51120/rss.xml', homepage: 'https://www.abc.net.au' },
     { id: 'euronews', name: 'Euronews', category: 'world', lean: 'center', url: 'https://www.euronews.com/rss', homepage: 'https://www.euronews.com' },
+    // ── world: international perspectives (verified 2026-07-22; RT itself is
+    // network-blocked at the CDN level — TASS/Sputnik carry that viewpoint) ──
+    { id: 'tass', name: 'TASS', category: 'world', url: 'https://tass.com/rss/v2.xml', homepage: 'https://tass.com' },
+    { id: 'sputnik', name: 'Sputnik Globe', category: 'world', url: 'https://sputnikglobe.com/export/rss2/archive/index.xml', homepage: 'https://sputnikglobe.com' },
+    { id: 'cgtn', name: 'CGTN', category: 'world', url: 'https://www.cgtn.com/subscribe/rss/section/world.xml', homepage: 'https://www.cgtn.com' },
+    { id: 'scmp', name: 'South China Morning Post', category: 'world', url: 'https://www.scmp.com/rss/91/feed', homepage: 'https://www.scmp.com' },
+    { id: 'japantimes', name: 'The Japan Times', category: 'world', url: 'https://www.japantimes.co.jp/feed/', homepage: 'https://www.japantimes.co.jp' },
+    { id: 'straitstimes', name: 'The Straits Times', category: 'world', url: 'https://www.straitstimes.com/news/world/rss.xml', homepage: 'https://www.straitstimes.com' },
+    { id: 'mee', name: 'Middle East Eye', category: 'world', lean: 'left', url: 'https://www.middleeasteye.net/rss', homepage: 'https://www.middleeasteye.net' },
+    { id: 'timesofisrael', name: 'The Times of Israel', category: 'world', lean: 'center', url: 'https://www.timesofisrael.com/feed/', homepage: 'https://www.timesofisrael.com' },
+    { id: 'jpost', name: 'The Jerusalem Post', category: 'world', lean: 'right', url: 'https://www.jpost.com/rss/rssfeedsfrontpage.aspx', homepage: 'https://www.jpost.com' },
+    { id: 'toi-world', name: 'Times of India World', category: 'world', url: 'https://timesofindia.indiatimes.com/rssfeeds/296589292.cms', homepage: 'https://timesofindia.indiatimes.com' },
+    { id: 'allafrica', name: 'AllAfrica', category: 'world', url: 'https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf', homepage: 'https://allafrica.com' },
+    { id: 'mercopress', name: 'MercoPress', category: 'world', url: 'https://en.mercopress.com/rss/', homepage: 'https://en.mercopress.com' },
     // Removed after verification (2026-07-18): CNN edition_world.rss is
     // abandoned (last item Sep 2023), CBC webfeed times out consistently.
 
