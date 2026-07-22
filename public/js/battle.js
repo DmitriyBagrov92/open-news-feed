@@ -18,7 +18,8 @@ import { initHoverTip } from './tooltip.js';
 
 const TOPIC_BAND = 58;        // reserved height for the topic label
 const CLUSTER_GAP = 84;       // clearance between clusters
-const BRIEF_FULL_H = 182;     // reserved height of an expanded brief tile
+const BRIEF_FULL_H = 210;     // packing reserve for an expanded brief tile
+const BRIEF_MAX_H = 360;      // hard ceiling — rows are line-clamped anyway
 const BRIEF_THINK_H = 52;     // collapsed "thinking" pill height
 const STALE_MS = 5 * 60_000;  // refetch on enter() when older than this
 const CLICK_PX = 6;           // pointer travel below this = click, not drag
@@ -575,10 +576,10 @@ export function initBattle({ section, onArticles } = {}) {
     inner.append(list);
     briefEl.append(inner);
     briefEl.hidden = false;
-    // expand to the measured content (capped at the reserved core height)
-    // — the CSS transition animates the growth while the swapped physics
-    // body shoves the tiles aside
-    const target = Math.min(BRIEF_FULL_H, inner.scrollHeight + 26);
+    // the tile takes exactly the size of its content (body padding
+    // included in scrollHeight) — the CSS transition animates the growth
+    // while the swapped physics body shoves the news tiles aside
+    const target = Math.min(BRIEF_MAX_H, inner.scrollHeight + 6);
     setBriefSize(cluster, target);
     requestAnimationFrame(() => briefEl.classList.add('is-ready'));
   }
