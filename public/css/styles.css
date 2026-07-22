@@ -1959,6 +1959,9 @@ body.battle-mode #newPill {
 .battle-space {
   position: relative;
   z-index: 1;
+  /* physics can momentarily push a tile past the edge — never let that
+     widen the page */
+  overflow: clip;
 }
 
 .battle-topic {
@@ -2147,6 +2150,10 @@ body.battle-mode #newPill {
   font-size: 0.6rem;
   letter-spacing: 0.08em;
   color: var(--ink-2);
+}
+.battle-brief-q {
+  font-style: normal;
+  color: var(--accent);
 }
 .battle-brief-spin {
   display: block;

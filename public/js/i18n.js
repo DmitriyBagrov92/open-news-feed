@@ -24,7 +24,6 @@ const TABLES = {
     'battle.right': 'RIGHT',
     'battle.hint': 'One story, every angle — drag the bubbles',
     'battle.diffHead': 'HOW COVERAGE DIFFERS',
-    'battle.frames': 'uniquely frames it around',
     'battle.empty': 'Not enough overlapping coverage right now — check back after the next refresh.',
     'battle.error': 'The battle view could not be loaded.',
 

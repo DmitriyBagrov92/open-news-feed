@@ -135,13 +135,14 @@ export function initBattle(options = {}) {
   }
 
   // r = HALF of the square tile's side (iOS-style rounded squares carry
-  // more text than circles at the same footprint)
+  // more text than circles at the same footprint). The whole ladder is
+  // doubled: tiles read as proper cards, not chips, at every slider stop.
   function radiusFor(article, viewportW) {
     const age = Date.now() - Date.parse(article.publishedAt);
     const fresh = Math.max(0, 1 - age / (48 * 3600_000)); // 0..1
-    let r = 42 + fresh * 22 + (article.image ? 6 : 0);
+    let r = 84 + fresh * 44 + (article.image ? 12 : 0);
     if (viewportW < 640) r *= 0.72;
-    return Math.max(34, Math.min(78, Math.round(r)));
+    return Math.max(68, Math.min(156, Math.round(r)));
   }
 
   // squares meet at corners — pack with an effective radius between the
@@ -273,7 +274,19 @@ export function initBattle(options = {}) {
       // layout reserves its EXPANDED size so growth never forces a reflow
       const briefW = Math.min(340, w * 0.72);
       const coreR = Math.hypot((briefW + BRIEF_CLEAR * 2) / 2, (BRIEF_FULL_H + BRIEF_CLEAR * 2) / 2) * 0.9;
-      const R = layoutCluster(items, coreR);
+      let R = layoutCluster(items, coreR);
+      // shrink-to-fit: at large slider levels a cluster can outgrow the
+      // container — scale its tiles down until it fits, never overflow
+      {
+        let xNeed = 0;
+        for (const it of items) xNeed = Math.max(xNeed, Math.abs(it.x) + it.r + 8);
+        const avail = w / 2 - 44;
+        if (xNeed > avail) {
+          const shrink = avail / xNeed;
+          for (const it of items) it.r = Math.max(56, Math.round(it.r * shrink));
+          R = layoutCluster(items, coreR);
+        }
+      }
       // vertical band = the ACTUAL extents of the packed layout, not the
       // bounding circle — clusters are wide and low, and the circle model
       // left a dead zone above/below that grew with tile size and count
@@ -553,15 +566,10 @@ export function initBattle(options = {}) {
           targetLang: lang,
         });
         if (result.provider === 'local') {
-          // extractive can't contrast — build the distinctive-framing rows
+          // extractive can't contrast — build the distinctive-framing rows.
+          // The quotes are the outlets' own words: NEVER machine-translated
+          // (word-by-word MT of headline fragments reads as hallucination).
           payload = { rows: contrastRows(cluster) };
-          if (lang !== 'en') {
-            const texts = payload.rows.map((r) => r.text);
-            const tr = await translateTexts(texts, lang, { sourceLang: 'en' }).catch(() => null);
-            if (tr && tr.texts.length === texts.length) {
-              payload.rows.forEach((r, i) => { r.text = tr.texts[i]; });
-            }
-          }
         } else {
           payload = { bullets: toBullets(result.summary, 3) };
         }
@@ -586,10 +594,15 @@ export function initBattle(options = {}) {
     } else {
       for (const row of payload.rows) {
         const li = el('li', { 'data-lean': row.lean });
-        li.append(
-          el('strong', { class: 'mono', text: t('battle.' + row.lean) + ' · ' + row.source }),
-          document.createTextNode(' ' + row.text)
-        );
+        li.append(el('strong', { class: 'mono', text: t('battle.' + row.lean) + ' · ' + row.source + ' ' }));
+        if (row.phrases?.length) {
+          row.phrases.forEach((p, i) => {
+            if (i) li.append(document.createTextNode(', '));
+            li.append(el('em', { class: 'battle-brief-q', text: '“' + p + '”' }));
+          });
+        } else {
+          li.append(document.createTextNode(row.fallbackTitle || row.text || ''));
+        }
         list.append(li);
       }
     }
@@ -647,18 +660,26 @@ export function initBattle(options = {}) {
       const others = new Set(
         order.filter((o) => o !== lean).flatMap((o) => [...byLean[o].tokens.keys()])
       );
-      // phrases only this side uses — prefer repeated and multi-word ones
+      // phrases only this side uses. STRICT filter: entities, multi-word
+      // phrases or repeats only — a lone generic noun ("bridge") reads
+      // like hallucination, and these are verbatim citations, never to be
+      // paraphrased or machine-translated.
       const distinct = [...byLean[lean].tokens.entries()]
-        .filter(([lower]) => !others.has(lower) && ![...others].some((t) => t.includes(lower)))
-        .sort((a, b) => b[1].n - a[1].n || b[0].length - a[0].length)
+        .filter(([lower, v]) =>
+          !others.has(lower) &&
+          ![...others].some((t) => t.includes(lower)) &&
+          (lower.includes(' ') || /^[A-Z]/.test(v.display) || v.n >= 2) &&
+          lower.length >= 5
+        )
+        .sort((a, b) => (b[0].includes(' ') - a[0].includes(' ')) || b[1].n - a[1].n || b[0].length - a[0].length)
         .slice(0, 3)
         .map(([, v]) => v.display);
       return {
         lean,
         source: [...byLean[lean].sources].slice(0, 2).join(', '),
-        text: distinct.length
-          ? `${t('battle.frames')} ${distinct.map((w) => '“' + w + '”').join(', ')}`
-          : byLean[lean].freshest.title,
+        // citations stay in the outlet's own words and language
+        phrases: distinct,
+        fallbackTitle: byLean[lean].freshest.title,
       };
     });
   }
