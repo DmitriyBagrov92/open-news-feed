@@ -20,6 +20,7 @@ import {
   animateFadeIn,
   animateFadeOut,
   animateSwapIn,
+  animateCrossfade,
 } from './motion.js';
 import { buildCommentsPanel } from './comments.js';
 
@@ -281,17 +282,21 @@ function buildArticleView(article, { onCountChange } = {}) {
   let translated = null; // { title, paragraphs }
   let showingTranslation = false;
 
+  // Crossfaded swap: the text dips out, changes language while invisible
+  // and settles back — no flick from one language to the other.
   const applyVersion = () => {
-    if (showingTranslation && translated) {
-      title.textContent = translated.title;
-      renderParagraphs(translated.paragraphs);
-      chip.textContent = t('modal.chipTranslated');
-    } else {
-      title.textContent = article.title;
-      renderOriginal(); // translation is plain text; the original stays rich
-      chip.textContent = t('modal.chipOriginal');
-    }
-    chip.hidden = !translated;
+    animateCrossfade([title, textBox], () => {
+      if (showingTranslation && translated) {
+        title.textContent = translated.title;
+        renderParagraphs(translated.paragraphs);
+        chip.textContent = t('modal.chipTranslated');
+      } else {
+        title.textContent = article.title;
+        renderOriginal(); // translation is plain text; the original stays rich
+        chip.textContent = t('modal.chipOriginal');
+      }
+      chip.hidden = !translated;
+    });
   };
 
   chip.addEventListener('click', () => {

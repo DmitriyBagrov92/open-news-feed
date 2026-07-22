@@ -43,7 +43,21 @@ const state = {
 
 const articleById = new Map();
 const translationCache = new Map(); // "id:lang" → { title, description }
-let translateBroken = false;        // stop retrying auto-translate after a hard failure
+// Auto-translate backs off after a failure instead of latching dead: the
+// dominant failure is the server rung's 60s rate window, so retry after it.
+let translateBroken = false;
+let translateRetryTimer = null;
+
+function markTranslateBroken() {
+  if (translateBroken) return;
+  translateBroken = true;
+  toast(t('lang.unavailable'));
+  clearTimeout(translateRetryTimer);
+  translateRetryTimer = setTimeout(() => {
+    translateBroken = false;
+    if (prefs.autoTranslate && (prefs.targetLang || 'en') !== 'en') reobserveCards();
+  }, 75_000);
+}
 let plasma = { setHistogram() {}, pulse() {} };  // replaced in boot()
 let timescale = { refresh() {}, hide() {} };     // replaced in boot()
 
@@ -468,6 +482,17 @@ newPill.addEventListener('click', () => {
 
 /* ── Card translation (manual + auto) ───────────────────────────────────── */
 
+function applyTranslated(card, lang, cached) {
+  applyCardText(card, cached.title, cached.description);
+  card.dataset.translated = lang;
+  const btn = card.querySelector('.card-actions .icon-btn');
+  if (btn) {
+    btn.classList.add('is-translated');
+    btn.setAttribute('aria-label', t('card.showOriginal'));
+    btn.title = t('card.showOriginal');
+  }
+}
+
 async function translateCard(card, lang) {
   const article = articleById.get(card.dataset.id);
   if (!article || card.dataset.translated === lang) return;
@@ -481,21 +506,59 @@ async function translateCard(card, lang) {
       sourceLang,
     });
     if (!result) {
-      if (!translateBroken) toast(t('lang.unavailable'));
-      translateBroken = true;
+      markTranslateBroken();
       return;
     }
     cached = { title: result.texts[0], description: result.texts[1] };
     translationCache.set(key, cached);
   }
-  applyCardText(card, cached.title, cached.description);
-  card.dataset.translated = lang;
-  const btn = card.querySelector('.card-actions .icon-btn');
-  if (btn) {
-    btn.classList.add('is-translated');
-    btn.setAttribute('aria-label', t('card.showOriginal'));
-    btn.title = t('card.showOriginal');
+  applyTranslated(card, lang, cached);
+}
+
+// Auto-translate batching: the observer can surface dozens of cards at
+// once, and one server request per card burns through the translate rate
+// window in seconds (fresh LOAD-ed stories then silently stay English).
+// Collect briefly, then translate up to 10 cards (20 texts) per request.
+const pendingTranslate = new Map(); // article id → { card, article }
+let translateFlushTimer = null;
+
+function queueCardTranslation(card, lang) {
+  const article = articleById.get(card.dataset.id);
+  if (!article || card.dataset.translated === lang) return;
+  if ((article.language || 'en') === lang) return;
+  const cached = translationCache.get(article.id + ':' + lang);
+  if (cached) {
+    applyTranslated(card, lang, cached);
+    return;
   }
+  pendingTranslate.set(article.id, { card, article });
+  clearTimeout(translateFlushTimer);
+  translateFlushTimer = setTimeout(() => flushTranslations(lang), 250);
+}
+
+async function flushTranslations(lang) {
+  if (translateBroken || !pendingTranslate.size) {
+    pendingTranslate.clear();
+    return;
+  }
+  const all = [...pendingTranslate.values()];
+  const sourceLang = all[0].article.language || 'en';
+  const batch = all.filter(({ article }) => (article.language || 'en') === sourceLang).slice(0, 10);
+  for (const { article } of batch) pendingTranslate.delete(article.id);
+  const texts = batch.flatMap(({ article }) => [article.title, article.description || '']);
+  const result = await translateTexts(texts, lang, { sourceLang }).catch(() => null);
+  if (!result) {
+    pendingTranslate.clear();
+    markTranslateBroken();
+    return;
+  }
+  batch.forEach(({ card, article }, i) => {
+    const cached = { title: result.texts[i * 2], description: result.texts[i * 2 + 1] };
+    translationCache.set(article.id + ':' + lang, cached);
+    // the user may have switched languages while the batch was in flight
+    if ((prefs.targetLang || 'en') === lang && prefs.autoTranslate) applyTranslated(card, lang, cached);
+  });
+  if (pendingTranslate.size) flushTranslations(lang); // drain the rest
 }
 
 function revertCard(card) {
@@ -519,7 +582,7 @@ const viewportObserver = new IntersectionObserver(
     if (lang === 'en') return;
     for (const entry of entries) {
       if (entry.isIntersecting && !entry.target.dataset.translated) {
-        translateCard(entry.target, lang);
+        queueCardTranslation(entry.target, lang);
       }
     }
   },
@@ -994,7 +1057,15 @@ function boot() {
     },
   });
   initGridSize(); // before the first render so the saved size paints first
-  initCardTooltip({ grid, articleById });
+  initCardTooltip({
+    grid,
+    articleById,
+    // the tooltip mirrors what the card shows: translated when translated
+    textFor: (article, card) => {
+      const lang = card.dataset.translated;
+      return (lang && translationCache.get(article.id + ':' + lang)) || article;
+    },
+  });
   initSearch();
   initLangControl();
   initTabs();

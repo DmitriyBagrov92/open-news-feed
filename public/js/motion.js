@@ -124,6 +124,27 @@ export function animateFadeOut(element) {
   return m.animate(element, { opacity: 0 }, { duration: 0.22, ease: 'linear' }).finished.catch(() => {});
 }
 
+// Crossfade a content swap: fade the elements out, run swap() while they
+// are invisible, fade back in. With no lib / reduced motion the swap runs
+// immediately — same end state, no dead frames.
+export async function animateCrossfade(elements, swap) {
+  const m = lib();
+  const list = [...(elements.length != null ? elements : [elements])].filter(Boolean);
+  if (!m || !list.length) {
+    swap();
+    return;
+  }
+  await m
+    .animate(list, { opacity: 0, transform: 'translateY(4px)' }, { duration: 0.14, ease: 'easeIn' })
+    .finished.catch(() => {});
+  swap();
+  m.animate(
+    list,
+    { opacity: [0, 1], transform: ['translateY(4px)', 'translateY(0px)'] },
+    { duration: 0.24, ease: EASE_OUT }
+  );
+}
+
 // Incoming columns on prev/next navigation slide in from the travel
 // direction. The outgoing content is swapped instantly — rapid arrow
 // mashing degrades to instant swaps instead of queueing choreography.

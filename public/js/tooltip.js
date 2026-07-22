@@ -9,7 +9,10 @@ import { relTime } from './time.js';
 const SHOW_DELAY_MS = 550; // "holding", not just passing through
 const EDGE_PAD = 14;
 
-export function initCardTooltip({ grid, articleById }) {
+// textFor(article, card) may supply translated { title, description } when
+// the card is currently showing a translation — the tooltip must match
+// what the reader sees, not the original.
+export function initCardTooltip({ grid, articleById, textFor }) {
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
   const tip = el('div', { class: 'card-tip', role: 'tooltip', hidden: true });
@@ -33,6 +36,7 @@ export function initCardTooltip({ grid, articleById }) {
   function show(card) {
     const article = articleById.get(card.dataset.id);
     if (!article) return;
+    const text = textFor?.(article, card) || article;
     clear(tip);
     tip.append(
       el('p', {
@@ -41,10 +45,10 @@ export function initCardTooltip({ grid, articleById }) {
           .filter(Boolean)
           .join(' · '),
       }),
-      el('p', { class: 'card-tip-title', text: article.title })
+      el('p', { class: 'card-tip-title', text: text.title })
     );
-    if (article.description) {
-      tip.append(el('p', { class: 'card-tip-desc', text: article.description }));
+    if (text.description) {
+      tip.append(el('p', { class: 'card-tip-desc', text: text.description }));
     }
     clearTimeout(hideTimer);
     tip.hidden = false;
