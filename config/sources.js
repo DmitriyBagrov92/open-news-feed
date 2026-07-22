@@ -20,15 +20,15 @@ export const CATEGORIES = [
 export const RSS_SOURCES = {
   en: [
     // ── world ────────────────────────────────────────────────────────────
-    { id: 'bbc-world', name: 'BBC World', category: 'world', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', homepage: 'https://www.bbc.com' },
-    { id: 'guardian-world', name: 'The Guardian', category: 'world', url: 'https://www.theguardian.com/world/rss', homepage: 'https://www.theguardian.com' },
+    { id: 'bbc-world', name: 'BBC World', category: 'world', lean: 'center', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', homepage: 'https://www.bbc.com' },
+    { id: 'guardian-world', name: 'The Guardian', category: 'world', lean: 'left', url: 'https://www.theguardian.com/world/rss', homepage: 'https://www.theguardian.com' },
     { id: 'aljazeera', name: 'Al Jazeera', category: 'world', url: 'https://www.aljazeera.com/xml/rss/all.xml', homepage: 'https://www.aljazeera.com' },
-    { id: 'npr-world', name: 'NPR World', category: 'world', url: 'https://feeds.npr.org/1004/rss.xml', homepage: 'https://www.npr.org' },
-    { id: 'sky-world', name: 'Sky News', category: 'world', url: 'https://feeds.skynews.com/feeds/rss/world.xml', homepage: 'https://news.sky.com' },
-    { id: 'dw-world', name: 'Deutsche Welle', category: 'world', url: 'https://rss.dw.com/rdf/rss-en-world', homepage: 'https://www.dw.com' },
-    { id: 'france24', name: 'France 24', category: 'world', url: 'https://www.france24.com/en/rss', homepage: 'https://www.france24.com' },
+    { id: 'npr-world', name: 'NPR World', category: 'world', lean: 'center', url: 'https://feeds.npr.org/1004/rss.xml', homepage: 'https://www.npr.org' },
+    { id: 'sky-world', name: 'Sky News', category: 'world', lean: 'center', url: 'https://feeds.skynews.com/feeds/rss/world.xml', homepage: 'https://news.sky.com' },
+    { id: 'dw-world', name: 'Deutsche Welle', category: 'world', lean: 'center', url: 'https://rss.dw.com/rdf/rss-en-world', homepage: 'https://www.dw.com' },
+    { id: 'france24', name: 'France 24', category: 'world', lean: 'center', url: 'https://www.france24.com/en/rss', homepage: 'https://www.france24.com' },
     { id: 'abc-au', name: 'ABC News (AU)', category: 'world', url: 'https://www.abc.net.au/news/feed/51120/rss.xml', homepage: 'https://www.abc.net.au' },
-    { id: 'euronews', name: 'Euronews', category: 'world', url: 'https://www.euronews.com/rss', homepage: 'https://www.euronews.com' },
+    { id: 'euronews', name: 'Euronews', category: 'world', lean: 'center', url: 'https://www.euronews.com/rss', homepage: 'https://www.euronews.com' },
     // Removed after verification (2026-07-18): CNN edition_world.rss is
     // abandoned (last item Sep 2023), CBC webfeed times out consistently.
 
@@ -75,6 +75,23 @@ export const RSS_SOURCES = {
     { id: 'bbc-health', name: 'BBC Health', category: 'health', url: 'https://feeds.bbci.co.uk/news/health/rss.xml', homepage: 'https://www.bbc.com' },
     { id: 'statnews', name: 'STAT News', category: 'health', url: 'https://www.statnews.com/feed/', homepage: 'https://www.statnews.com' },
     { id: 'who', name: 'WHO', category: 'health', url: 'https://www.who.int/rss-feeds/news-english.xml', homepage: 'https://www.who.int' },
+
+    // ── battle (viewpoint spectrum; battleOnly = never in /api/news) ─────
+    // Openly partisan outlets feeding the Bubble Battle view. Lean labels
+    // follow the AllSides-style consensus. Verified reachable 2026-07-22.
+    { id: 'fox-news', name: 'Fox News', category: 'battle', lean: 'right', battleOnly: true, url: 'https://moxie.foxnews.com/google-publisher/latest.xml', homepage: 'https://www.foxnews.com' },
+    { id: 'nypost', name: 'New York Post', category: 'battle', lean: 'right', battleOnly: true, url: 'https://nypost.com/feed/', homepage: 'https://nypost.com' },
+    { id: 'washtimes', name: 'Washington Times', category: 'battle', lean: 'right', battleOnly: true, url: 'https://www.washingtontimes.com/rss/headlines/news/politics/', homepage: 'https://www.washingtontimes.com' },
+    { id: 'dailywire', name: 'The Daily Wire', category: 'battle', lean: 'right', battleOnly: true, url: 'https://www.dailywire.com/feeds/rss.xml', homepage: 'https://www.dailywire.com' },
+    { id: 'federalist', name: 'The Federalist', category: 'battle', lean: 'right', battleOnly: true, url: 'https://thefederalist.com/feed/', homepage: 'https://thefederalist.com' },
+    { id: 'washexaminer', name: 'Washington Examiner', category: 'battle', lean: 'right', battleOnly: true, url: 'https://www.washingtonexaminer.com/feed', homepage: 'https://www.washingtonexaminer.com' },
+    { id: 'thenation', name: 'The Nation', category: 'battle', lean: 'left', battleOnly: true, url: 'https://www.thenation.com/feed/?post_type=article', homepage: 'https://www.thenation.com' },
+    { id: 'salon', name: 'Salon', category: 'battle', lean: 'left', battleOnly: true, url: 'https://www.salon.com/feed/', homepage: 'https://www.salon.com' },
+    { id: 'motherjones', name: 'Mother Jones', category: 'battle', lean: 'left', battleOnly: true, url: 'https://www.motherjones.com/feed/', homepage: 'https://www.motherjones.com' },
+    { id: 'dailykos', name: 'Daily Kos', category: 'battle', lean: 'left', battleOnly: true, url: 'https://www.dailykos.com/blogs/main.rss', homepage: 'https://www.dailykos.com' },
+    { id: 'thehill', name: 'The Hill', category: 'battle', lean: 'center', battleOnly: true, url: 'https://thehill.com/feed/', homepage: 'https://thehill.com' },
+    { id: 'npr-politics', name: 'NPR Politics', category: 'battle', lean: 'center', battleOnly: true, url: 'https://feeds.npr.org/1014/rss.xml', homepage: 'https://www.npr.org' },
+    { id: 'csmonitor', name: 'CS Monitor', category: 'battle', lean: 'center', battleOnly: true, url: 'https://rss.csmonitor.com/feeds/all', homepage: 'https://www.csmonitor.com' },
   ],
 };
 

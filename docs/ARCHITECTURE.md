@@ -198,6 +198,32 @@ Response `501` `{ "error": { "code": "no-provider", … } }` when no server
 translator is available (client relies on the browser Translator API first,
 and only calls this as fallback).
 
+### Bubble Battle (viewpoint clusters)
+
+Registry fields on RSS sources: `lean: 'left' | 'center' | 'right'`
+(AllSides-style consensus label; only lean-tagged sources enter the
+clustering pool) and `battleOnly: true` (high-volume partisan feeds:
+ingested with a 72h horizon, queryable by id — comments, votes and
+`/api/article` extraction all work — but **never returned by `/api/news`**).
+`GET /api/sources` exposes both fields (`lean`, `battle`).
+
+**`GET /api/battles`** — clusters of the same story covered from different
+leans. Recomputed lazily, cached per store refresh;
+`Cache-Control: public, max-age=60`. Response `200`:
+
+```jsonc
+{ "battles": [ { "id": "12hex",
+    "topic": ["Tariffs", "China"],           // top strong tokens
+    "leans": { "left": 2, "center": 1, "right": 3 },
+    "articles": [ { /* Article */, "lean": "right" } ] } ],
+  "updatedAt": "ISO" }
+```
+
+Every battle has ≥ 2 distinct leans and ≥ 2 distinct sources, ≤ 9 articles
+(lean-balanced, ≤ 2 per source), battles ranked by lean diversity → size →
+freshness, at most 20 returned. Battle `id` is stable for a given member
+set only — treat it as a rendering key, not an identity.
+
 ### Comments (anonymous)
 
 Identity: the client generates `crypto.randomUUID()` once (localStorage) and
