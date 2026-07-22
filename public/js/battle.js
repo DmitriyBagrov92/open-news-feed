@@ -16,7 +16,9 @@ import { relTime } from './time.js';
 import { summarize, translateTexts, toBullets } from './ai.js';
 import { initHoverTip } from './tooltip.js';
 
-const PITCH = 560;            // vertical distance between cluster anchors
+const TOPIC_BAND = 58;        // reserved height for the topic label
+const BRIEF_BAND = 158;       // reserved band under each cluster for its AI brief
+const CLUSTER_GAP = 76;       // clearance between a brief and the next topic
 const STALE_MS = 5 * 60_000;  // refetch on enter() when older than this
 const CLICK_PX = 6;           // pointer travel below this = click, not drag
 const CLICK_MS = 400;
@@ -128,13 +130,19 @@ export function initBattle({ section, onArticles } = {}) {
     });
   }
 
+  // r = HALF of the square tile's side (iOS-style rounded squares carry
+  // more text than circles at the same footprint)
   function radiusFor(article, viewportW) {
     const age = Date.now() - Date.parse(article.publishedAt);
     const fresh = Math.max(0, 1 - age / (48 * 3600_000)); // 0..1
-    let r = 44 + fresh * 26 + (article.image ? 8 : 0);
+    let r = 42 + fresh * 22 + (article.image ? 6 : 0);
     if (viewportW < 640) r *= 0.72;
-    return Math.max(36, Math.min(86, Math.round(r)));
+    return Math.max(34, Math.min(78, Math.round(r)));
   }
+
+  // squares meet at corners — pack with an effective radius between the
+  // half-side and the half-diagonal so relaxation can never interlock them
+  const packR = (r) => r * 1.18;
 
   /* ── overlap-free cluster layout ───────────────────────────────────────── */
 
@@ -156,7 +164,7 @@ export function initBattle({ section, onArticles } = {}) {
           let dx = b.x - a.x;
           let dy = b.y - a.y;
           const d = Math.hypot(dx, dy) || 0.01;
-          const min = a.r + b.r + BUBBLE_GAP;
+          const min = packR(a.r) + packR(b.r) + BUBBLE_GAP;
           if (d < min) {
             const push = (min - d) / 2;
             dx /= d;
@@ -173,7 +181,7 @@ export function initBattle({ section, onArticles } = {}) {
     }
     // cluster radius = farthest rim from the centroid
     let R = 0;
-    for (const it of items) R = Math.max(R, Math.hypot(it.x, it.y) + it.r);
+    for (const it of items) R = Math.max(R, Math.hypot(it.x, it.y) + packR(it.r));
     return R;
   }
 
@@ -234,7 +242,11 @@ export function initBattle({ section, onArticles } = {}) {
     }
 
     const w = space.clientWidth;
-    space.style.height = battles.length * PITCH + 160 + 'px';
+
+    // Accumulated vertical layout: every cluster gets exactly the height it
+    // needs — topic band, bubble field (2R), then a RESERVED band for its
+    // AI brief. Nothing can ever overlap the neighbours, whatever the radii.
+    let yCursor = 40;
 
     battles.forEach((battle, i) => {
       const items = battle.articles.map((article) => ({
@@ -242,27 +254,34 @@ export function initBattle({ section, onArticles } = {}) {
         r: Math.round(radiusFor(article, innerWidth) * sizeFactor),
       }));
       const R = layoutCluster(items);
+      const topicY = yCursor;
       const anchor = {
         x: Math.max(R + 20, Math.min(w - R - 20, w * (0.5 + (i % 2 ? 0.14 : -0.14)))),
-        y: i * PITCH + PITCH / 2 + 60,
+        y: topicY + TOPIC_BAND + R,
       };
+      yCursor = anchor.y + R + 26 + BRIEF_BAND + CLUSTER_GAP;
 
       const topicEl = el('p', { class: 'battle-topic mono', text: battle.topic.join(' · ') });
-      topicEl.style.top = anchor.y - R - 74 + 'px';
+      topicEl.style.top = topicY + 'px';
       space.append(topicEl);
 
-      // auto AI summary panel: fills when the cluster scrolls into view
+      // auto AI summary panel lives in its reserved band under the cluster
       const briefEl = el('div', { class: 'battle-brief', hidden: true });
       briefEl.style.top = anchor.y + R + 26 + 'px';
       space.append(briefEl);
 
       const cluster = { battle, anchor, radius: R, bubbles: [], mounted: false, topicEl, briefEl };
       items.forEach(({ article, r, x, y }) => {
-        const body = Matter.Bodies.circle(anchor.x + x, anchor.y + y, r, {
+        // chamfered rectangle = the tile's true collision shape (a circle
+        // collider would let square corners overlap); no rotation — text
+        // must stay readable
+        const body = Matter.Bodies.rectangle(anchor.x + x, anchor.y + y, r * 2, r * 2, {
+          chamfer: { radius: r * 0.44 },
           restitution: 0.85,
           frictionAir: 0.06,
           mass: (r * r) / 2000,
         });
+        Matter.Body.setInertia(body, Infinity);
         const btn = bubbleButton(article, r);
         wireDrag(cluster, article, body, btn);
         space.append(btn);
@@ -274,6 +293,7 @@ export function initBattle({ section, onArticles } = {}) {
       clusterObserver.observe(topicEl);
       clusters.push(cluster);
     });
+    space.style.height = yCursor + 40 + 'px';
 
     // rest-length springs to the 2 nearest siblings: the group stays united
     // but the springs can never pull two bubbles INTO each other
@@ -294,7 +314,7 @@ export function initBattle({ section, onArticles } = {}) {
               Matter.Constraint.create({
                 bodyA: bs[i].body,
                 bodyB: bs[j].body,
-                length: bs[i].r + bs[j].r + BUBBLE_GAP + 6,
+                length: packR(bs[i].r) + packR(bs[j].r) + BUBBLE_GAP + 6,
                 stiffness: 0.004,
                 damping: 0.08,
               })
@@ -320,7 +340,8 @@ export function initBattle({ section, onArticles } = {}) {
           const dy = cluster.anchor.y - body.position.y;
           const dist = Math.hypot(dx, dy);
           // progressive spring: gentle inside the cluster radius, firm out
-          const k = (dist > cluster.radius + 60 ? 1.2e-5 : 3e-6) * body.mass;
+          // (the outer zone guards the reserved brief band below the group)
+          const k = (dist > cluster.radius + 50 ? 2e-5 : 3e-6) * body.mass;
           Matter.Body.applyForce(body, body.position, { x: dx * k, y: dy * k });
           if (kick) {
             Matter.Sleeping.set(body, false);
@@ -405,7 +426,7 @@ export function initBattle({ section, onArticles } = {}) {
       for (const link of cluster.links || []) {
         const a = bodyBubble.get(link.bodyA.id) || cluster.bubbles.find((b) => b.body === link.bodyA);
         const b = bodyBubble.get(link.bodyB.id) || cluster.bubbles.find((b) => b.body === link.bodyB);
-        if (a && b) link.length = a.r + b.r + BUBBLE_GAP + 6;
+        if (a && b) link.length = packR(a.r) + packR(b.r) + BUBBLE_GAP + 6;
       }
       let R = 0;
       for (const b of cluster.bubbles) R = Math.max(R, b.r * 2.6);
@@ -430,14 +451,18 @@ export function initBattle({ section, onArticles } = {}) {
     }
   }
 
+  // The battle brief is about CONTRAST: how the same story is framed on
+  // each side. The AI rung gets a lean-labeled corpus and a differences
+  // prompt; the deterministic fallback shows each lean's own freshest
+  // headline side by side — the framing gap speaks for itself.
   async function runClusterBrief(cluster) {
     if (!active) return;
     const lang = langActive() ? prefs.targetLang : 'en';
     const key = cluster.battle.id + ':' + lang;
     const briefEl = cluster.briefEl;
     if (!briefEl || briefEl.dataset.key === key) return;
-    let bullets = briefCache.get(key);
-    if (!bullets) {
+    let payload = briefCache.get(key);
+    if (!payload) {
       briefEl.hidden = false;
       briefEl.dataset.key = key;
       clear(briefEl);
@@ -445,39 +470,70 @@ export function initBattle({ section, onArticles } = {}) {
       try {
         const result = await summarize({
           mode: 'brief',
-          topic: cluster.battle.topic.join(' '),
+          topic: cluster.battle.topic.join(' ') + ' — how left, center and right coverage DIFFERS',
           articles: cluster.battle.articles.map((a) => ({
-            title: a.title,
+            title: `${a.lean.toUpperCase()}: ${a.title}`,
             description: a.description || '',
             source: a.source?.name || '',
           })),
           targetLang: lang,
         });
-        bullets = toBullets(result.summary, 3);
-        // the extractive fallback is English-only — run its bullets
-        // through the translate ladder like the main brief does
-        if (lang !== 'en' && result.provider === 'local') {
-          const tr = await translateTexts(bullets, lang, { sourceLang: 'en' }).catch(() => null);
-          if (tr && tr.texts.length === bullets.length) bullets = tr.texts;
+        if (result.provider === 'local') {
+          // extractive can't contrast — build the per-lean framing rows
+          payload = { rows: leanRows(cluster, lang) };
+          if (lang !== 'en') {
+            const texts = payload.rows.map((r) => r.text);
+            const tr = await translateTexts(texts, lang, { sourceLang: 'en' }).catch(() => null);
+            if (tr && tr.texts.length === texts.length) {
+              payload.rows.forEach((r, i) => { r.text = tr.texts[i]; });
+            }
+          }
+        } else {
+          payload = { bullets: toBullets(result.summary, 3) };
         }
-        briefCache.set(key, bullets);
+        briefCache.set(key, payload);
       } catch {
         briefEl.hidden = true;
         delete briefEl.dataset.key;
         return;
       }
     }
-    if (!active || briefEl.dataset.key !== key) {
-      briefEl.dataset.key = key;
-    }
+    if (!active) return;
+    briefEl.dataset.key = key;
     clear(briefEl);
-    const head = el('span', { class: 'battle-brief-head mono', text: t('brief.label') });
+    briefEl.append(el('span', { class: 'battle-brief-head mono', text: t('battle.diffHead') }));
     const list = el('ul', { class: 'battle-brief-list' });
-    for (const line of bullets) list.append(el('li', { text: line }));
-    briefEl.append(head, list);
+    if (payload.bullets) {
+      for (const line of payload.bullets) list.append(el('li', { text: line }));
+    } else {
+      for (const row of payload.rows) {
+        const li = el('li', { 'data-lean': row.lean });
+        li.append(
+          el('strong', { class: 'mono', text: t('battle.' + row.lean) + ' · ' + row.source }),
+          document.createTextNode(' ' + row.text)
+        );
+        list.append(li);
+      }
+    }
+    briefEl.append(list);
     briefEl.hidden = false;
     briefEl.classList.remove('is-on');
     requestAnimationFrame(() => briefEl.classList.add('is-on'));
+  }
+
+  // freshest headline per lean — the raw material of the framing gap
+  function leanRows(cluster) {
+    const byLean = {};
+    for (const a of cluster.battle.articles) {
+      if (!byLean[a.lean] || a.publishedAt > byLean[a.lean].publishedAt) byLean[a.lean] = a;
+    }
+    return ['left', 'center', 'right']
+      .filter((lean) => byLean[lean])
+      .map((lean) => ({
+        lean,
+        source: byLean[lean].source?.name || '',
+        text: byLean[lean].title,
+      }));
   }
 
   async function translateCluster(cluster) {
@@ -625,7 +681,8 @@ export function initBattle({ section, onArticles } = {}) {
     for (const cluster of clusters) {
       if (!cluster.mounted) continue;
       const ay = cluster.anchor.y + rect.top;
-      if (ay < -PITCH || ay > h + PITCH) continue;
+      const cull = cluster.radius + 260;
+      if (ay < -cull || ay > h + cull) continue;
       // a soft halo unites the group visually
       const halo = ctx.createRadialGradient(
         cluster.anchor.x + rect.left, ay, cluster.radius * 0.3,

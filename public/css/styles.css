@@ -1977,7 +1977,7 @@ body.battle-mode #newPill {
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: 50%;
+  border-radius: 24%; /* iOS-tile squircle feel — more room than a circle */
   border: 2px solid var(--lean-center);
   background: var(--surface);
   color: var(--ink);
@@ -2009,8 +2009,8 @@ body.battle-mode #newPill {
   align-items: center;
   justify-content: center;
   gap: 3px;
-  padding: 12%;
-  border-radius: 50%;
+  padding: 9px 10px;
+  border-radius: 0; /* the tile clips via the button's own radius */
 }
 .bubble--img .bubble-src,
 .bubble--img .bubble-title { color: #fff; }
@@ -2030,7 +2030,7 @@ body.battle-mode #newPill {
   font-weight: 600;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 5; /* square tiles fit more than circles did */
   overflow: hidden;
   overflow-wrap: break-word;
 }
@@ -2076,6 +2076,7 @@ body.battle-mode #newPill {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+.battle-brief { max-height: 146px; overflow: hidden; } /* fits its reserved band */
 .battle-brief-head {
   display: block;
   font-size: 0.56rem;
@@ -2103,6 +2104,16 @@ body.battle-mode #newPill {
   position: absolute;
   left: 0;
   color: var(--accent);
+}
+/* per-lean framing rows: the marker takes the side's color */
+.battle-brief-list li[data-lean]::before { content: '●'; font-size: 0.5rem; top: 4px; }
+.battle-brief-list li[data-lean="left"]::before { color: var(--lean-left); }
+.battle-brief-list li[data-lean="center"]::before { color: var(--lean-center); }
+.battle-brief-list li[data-lean="right"]::before { color: var(--lean-right); }
+.battle-brief-list li strong {
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
 }
 .battle-brief-spin {
   display: block;
