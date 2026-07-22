@@ -574,10 +574,19 @@ export function initBattle(options = {}) {
           targetLang: lang,
         });
         if (result.provider === 'local') {
-          // extractive can't contrast — build the distinctive-framing rows.
-          // The quotes are the outlets' own words: NEVER machine-translated
-          // (word-by-word MT of headline fragments reads as hallucination).
           payload = { rows: contrastRows(cluster) };
+          // translate WHOLE sentences only (stance verdict + evidence
+          // headline) — fragment-by-fragment MT is what hallucinated
+          if (lang !== 'en') {
+            const texts = payload.rows.flatMap((r) => [r.stanceText, r.evidence || '—']);
+            const tr = await translateTexts(texts, lang, { sourceLang: 'en' }).catch(() => null);
+            if (tr && tr.texts.length === texts.length) {
+              payload.rows.forEach((r, i) => {
+                r.stanceText = tr.texts[i * 2] || r.stanceText;
+                if (r.evidence) r.evidence = tr.texts[i * 2 + 1] || r.evidence;
+              });
+            }
+          }
         } else {
           payload = { bullets: toBullets(result.summary, 3) };
         }
