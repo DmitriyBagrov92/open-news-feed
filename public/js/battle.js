@@ -388,25 +388,9 @@ export function initBattle({ section, onArticles } = {}) {
       }
     });
 
-    // a landed punch flashes both bubbles
-    Matter.Events.on(engine, 'collisionStart', (ev) => {
-      for (const pair of ev.pairs) {
-        const a = bodyBubble.get(pair.bodyA.id);
-        const b = bodyBubble.get(pair.bodyB.id);
-        if ((a?.fighting || b?.fighting) && a && b) {
-          hitFlash(a);
-          hitFlash(b);
-        }
-      }
-    });
   }
 
-  const bodyBubble = new Map(); // body.id → bubble record (fight flash lookup)
-
-  function hitFlash(bubble) {
-    bubble.btn.classList.add('bubble--hit');
-    setTimeout(() => bubble.btn.classList.remove('bubble--hit'), 380);
-  }
+  const bodyBubble = new Map(); // body.id → bubble record
 
   // mount/unmount clusters around the viewport to keep the live-body budget
   function updateMounts(force = false) {

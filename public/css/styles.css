@@ -2045,16 +2045,9 @@ body.battle-mode #newPill {
   z-index: 5;
   box-shadow: var(--shadow-modal);
 }
-/* the fight: a charging bubble glows, a landed punch flashes */
+/* the fight: a charging bubble carries a soft steady glow — no flashing */
 .bubble--fighter {
   box-shadow: 0 0 14px 2px rgb(127 127 127 / 0.25);
-}
-.bubble--hit {
-  animation: bubble-hit 0.38s ease-out;
-}
-@keyframes bubble-hit {
-  0% { box-shadow: 0 0 0 0 currentColor; filter: brightness(1.6); }
-  100% { box-shadow: 0 0 22px 10px transparent; filter: brightness(1); }
 }
 
 /* per-cluster auto AI summary: a colliding tile at the heart of the group.
