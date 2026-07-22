@@ -13,6 +13,17 @@ const EDGE_PAD = 14;
 // the card is currently showing a translation — the tooltip must match
 // what the reader sees, not the original.
 export function initCardTooltip({ grid, articleById, textFor }) {
+  return initHoverTip({
+    root: grid,
+    selector: '.card[data-id]',
+    articleFor: (el) => articleById.get(el.dataset.id),
+    textFor,
+  });
+}
+
+// Generic hover tooltip: works for any container whose `selector` elements
+// resolve to an article via articleFor(el).
+export function initHoverTip({ root, selector, articleFor, textFor, ignore = 'button, a' }) {
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
   const tip = el('div', { class: 'card-tip', role: 'tooltip', hidden: true });
@@ -34,7 +45,7 @@ export function initCardTooltip({ grid, articleById, textFor }) {
   }
 
   function show(card) {
-    const article = articleById.get(card.dataset.id);
+    const article = articleFor(card);
     if (!article) return;
     const text = textFor?.(article, card) || article;
     clear(tip);
@@ -66,33 +77,33 @@ export function initCardTooltip({ grid, articleById, textFor }) {
     hideTimer = setTimeout(() => { tip.hidden = true; }, 160);
   }
 
-  grid.addEventListener('pointermove', (e) => {
+  root.addEventListener('pointermove', (e) => {
     lastX = e.clientX;
     lastY = e.clientY;
   }, { passive: true });
 
-  grid.addEventListener('pointerover', (e) => {
+  root.addEventListener('pointerover', (e) => {
     if (e.pointerType === 'touch') return;
     // buttons and links carry their own affordances — never cover them
-    if (e.target.closest?.('button, a')) {
+    if (ignore && e.target.closest?.(ignore)) {
       currentCard = null;
       hide();
       return;
     }
-    const card = e.target.closest?.('.card[data-id]');
+    const card = e.target.closest?.(selector);
     if (card === currentCard) return;
     currentCard = card;
     hide();
     if (card) timer = setTimeout(() => show(card), SHOW_DELAY_MS);
   });
 
-  grid.addEventListener('pointerleave', () => {
+  root.addEventListener('pointerleave', () => {
     currentCard = null;
     hide();
   });
 
   // any real interaction outranks the tooltip
-  grid.addEventListener('pointerdown', () => {
+  root.addEventListener('pointerdown', () => {
     currentCard = null;
     hide();
   });
