@@ -337,7 +337,12 @@ Used as the Railway healthcheck path.
   set `textContent`, or escape rigorously. Feed content is untrusted.
 - Preferences in `localStorage` under the single key `meridian:prefs` (one JSON
   object: `theme`, `uiLocale`, `targetLang`, `autoTranslate`, `hiddenSources`,
-  `category`, `density`, `saved` [array of Article]). Corrupt/missing data must
+  `category`, `density`, `gridSize`, `saved` [array of Article], `feedSub`
+  ('recommended' | 'saved'), `taste` — the onboarding like/dislike profile
+  `{ count, sources{}, cats{}, tokens{}, rated[] }` used to rank the
+  "Recommended to you" feed **entirely on the client**; it never reaches the
+  server (the global like/dislike counters are moved via the anonymous
+  `POST /api/news/:id/vote`, same as manual votes). Corrupt/missing data must
   never crash the app — always fall back to defaults.
 - Poll `GET /api/news?pageSize=1` every 90s; if `latestId` changed, show a
   "N new stories" pill that prepends fresh items on click.

@@ -2,7 +2,7 @@
 
 import { el, clear } from './dom.js';
 import { t, catLabel, setLocale, applyI18n } from './i18n.js';
-import { prefs, setPref, isSaved, toggleSaved, ensureAuthorId } from './prefs.js';
+import { prefs, setPref, savePrefs, isSaved, toggleSaved, ensureAuthorId } from './prefs.js';
 import { api } from './api.js';
 import { initWireClocks, refreshTimes } from './time.js';
 import { initPlasma } from './plasma.js';
@@ -313,7 +313,7 @@ let feedSeq = 0; // stale responses (superseded by a newer reset) are dropped
 async function loadFeed({ reset = false } = {}) {
   if (state.category === 'battle') return; // battle view owns the screen
   if (state.category === 'saved') {
-    renderSaved();
+    renderYourFeed();
     return;
   }
   if (!reset && state.loading) return;
@@ -365,15 +365,44 @@ function maybeLoadMore() {
   if (sentinel.getBoundingClientRect().top < innerHeight + 600) loadFeed();
 }
 
-function renderSaved() {
+/* ── Your Feed (recommended + saved) ────────────────────────────────────── */
+
+const ONBOARD_BATCH = 5;
+
+function syncFeedSubtabs() {
+  const bar = $('#feedTabs');
+  bar.hidden = false;
+  for (const btn of bar.querySelectorAll('.subtab')) {
+    if (btn.dataset.sub === prefs.feedSub) btn.setAttribute('aria-current', 'true');
+    else btn.removeAttribute('aria-current');
+  }
+  $('#tuneMore').hidden = !(prefs.feedSub === 'recommended' && prefs.taste.count >= ONBOARD_BATCH);
+}
+
+// The dispatcher for the "Your Feed" tab (internal id stays 'saved').
+function renderYourFeed() {
   // Supersede any in-flight feed request so its late response cannot
-  // contaminate the Saved view.
+  // contaminate this view.
   feedSeq += 1;
   state.loading = false;
   clearPending();
   clearGrid();
   removeSkeletons();
   state.hasMore = false;
+  leaveOnboarding();
+  syncFeedSubtabs();
+  if (prefs.feedSub === 'saved') {
+    renderSavedList();
+    return;
+  }
+  if (prefs.taste.count < ONBOARD_BATCH) {
+    enterOnboarding();
+    return;
+  }
+  renderRecommended();
+}
+
+function renderSavedList() {
   const q = state.q.toLowerCase();
   const items = prefs.saved.filter(
     (a) => !q || (a.title + ' ' + (a.description || '')).toLowerCase().includes(q)
@@ -384,6 +413,120 @@ function renderSaved() {
   }
   hideEmpty();
   appendArticles(items, true);
+}
+
+async function renderRecommended() {
+  hideEmpty();
+  addSkeletons(6);
+  const seq = ++feedSeq;
+  try {
+    const [{ rankForYou }, res] = await Promise.all([
+      import('./recommend.js'),
+      api.news(buildParams({ pageSize: 100 }), prefs.authorId || undefined),
+    ]);
+    if (seq !== feedSeq || state.category !== 'saved' || prefs.feedSub !== 'recommended') return;
+    removeSkeletons();
+    const savedIds = new Set(prefs.saved.map((a) => a.id));
+    const pool = visibleArticles(res.articles);
+    const { articles: top, personalized } = rankForYou(pool, prefs.taste, savedIds);
+    if (!top.length) {
+      showEmpty(state.q ? 'search' : 'feed');
+      return;
+    }
+    if (!personalized) toast(t('feed.recoFallback'));
+    appendArticles(top, true);
+  } catch {
+    if (seq !== feedSeq) return;
+    removeSkeletons();
+    showEmpty('error');
+  }
+}
+
+/* ── Taste onboarding wiring ────────────────────────────────────────────── */
+
+let onboardingView = null;
+
+async function enterOnboarding() {
+  document.body.classList.add('onboard-mode');
+  $('#onboard').hidden = false;
+  timescale.hide();
+  try {
+    if (!onboardingView) {
+      const [{ initOnboarding }, { applyRating, pickOnboardingCandidates }] = await Promise.all([
+        import('./onboarding.js'),
+        import('./recommend.js'),
+      ]);
+      onboardingView = { initOnboarding, applyRating, pickOnboardingCandidates, ui: null };
+      onboardingView.ui = initOnboarding({
+        section: $('#onboard'),
+        onRate: (article, dir) => {
+          onboardingView.applyRating(prefs.taste, article, dir);
+          // a like IS a save — but never un-save an already saved story
+          if (dir === 1 && !isSaved(article.id)) toggleSaved(article);
+          savePrefs();
+          // the rating also moves the story's global like/dislike counters;
+          // best-effort — a 429/404 must not break the local flow. The
+          // reconciled counts land on the same object prefs.saved holds,
+          // so the saved card shows the lit vote immediately.
+          api
+            .voteNews(article.id, dir, ensureAuthorId())
+            .then((res) => {
+              Object.assign(article, res);
+              savePrefs();
+            })
+            .catch(() => {});
+        },
+        onDone: () => {
+          savePrefs();
+          toast(t('onboard.done'));
+          if (state.category === 'saved') renderYourFeed();
+        },
+      });
+    }
+    const res = await api.news(buildParams({ pageSize: 100 }), prefs.authorId || undefined);
+    if (state.category !== 'saved' || prefs.feedSub !== 'recommended') return;
+    const savedIds = new Set(prefs.saved.map((a) => a.id));
+    const candidates = onboardingView.pickOnboardingCandidates(
+      visibleArticles(res.articles),
+      prefs.taste,
+      savedIds
+    );
+    onboardingView.ui.enter(candidates, ONBOARD_BATCH);
+  } catch {
+    const stage = $('#onboardCard');
+    if (stage) {
+      clear(stage);
+      const p = el('p', { class: 'onboard-empty', text: t('onboard.empty') });
+      const retry = el('button', { class: 'btn mono', type: 'button', text: t('feed.retry') });
+      retry.addEventListener('click', () => enterOnboarding());
+      stage.append(p, retry);
+    }
+  }
+}
+
+function leaveOnboarding() {
+  onboardingView?.ui?.leave();
+  $('#onboard').hidden = true;
+  document.body.classList.remove('onboard-mode');
+}
+
+function initFeedSubtabs() {
+  $('#feedTabs').addEventListener('click', (e) => {
+    const sub = e.target.closest('.subtab')?.dataset.sub;
+    if (sub && sub !== prefs.feedSub) {
+      setPref('feedSub', sub);
+      renderYourFeed();
+    }
+  });
+  // TUNE MORE: another onboarding batch on demand
+  $('#tuneMore').addEventListener('click', () => {
+    if (state.category !== 'saved') return;
+    feedSeq += 1;
+    clearGrid();
+    removeSkeletons();
+    hideEmpty();
+    enterOnboarding();
+  });
 }
 
 /* ── Infinite scroll ────────────────────────────────────────────────────── */
@@ -654,7 +797,7 @@ function initSearch() {
     if (next === state.q) return;
     state.q = next;
     clearPending();
-    if (state.category === 'saved') renderSaved();
+    if (state.category === 'saved') renderYourFeed();
     else loadFeed({ reset: true });
   };
 
@@ -747,13 +890,18 @@ function initTabs() {
       if (current) tab.setAttribute('aria-current', 'true');
       else tab.removeAttribute('aria-current');
     }
+    // your-feed chrome (subtabs + onboarding) never leaks to other views
+    if (cat !== 'saved') {
+      $('#feedTabs').hidden = true;
+      leaveOnboarding();
+    }
     if (cat === 'battle') {
       enterBattle();
       return;
     }
     if (wasBattle) leaveBattle();
     if (!load) return;
-    if (cat === 'saved') renderSaved();
+    if (cat === 'saved') renderYourFeed();
     else loadFeed({ reset: true });
   };
   track.addEventListener('click', (e) => {
@@ -856,7 +1004,17 @@ async function runBrief() {
     // fetched explicitly rather than trusted to scroll-dependent state
     let pool;
     if (state.category === 'saved') {
-      pool = prefs.saved.slice(0, 20);
+      if (prefs.feedSub === 'recommended' && prefs.taste.count >= ONBOARD_BATCH) {
+        // summarize what the personalized feed actually shows
+        const [{ rankForYou }, res] = await Promise.all([
+          import('./recommend.js'),
+          api.news(buildParams({ pageSize: 100 }), prefs.authorId || undefined),
+        ]);
+        const savedIds = new Set(prefs.saved.map((a) => a.id));
+        pool = rankForYou(visibleArticles(res.articles), prefs.taste, savedIds).articles.slice(0, 20);
+      } else {
+        pool = prefs.saved.slice(0, 20);
+      }
     } else {
       const res = await api.news(buildParams({ pageSize: 20 }));
       pool = visibleArticles(res.articles);
@@ -1106,7 +1264,7 @@ function renderSourcesList() {
         else hidden.add(source.id);
         setPref('hiddenSources', [...hidden]);
         clearPending();
-        if (state.category === 'saved') renderSaved();
+        if (state.category === 'saved') renderYourFeed();
         else loadFeed({ reset: true });
       });
       row.append(
@@ -1194,6 +1352,7 @@ function boot() {
     },
   });
   initGridSize(); // before the first render so the saved size paints first
+  initFeedSubtabs();
   initCardTooltip({
     grid,
     articleById,
@@ -1212,7 +1371,7 @@ function boot() {
 
   emptyRetry.addEventListener('click', () => loadFeed({ reset: true }));
 
-  if (state.category === 'saved') renderSaved();
+  if (state.category === 'saved') renderYourFeed();
   else if (state.category !== 'battle') loadFeed({ reset: true }); // battle boots via activate()
 
   loadSources();

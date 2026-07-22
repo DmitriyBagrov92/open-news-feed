@@ -14,6 +14,10 @@ const DEFAULTS = Object.freeze({
   gridSize: 0,              // card sizing level: -2 (dense) … 2 (large)
   saved: [],                // full Article objects — the Saved tab works offline
   authorId: null,           // anonymous comment identity (lazy UUID)
+  feedSub: 'recommended',   // Your Feed sub-tab: 'recommended' | 'saved'
+  // Taste profile from onboarding likes/dislikes — device-only, never sent
+  // to the server. Weights per source / category / title entity.
+  taste: { count: 0, sources: {}, cats: {}, tokens: {}, rated: [] },
 });
 
 function sanitize(raw) {
@@ -25,6 +29,8 @@ function sanitize(raw) {
   if (typeof p.density !== 'string') p.density = 'comfortable';
   p.gridSize = Math.max(-2, Math.min(2, Math.trunc(Number(p.gridSize)) || 0));
   p.autoTranslate = Boolean(p.autoTranslate);
+  p.feedSub = p.feedSub === 'saved' ? 'saved' : 'recommended';
+  p.taste = sanitizeTaste(p.taste);
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (typeof p.authorId !== 'string' || !UUID_RE.test(p.authorId)) p.authorId = null;
   p.hiddenSources = Array.isArray(p.hiddenSources)
@@ -43,6 +49,34 @@ function sanitize(raw) {
       )
     : [];
   return p;
+}
+
+// Weights are finite numbers clamped to [-50, 50]; tokens capped at 400
+// (highest |weight| kept); rated ids 12-hex, newest 300. Corrupt data
+// degrades to the default profile, never crashes.
+function sanitizeTaste(raw) {
+  const def = { count: 0, sources: {}, cats: {}, tokens: {}, rated: [] };
+  if (!raw || typeof raw !== 'object') return def;
+  const weights = (obj, cap = Infinity) => {
+    const out = {};
+    if (!obj || typeof obj !== 'object') return out;
+    const entries = Object.entries(obj)
+      .filter(([k, v]) => typeof k === 'string' && Number.isFinite(Number(v)))
+      .map(([k, v]) => [k, Math.max(-50, Math.min(50, Number(v)))])
+      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+      .slice(0, cap);
+    for (const [k, v] of entries) out[k] = v;
+    return out;
+  };
+  return {
+    count: Math.max(0, Math.trunc(Number(raw.count)) || 0),
+    sources: weights(raw.sources, 100),
+    cats: weights(raw.cats, 20),
+    tokens: weights(raw.tokens, 400),
+    rated: Array.isArray(raw.rated)
+      ? raw.rated.filter((id) => typeof id === 'string' && /^[0-9a-f]{12}$/.test(id)).slice(0, 300)
+      : [],
+  };
 }
 
 function load() {

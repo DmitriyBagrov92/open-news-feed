@@ -195,6 +195,52 @@ export function animateSwapIn(elements, dir) {
   );
 }
 
+// Tinder fly-off for the onboarding card. Always resolves — with no lib
+// (reduced motion) the caller swaps instantly.
+export function animateFlyOff(element, dir, dy = 0) {
+  const m = lib();
+  if (!m || !element) return Promise.resolve();
+  return m
+    .animate(
+      element,
+      {
+        transform: `translate(${dir * (innerWidth * 0.7 + 160)}px, ${dy + 40}px) rotate(${dir * 20}deg)`,
+        opacity: 0,
+      },
+      { duration: 0.4, ease: EASE_OUT }
+    )
+    .finished.catch(() => {});
+}
+
+// Spring the dragged card back to rest. Identity transform is spelled out
+// (the vendored build parses 'none' as a zero matrix); inline styles clear
+// two frames after finish (Motion re-commits final keyframes a frame late).
+export function animateSpringBack(element) {
+  const m = lib();
+  if (!m || !element) {
+    if (element) element.style.transform = '';
+    return Promise.resolve();
+  }
+  return m
+    .animate(
+      element,
+      { transform: 'translate(0px, 0px) rotate(0deg)' },
+      { type: 'spring', stiffness: 420, damping: 30 }
+    )
+    .finished.catch(() => {})
+    .then(
+      () =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => {
+              element.style.transform = '';
+              resolve();
+            })
+          )
+        )
+    );
+}
+
 // Springy pop for the new-stories pill.
 export function animatePop(element) {
   const m = lib();

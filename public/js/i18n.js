@@ -15,7 +15,20 @@ const TABLES = {
     'cat.sports': 'SPORTS',
     'cat.culture': 'CULTURE',
     'cat.health': 'HEALTH',
-    'cat.saved': 'SAVED',
+    'cat.saved': 'YOUR FEED',
+
+    // your feed / onboarding
+    'feed.subRecommended': 'RECOMMENDED TO YOU',
+    'feed.subSaved': 'YOUR SAVED NEWS',
+    'feed.tune': 'TUNE MORE',
+    'feed.recoFallback': 'Rate a few more stories and this feed gets sharper — showing the freshest for now.',
+    'onboard.title': 'Teach Meridian your taste',
+    'onboard.hint': 'Like or skip a few stories. Your preferences stay on this device.',
+    'onboard.like': 'Like',
+    'onboard.skip': 'Skip',
+    'onboard.progress': '{done} / {total}',
+    'onboard.done': 'Your feed is ready',
+    'onboard.empty': 'Stories are still loading — try again in a moment.',
     'cat.battle': 'BUBBLE BATTLE',
 
     // bubble battle view

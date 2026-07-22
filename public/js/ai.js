@@ -179,7 +179,7 @@ export async function summarize(input, { onProgress } = {}) {
 // shared entities (capitalized words/bigrams), each developing story
 // becomes one line — the entity, the freshest headline as the lede, and
 // how broad the coverage is. Singletons close the brief as "also" items.
-function entityTokens(title) {
+export function entityTokens(title) {
   // unicode-aware: Cyrillic, CJK etc. are letters, not separators
   const words = String(title).split(/[^\p{L}\p{N}'']+/u).filter(Boolean);
   const out = new Map(); // lower → display

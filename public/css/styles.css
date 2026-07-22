@@ -2212,6 +2212,156 @@ body.battle-mode #newPill {
 .tab--battle svg { width: 15px; height: 15px; margin-right: 5px; vertical-align: -3px; }
 .tab--battle[aria-current="true"] svg circle:first-child { fill: rgb(127 127 127 / 0.15); }
 
+/* ── Your Feed: subtabs + taste onboarding ──────────────────────────────── */
+
+.feed-subtabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 2px 16px;
+}
+.subtab {
+  padding: 6px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.subtab:hover { color: var(--ink); }
+.subtab[aria-current="true"] {
+  color: var(--accent);
+  border-color: var(--hairline-strong);
+  background: rgb(127 127 127 / 0.07);
+}
+.feed-tune { margin-left: auto; }
+
+body.onboard-mode .brief,
+body.onboard-mode #grid,
+body.onboard-mode #empty,
+body.onboard-mode #sentinel,
+body.onboard-mode #newPill {
+  display: none !important;
+}
+
+.onboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0 40px;
+}
+.onboard-title {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+.onboard-hint { color: var(--ink-2); font-size: 0.85rem; text-align: center; }
+.onboard-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+}
+.onboard-dots { display: flex; gap: 6px; }
+.onboard-dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hairline);
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+.onboard-dots i.is-done { background: var(--accent); transform: scale(1.2); }
+.onboard-count { font-size: 0.62rem; color: var(--ink-2); }
+
+.onboard-stage {
+  position: relative;
+  width: min(92vw, 460px);
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.onboard-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: var(--shadow-modal);
+  cursor: grab;
+  touch-action: pan-y; /* horizontal swipe is ours; page scroll stays alive */
+  -webkit-user-select: none;
+  user-select: none;
+  will-change: transform;
+}
+.onboard-card.is-dragging { cursor: grabbing; }
+.onb-media { aspect-ratio: 16 / 9; flex: none; overflow: hidden; background: var(--paper); }
+.onb-media img { width: 100%; height: 100%; object-fit: cover; }
+.onboard-body { padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+.onboard-meta { font-size: 0.6rem; color: var(--ink-2); }
+.onboard-headline {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.onboard-desc {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+.onboard-stamp {
+  position: absolute;
+  top: 18px;
+  padding: 6px 14px;
+  border: 3px solid;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  letter-spacing: 0.18em;
+  opacity: 0;
+  pointer-events: none;
+}
+.onboard-stamp--like {
+  left: 16px;
+  color: #3d9c6a;
+  border-color: #3d9c6a;
+  transform: rotate(-14deg);
+}
+.onboard-stamp--skip {
+  right: 16px;
+  color: var(--lean-right);
+  border-color: var(--lean-right);
+  transform: rotate(14deg);
+}
+.onboard-actions { display: flex; gap: 26px; margin-top: 8px; }
+.onboard-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1.5px solid var(--hairline-strong);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+}
+.onboard-btn svg { width: 26px; height: 26px; }
+.onboard-btn--like { color: #3d9c6a; }
+.onboard-btn--skip { color: var(--lean-right); }
+.onboard-btn:hover { transform: scale(1.08); box-shadow: 0 6px 18px rgb(0 0 0 / 0.25); }
+.onboard-btn:active { transform: scale(0.94); }
+.onboard-empty { color: var(--ink-2); padding: 40px 0 10px; text-align: center; }
+
 /* ── Card hover tooltip ─────────────────────────────────────────────────── */
 
 .card-tip {

@@ -204,6 +204,30 @@
 
   <main class="feed">
     <h1 class="sr-only">Meridian — the world’s news, sorted by freshness</h1>
+
+    <!-- Your Feed sub-tabs (visible on the saved/your-feed view only) -->
+    <div class="feed-subtabs" id="feedTabs" hidden>
+      <button class="subtab mono" data-sub="recommended" data-i18n="feed.subRecommended">Recommended to you</button>
+      <button class="subtab mono" data-sub="saved" data-i18n="feed.subSaved">Your saved news</button>
+      <button class="btn mono feed-tune" id="tuneMore" hidden data-i18n="feed.tune">Tune more</button>
+    </div>
+
+    <!-- Tinder-style taste onboarding -->
+    <section class="onboard" id="onboard" hidden aria-label="Taste onboarding">
+      <p class="onboard-title" data-i18n="onboard.title">Teach Meridian your taste</p>
+      <p class="onboard-hint" data-i18n="onboard.hint">Like or skip a few stories. Your preferences stay on this device.</p>
+      <div class="onboard-progress" id="onboardProgress" aria-live="polite"></div>
+      <div class="onboard-stage" id="onboardCard"></div>
+      <div class="onboard-actions">
+        <button class="onboard-btn onboard-btn--skip" id="onboardSkip" data-i18n-label="onboard.skip" aria-label="Skip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <button class="onboard-btn onboard-btn--like" id="onboardLike" data-i18n-label="onboard.like" aria-label="Like">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5C5.5 15.6 2.5 12.2 2.5 8.7 2.5 6 4.6 4 7.2 4c1.7 0 3.3.9 4.8 2.7C13.5 4.9 15.1 4 16.8 4c2.6 0 4.7 2 4.7 4.7 0 3.5-3 6.9-9.5 11.8Z"/></svg>
+        </button>
+      </div>
+    </section>
+
     <div class="grid" id="grid">
       <div class="card card--skeleton" aria-hidden="true"><div class="skel skel-media"></div><div class="card-body"><div class="skel skel-line skel-line--meta"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line skel-line--short"></div></div></div>
       <div class="card card--skeleton" aria-hidden="true"><div class="skel skel-media"></div><div class="card-body"><div class="skel skel-line skel-line--meta"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line skel-line--short"></div></div></div>
