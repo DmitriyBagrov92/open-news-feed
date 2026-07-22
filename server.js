@@ -12,6 +12,7 @@ import {
   initComments, listComments, addComment, setVote, setArticleVote,
   reactionCounts, CommentError,
 } from './lib/comments.js';
+import { getBattles } from './lib/battles.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -193,6 +194,13 @@ app.get('/api/reactions', wrap((req, res) => {
 
 app.get('/api/sources', wrap((req, res) => {
   res.json(store.listSources());
+}));
+
+// Bubble Battle: clusters of one story covered from different leans.
+// Cached per store refresh — cheap, no rate limiter needed.
+app.get('/api/battles', wrap((req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=60');
+  res.json(getBattles());
 }));
 
 app.get('/api/article', wrap(async (req, res) => {

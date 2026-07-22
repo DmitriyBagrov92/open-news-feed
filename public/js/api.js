@@ -95,6 +95,11 @@ export const api = {
     return request('/api/sources');
   },
 
+  // Bubble Battle: viewpoint clusters — { battles, updatedAt }
+  battles() {
+    return request('/api/battles');
+  },
+
   article(url) {
     return request('/api/article' + qs({ url }));
   },
