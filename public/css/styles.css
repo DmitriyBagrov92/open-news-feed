@@ -924,6 +924,29 @@ a:hover { text-decoration: underline; }
 :root { --card-min: 235px; }
 html[data-grid-size="-2"] { --card-min: 170px; } /* two columns even on phones */
 html[data-grid-size="-1"] { --card-min: 202px; }
+
+/* dense levels: compact the card chrome so counters + actions still share
+   a row on 170-200px cards */
+html[data-grid-size="-1"] .card-vote,
+html[data-grid-size="-2"] .card-vote,
+html[data-grid-size="-1"] .card-cmt,
+html[data-grid-size="-2"] .card-cmt {
+  padding: 1px 6px;
+  gap: 3px;
+  font-size: 0.56rem;
+}
+html[data-grid-size="-2"] .card-vote svg { width: 10px; height: 10px; }
+html[data-grid-size="-1"] .card-actions .icon-btn,
+html[data-grid-size="-2"] .card-actions .icon-btn {
+  width: 26px;
+  height: 26px;
+}
+html[data-grid-size="-1"] .card-actions .icon-btn svg,
+html[data-grid-size="-2"] .card-actions .icon-btn svg {
+  width: 14px;
+  height: 14px;
+}
+html[data-grid-size="-2"] .card-cat { font-size: 0.6rem; }
 html[data-grid-size="1"] { --card-min: 280px; }
 html[data-grid-size="2"] { --card-min: 330px; }
 
@@ -1102,14 +1125,19 @@ html[data-grid-size="2"] { --card-min: 330px; }
   overflow: hidden;
 }
 
+/* The foot must degrade gracefully at every card width: one row when it
+   fits; otherwise the actions cluster wraps to its own right-aligned row
+   below the counters instead of floating mid-air beside a fragmented
+   left cluster. */
 .card-foot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 4px 8px;
   margin-top: auto;
   padding-top: 4px;
 }
+.card-foot .card-actions { margin-left: auto; }
 
 .card-cat { color: var(--ink-2); }
 .card-foot-l { display: flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; }
@@ -1780,6 +1808,49 @@ html[data-grid-size="2"] { --card-min: 330px; }
 }
 @media (pointer: coarse) {
   .cmt-vote { padding: 8px 14px; }
+}
+
+/* ── Card hover tooltip ─────────────────────────────────────────────────── */
+
+.card-tip {
+  position: fixed;
+  z-index: 96; /* over cards and rails, under the preview modal (100) */
+  max-width: 340px;
+  padding: 13px 15px 14px;
+  background: var(--surface);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow-modal);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(5px) scale(0.98);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.card-tip.is-on {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.card-tip-meta {
+  font-size: 0.6rem;
+  color: var(--ink-2);
+  margin-bottom: 7px;
+}
+.card-tip-title {
+  font-family: var(--font-serif);
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.card-tip-desc {
+  margin-top: 7px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 10;
+  overflow: hidden;
 }
 
 /* ── 16 · Reduced motion ────────────────────────────────────────────────── */

@@ -10,6 +10,7 @@ import { initTimescale } from './timescale.js';
 import { animateIn, animatePop } from './motion.js';
 import { toast } from './toast.js';
 import { buildCard, skeletonCard, applyCardText, setCardCommentCount, applyCardReactions } from './cards.js';
+import { initCardTooltip } from './tooltip.js';
 import { openPreview } from './modal.js';
 import { summarize, translateTexts, warmTranslator, providerLabel, toBullets } from './ai.js';
 
@@ -619,6 +620,7 @@ function initLangControl() {
     translateBroken = false;
     revertAllCards();
     translationBust();
+    scheduleBrief(400); // the brief follows the target language
   });
   auto.addEventListener('change', () => {
     setPref('autoTranslate', auto.checked);
@@ -750,13 +752,23 @@ async function runBrief() {
       }
     );
     if (seq !== briefSeq) return;
+    let lines = toBullets(result.summary, 7);
+    // the on-device summarizer honors targetLang itself; the extractive
+    // fallback is English-only, so its bullets go through the translate
+    // ladder to actually respect the selected language
+    const target = prefs.targetLang || 'en';
+    if (target !== 'en' && result.provider === 'local') {
+      const tr = await translateTexts(lines, target, { sourceLang: 'en' }).catch(() => null);
+      if (seq !== briefSeq) return;
+      if (tr && Array.isArray(tr.texts) && tr.texts.length === lines.length) lines = tr.texts;
+    }
     briefSettled();
     clear(body);
     status.textContent = '';
     badge.textContent = providerLabel(result.provider);
     badge.hidden = false;
     const list = el('ul', { class: 'bullets' });
-    for (const line of toBullets(result.summary, 7)) list.append(el('li', { text: line }));
+    for (const line of lines) list.append(el('li', { text: line }));
     body.append(list);
     animateIn(list.children); // staggered bullet reveal
   } catch {
@@ -982,6 +994,7 @@ function boot() {
     },
   });
   initGridSize(); // before the first render so the saved size paints first
+  initCardTooltip({ grid, articleById });
   initSearch();
   initLangControl();
   initTabs();
