@@ -180,16 +180,17 @@ export async function summarize(input, { onProgress } = {}) {
 // becomes one line — the entity, the freshest headline as the lede, and
 // how broad the coverage is. Singletons close the brief as "also" items.
 function entityTokens(title) {
-  const words = String(title).split(/[^A-Za-z0-9'']+/).filter(Boolean);
+  // unicode-aware: Cyrillic, CJK etc. are letters, not separators
+  const words = String(title).split(/[^\p{L}\p{N}'']+/u).filter(Boolean);
   const out = new Map(); // lower → display
   for (let i = 0; i < words.length; i += 1) {
     const w = words[i];
     const lower = w.toLowerCase().replace(/['']s$/, '');
     if (lower.length < 3 || STOPWORDS.has(lower)) continue;
-    if (!/^[A-Z]/.test(w)) continue; // bare numbers don't name a story
+    if (!/^\p{Lu}/u.test(w)) continue; // bare numbers don't name a story
     const display = w.replace(/['']s$/, '');
     const next = words[i + 1];
-    if (next && /^[A-Z]/.test(next)) {
+    if (next && /^\p{Lu}/u.test(next)) {
       const nl = next.toLowerCase();
       if (!STOPWORDS.has(nl) && nl.length >= 3) {
         out.set(lower + ' ' + nl, display + ' ' + next.replace(/['']s$/, ''));

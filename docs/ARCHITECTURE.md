@@ -42,7 +42,10 @@ Principles:
   token: the server derives the public pseudonym/avatar from it and NEVER
   returns or logs the raw value.
 - **English now, any language later.** Sources are registered per language;
-  UI strings live in an i18n table; the API takes `lang`.
+  UI strings live in an i18n table; the API takes `lang` (CSV supported —
+  when the user's translation target has native feeds, the client requests
+  `target,en` and native stories replace machine translation).
+  `GET /api/sources` lists available `languages`.
 
 ---
 
@@ -89,7 +92,7 @@ Query params (all optional):
 | `exclude`  | string | —       | CSV of source ids to exclude                 |
 | `page`     | int    | `1`     | 1-based                                      |
 | `pageSize` | int    | `30`    | max 100                                      |
-| `lang`     | string | `en`    | article language                             |
+| `lang`     | string | `en`    | article language; CSV (`ru,en`) mixes native + English |
 | `since`    | string | —       | ISO date; only articles newer than this      |
 | `histogram`| `1`    | —       | include per-hour counts for the last 24h     |
 

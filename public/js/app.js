@@ -79,11 +79,25 @@ function effectiveTheme() {
 
 /* ── Feed query ─────────────────────────────────────────────────────────── */
 
+// Translation targets that have native-language feeds on the server —
+// filled from /api/sources; empty until it loads (English-only until then).
+let nativeLangs = new Set();
+
+// The hybrid feed: when the chosen translation target has native sources,
+// ask for them alongside the English backbone — real articles beat machine
+// translation, and English keeps every category populated.
+function feedLangs() {
+  const target = prefs.targetLang || 'en';
+  return target !== 'en' && nativeLangs.has(target) ? target + ',en' : null;
+}
+
 function buildParams(extra = {}) {
   const params = { ...extra };
   if (state.category !== 'all' && state.category !== 'saved') params.category = state.category;
   if (state.q) params.q = state.q;
   if (prefs.hiddenSources.length) params.exclude = prefs.hiddenSources.join(',');
+  const lang = feedLangs();
+  if (lang) params.lang = lang;
   return params;
 }
 
@@ -696,6 +710,10 @@ function initLangControl() {
     translationBust();
     scheduleBrief(400); // the brief follows the target language
     document.dispatchEvent(new CustomEvent('meridian:langchange'));
+    // native feeds exist for this target → refetch the hybrid stream
+    if (nativeLangs.size && state.category !== 'saved' && state.category !== 'battle') {
+      loadFeed({ reset: true });
+    }
   });
   auto.addEventListener('change', () => {
     setPref('autoTranslate', auto.checked);
@@ -1109,6 +1127,11 @@ async function loadSources() {
     sourcesData = await api.sources();
   } catch {
     sourcesData = null;
+  }
+  nativeLangs = new Set(sourcesData?.languages || []);
+  // the saved target may have native feeds — switch the feed to the mix
+  if (feedLangs() && state.category !== 'saved' && state.category !== 'battle') {
+    loadFeed({ reset: true });
   }
   renderSourcesList();
   const enabled = sourcesData ? sourcesData.sources.filter((s) => s.enabled).length : 0;

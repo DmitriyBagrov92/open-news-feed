@@ -89,6 +89,42 @@ export const RSS_SOURCES = {
     { id: 'bbc-health', name: 'BBC Health', category: 'health', url: 'https://feeds.bbci.co.uk/news/health/rss.xml', homepage: 'https://www.bbc.com' },
     { id: 'statnews', name: 'STAT News', category: 'health', url: 'https://www.statnews.com/feed/', homepage: 'https://www.statnews.com' },
     { id: 'who', name: 'WHO', category: 'health', url: 'https://www.who.int/rss-feeds/news-english.xml', homepage: 'https://www.who.int' },
+  ],
+
+  // ── native-language feeds: users who pick these translation targets get
+  // the real thing instead of machine translation (verified 2026-07-22) ──
+  ru: [
+    { id: 'meduza', name: 'Meduza', category: 'world', url: 'https://meduza.io/rss/all', homepage: 'https://meduza.io' },
+    { id: 'bbc-russian', name: 'BBC News Русская служба', category: 'world', url: 'https://feeds.bbci.co.uk/russian/rss.xml', homepage: 'https://www.bbc.com/russian' },
+    { id: 'dw-russian', name: 'DW на русском', category: 'world', url: 'https://rss.dw.com/xml/rss-ru-all', homepage: 'https://www.dw.com/ru' },
+  ],
+  uk: [
+    { id: 'pravda-ua', name: 'Українська правда', category: 'world', url: 'https://www.pravda.com.ua/rss/', homepage: 'https://www.pravda.com.ua' },
+    { id: 'bbc-ukrainian', name: 'BBC News Україна', category: 'world', url: 'https://feeds.bbci.co.uk/ukrainian/rss.xml', homepage: 'https://www.bbc.com/ukrainian' },
+    { id: 'ukrinform', name: 'Укрінформ', category: 'world', url: 'https://www.ukrinform.ua/rss/block-lastnews', homepage: 'https://www.ukrinform.ua' },
+  ],
+  de: [
+    { id: 'tagesschau', name: 'Tagesschau', category: 'world', url: 'https://www.tagesschau.de/xml/rss2/', homepage: 'https://www.tagesschau.de' },
+    { id: 'spiegel', name: 'Der Spiegel', category: 'world', url: 'https://www.spiegel.de/schlagzeilen/tops/index.rss', homepage: 'https://www.spiegel.de' },
+    { id: 'zeit', name: 'Die Zeit', category: 'world', url: 'https://newsfeed.zeit.de/index', homepage: 'https://www.zeit.de' },
+  ],
+  fr: [
+    { id: 'lemonde', name: 'Le Monde', category: 'world', url: 'https://www.lemonde.fr/rss/une.xml', homepage: 'https://www.lemonde.fr' },
+    { id: 'franceinfo', name: 'France Info', category: 'world', url: 'https://www.francetvinfo.fr/titres.rss', homepage: 'https://www.francetvinfo.fr' },
+    { id: 'lefigaro', name: 'Le Figaro', category: 'world', url: 'https://www.lefigaro.fr/rss/figaro_actualites.xml', homepage: 'https://www.lefigaro.fr' },
+  ],
+  es: [
+    { id: 'elpais', name: 'El País', category: 'world', url: 'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada', homepage: 'https://elpais.com' },
+    { id: 'bbc-mundo', name: 'BBC Mundo', category: 'world', url: 'https://feeds.bbci.co.uk/mundo/rss.xml', homepage: 'https://www.bbc.com/mundo' },
+    { id: 'veinteminutos', name: '20minutos', category: 'world', url: 'https://www.20minutos.es/rss/', homepage: 'https://www.20minutos.es' },
+  ],
+  ja: [
+    { id: 'nhk', name: 'NHKニュース', category: 'world', url: 'https://www3.nhk.or.jp/rss/news/cat0.xml', homepage: 'https://www3.nhk.or.jp' },
+    { id: 'asahi', name: '朝日新聞', category: 'world', url: 'https://www.asahi.com/rss/asahi/newsheadlines.rdf', homepage: 'https://www.asahi.com' },
+  ],
+  zh: [
+    { id: 'bbc-zhongwen', name: 'BBC中文', category: 'world', url: 'https://feeds.bbci.co.uk/zhongwen/simp/rss.xml', homepage: 'https://www.bbc.com/zhongwen/simp' },
+    { id: 'dw-chinese', name: 'DW中文', category: 'world', url: 'https://rss.dw.com/xml/rss-chi-all', homepage: 'https://www.dw.com/zh' },
 
     // ── battle (viewpoint spectrum; battleOnly = never in /api/news) ─────
     // Openly partisan outlets feeding the Bubble Battle view. Lean labels
