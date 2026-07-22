@@ -138,6 +138,10 @@
       <button class="tab mono" data-cat="culture" data-i18n="cat.culture">Culture</button>
       <button class="tab mono" data-cat="health" data-i18n="cat.health">Health</button>
       <button class="tab mono tab--saved" data-cat="saved"><span class="tab-star" aria-hidden="true">★</span><span data-i18n="cat.saved">Saved</span></button>
+      <button class="tab mono tab--battle" data-cat="battle">
+        <svg class="tab-bubbles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><circle cx="9" cy="10" r="5.2"/><circle cx="16.4" cy="14.8" r="3.6"/></svg>
+        <span data-i18n="cat.battle">Bubble Battle</span>
+      </button>
     </div>
   </nav>
 
@@ -206,6 +210,19 @@
       <button class="btn" id="emptyRetry" hidden data-i18n="feed.retry">Retry</button>
     </div>
     <div class="sentinel" id="sentinel" aria-hidden="true"></div>
+
+    <!-- Bubble Battle: viewpoint clusters as physics bubbles -->
+    <section class="battle" id="battle" hidden aria-label="Bubble Battle">
+      <div class="battle-legend mono">
+        <span class="legend-chip" data-lean="left" data-i18n="battle.left">Left</span>
+        <span class="legend-chip" data-lean="center" data-i18n="battle.center">Center</span>
+        <span class="legend-chip" data-lean="right" data-i18n="battle.right">Right</span>
+        <span class="battle-hint" data-i18n="battle.hint">One story, every angle — drag the bubbles</span>
+        <span class="battle-status" id="battleStatus"></span>
+      </div>
+      <canvas class="battle-links" id="battleLinks" aria-hidden="true"></canvas>
+      <div class="battle-space" id="battleSpace"></div>
+    </section>
   </main>
 
   <!-- 6 · Footer -->

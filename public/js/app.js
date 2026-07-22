@@ -17,7 +17,7 @@ import { summarize, translateTexts, warmTranslator, providerLabel, toBullets } f
 const PAGE_SIZE = 30;
 const POLL_MS = 30000; // conditional requests are ~200 bytes when quiet
 const TIME_REFRESH_MS = 30000;
-const CATEGORIES = ['all', 'world', 'business', 'technology', 'science', 'sports', 'culture', 'health', 'saved'];
+const CATEGORIES = ['all', 'world', 'business', 'technology', 'science', 'sports', 'culture', 'health', 'saved', 'battle'];
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -297,6 +297,7 @@ function hideEmpty() {
 let feedSeq = 0; // stale responses (superseded by a newer reset) are dropped
 
 async function loadFeed({ reset = false } = {}) {
+  if (state.category === 'battle') return; // battle view owns the screen
   if (state.category === 'saved') {
     renderSaved();
     return;
@@ -345,7 +346,8 @@ async function loadFeed({ reset = false } = {}) {
 // still inside the 600px margin after a page lands (short pages, heavy
 // dedupe), no event comes and the feed stalls. Re-check explicitly.
 function maybeLoadMore() {
-  if (!state.hasMore || state.loading || state.category === 'saved') return;
+  if (!state.hasMore || state.loading) return;
+  if (state.category === 'saved' || state.category === 'battle') return;
   if (sentinel.getBoundingClientRect().top < innerHeight + 600) loadFeed();
 }
 
@@ -392,7 +394,8 @@ let pollTimer = null;
 
 async function pollNew() {
   if (document.hidden || !navigator.onLine) return;
-  if (state.category === 'saved' || !state.newestAt || state.loading) return;
+  if (state.category === 'saved' || state.category === 'battle') return;
+  if (!state.newestAt || state.loading) return;
   try {
     const res = await api.news(
       buildParams({ since: state.newestAt, pageSize: 100 }),
@@ -428,6 +431,7 @@ let voteEpoch = 0;
 
 async function refreshReactions() {
   if (document.hidden || !navigator.onLine) return;
+  if (state.category === 'battle') return; // grid is hidden on this view
   const near = [];
   const far = [];
   const margin = innerHeight * 2;
@@ -714,14 +718,20 @@ function initLangControl() {
 function initTabs() {
   const track = $('#tabs');
   const activate = (cat, { load = true } = {}) => {
+    const wasBattle = state.category === 'battle';
     state.category = cat;
     setPref('category', cat);
-    clearPending();
+    if (cat !== 'battle') clearPending();
     for (const tab of track.querySelectorAll('.tab')) {
       const current = tab.dataset.cat === cat;
       if (current) tab.setAttribute('aria-current', 'true');
       else tab.removeAttribute('aria-current');
     }
+    if (cat === 'battle') {
+      enterBattle();
+      return;
+    }
+    if (wasBattle) leaveBattle();
     if (!load) return;
     if (cat === 'saved') renderSaved();
     else loadFeed({ reset: true });
@@ -731,6 +741,34 @@ function initTabs() {
     if (tab && tab.dataset.cat !== state.category) activate(tab.dataset.cat);
   });
   activate(state.category, { load: false });
+}
+
+/* ── Bubble Battle view ─────────────────────────────────────────────────── */
+
+// Lazy like sun3d: a missing vendor or import failure never breaks the app.
+let battleView = null;
+
+async function enterBattle() {
+  document.body.classList.add('battle-mode');
+  $('#battle').hidden = false;
+  timescale.hide();
+  try {
+    if (!battleView) {
+      const mod = await import('./battle.js');
+      battleView = mod.initBattle({ section: $('#battle') });
+    }
+    if (state.category === 'battle') battleView.enter(); // user may have left already
+  } catch {
+    const spaceEl = $('#battleSpace');
+    if (spaceEl) spaceEl.textContent = t('battle.error');
+  }
+}
+
+function leaveBattle() {
+  battleView?.leave();
+  $('#battle').hidden = true;
+  document.body.classList.remove('battle-mode');
+  timescale.refresh();
 }
 
 /* ── Daily brief (automatic) ────────────────────────────────────────────── */
@@ -770,6 +808,7 @@ function scheduleBrief(delay = 800) {
 }
 
 async function runBrief() {
+  if (state.category === 'battle') return; // brief is hidden on this view
   const body = $('#briefBody');
   const status = $('#briefStatus');
   const badge = $('#briefBadge');
@@ -1083,7 +1122,7 @@ function boot() {
   emptyRetry.addEventListener('click', () => loadFeed({ reset: true }));
 
   if (state.category === 'saved') renderSaved();
-  else loadFeed({ reset: true });
+  else if (state.category !== 'battle') loadFeed({ reset: true }); // battle boots via activate()
 
   loadSources();
   schedulePoll();

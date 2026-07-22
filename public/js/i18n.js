@@ -16,6 +16,15 @@ const TABLES = {
     'cat.culture': 'CULTURE',
     'cat.health': 'HEALTH',
     'cat.saved': 'SAVED',
+    'cat.battle': 'BUBBLE BATTLE',
+
+    // bubble battle view
+    'battle.left': 'LEFT',
+    'battle.center': 'CENTER',
+    'battle.right': 'RIGHT',
+    'battle.hint': 'One story, every angle — drag the bubbles',
+    'battle.empty': 'Not enough overlapping coverage right now — check back after the next refresh.',
+    'battle.error': 'The battle view could not be loaded.',
 
     // search
     'search.placeholder': 'Search stories',

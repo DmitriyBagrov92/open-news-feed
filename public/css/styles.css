@@ -1810,6 +1810,181 @@ html[data-grid-size="2"] { --card-min: 330px; }
   .cmt-vote { padding: 8px 14px; }
 }
 
+/* ── Bubble Battle ──────────────────────────────────────────────────────── */
+
+:root {
+  --lean-left: #4e7de0;
+  --lean-right: #e0524a;
+  --lean-center: var(--accent);
+  --battle-link: rgb(245 168 60 / 0.16);
+}
+[data-theme="light"] {
+  --lean-left: #2f5fb3;
+  --lean-right: #c0392b;
+  --lean-center: var(--accent);
+  --battle-link: rgb(12 109 173 / 0.18);
+}
+
+/* the battle view replaces the grid + brief entirely */
+body.battle-mode .brief,
+body.battle-mode #grid,
+body.battle-mode #empty,
+body.battle-mode #sentinel,
+body.battle-mode #newPill {
+  display: none !important;
+}
+/* the section's [hidden] attribute is flipped by enterBattle/leaveBattle */
+
+.battle-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 4px 2px 14px;
+  font-size: 0.62rem;
+}
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--ink-2);
+}
+.legend-chip::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.legend-chip[data-lean="left"]::before { background: var(--lean-left); }
+.legend-chip[data-lean="center"]::before { background: var(--lean-center); }
+.legend-chip[data-lean="right"]::before { background: var(--lean-right); }
+.battle-hint { color: var(--ink-2); }
+.battle-status { margin-left: auto; color: var(--ink-2); }
+
+.battle-links {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.battle-space {
+  position: relative;
+  z-index: 1;
+}
+
+.battle-topic {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  border: 2px solid var(--lean-center);
+  background: var(--surface);
+  color: var(--ink);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: grab;
+  will-change: transform;
+  touch-action: none; /* the bubble owns its pointer gestures */
+  -webkit-user-select: none;
+  user-select: none;
+}
+.bubble[data-lean="left"] { border-color: var(--lean-left); }
+.bubble[data-lean="right"] { border-color: var(--lean-right); }
+.bubble--img {
+  background-size: cover;
+  background-position: center;
+}
+.bubble--img .bubble-in {
+  background: rgb(10 10 18 / 0.62);
+}
+.bubble-in {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 12%;
+  border-radius: 50%;
+}
+.bubble--img .bubble-src,
+.bubble--img .bubble-title { color: #fff; }
+.bubble-src {
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bubble-title {
+  font-size: 0.66rem;
+  line-height: 1.25;
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+.bubble.is-dragging {
+  cursor: grabbing;
+  z-index: 5;
+  box-shadow: var(--shadow-modal);
+}
+.bubble:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.battle-empty {
+  padding: 60px 0;
+  text-align: center;
+  color: var(--ink-2);
+}
+
+/* static fallback: reduced motion or missing vendor */
+.battle--static .battle-links { display: none; }
+.battle--static .battle-topic { position: static; margin: 26px 0 10px; }
+.battle--static .battle-group-bubbles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.battle--static .bubble { position: static; cursor: pointer; touch-action: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-links { display: none; }
+}
+
+.tab--battle svg { width: 15px; height: 15px; margin-right: 5px; vertical-align: -3px; }
+.tab--battle[aria-current="true"] svg circle:first-child { fill: rgb(127 127 127 / 0.15); }
+
 /* ── Card hover tooltip ─────────────────────────────────────────────────── */
 
 .card-tip {
