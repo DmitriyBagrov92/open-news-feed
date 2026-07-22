@@ -167,10 +167,93 @@ export async function summarize(input, { onProgress } = {}) {
     }
   }
 
-  const sentences = isBrief
-    ? input.articles.map((a) => (a.source ? `${a.title} (${a.source})` : a.title))
-    : splitSentences(input.text || '');
-  return { summary: extractive(sentences, isBrief ? 7 : 5).join('\n'), provider: 'local' };
+  if (isBrief) {
+    return { summary: briefDigest(input.articles).join('\n'), provider: 'local' };
+  }
+  return { summary: extractive(splitSentences(input.text || ''), 5).join('\n'), provider: 'local' };
+}
+
+/* ── Local structured brief ─────────────────────────────────────────────── */
+
+// A narrative digest, not a headline dump: stories are grouped by their
+// shared entities (capitalized words/bigrams), each developing story
+// becomes one line — the entity, the freshest headline as the lede, and
+// how broad the coverage is. Singletons close the brief as "also" items.
+function entityTokens(title) {
+  const words = String(title).split(/[^A-Za-z0-9'']+/).filter(Boolean);
+  const out = new Map(); // lower → display
+  for (let i = 0; i < words.length; i += 1) {
+    const w = words[i];
+    const lower = w.toLowerCase().replace(/['']s$/, '');
+    if (lower.length < 3 || STOPWORDS.has(lower)) continue;
+    if (!/^[A-Z]/.test(w)) continue; // bare numbers don't name a story
+    const display = w.replace(/['']s$/, '');
+    const next = words[i + 1];
+    if (next && /^[A-Z]/.test(next)) {
+      const nl = next.toLowerCase();
+      if (!STOPWORDS.has(nl) && nl.length >= 3) {
+        out.set(lower + ' ' + nl, display + ' ' + next.replace(/['']s$/, ''));
+      }
+    }
+    out.set(lower, display);
+  }
+  return out;
+}
+
+function briefDigest(articles) {
+  const docs = articles.map((a) => ({ a, toks: entityTokens(a.title) }));
+  const byTok = new Map(); // lower → { display, idxs: [] }
+  docs.forEach((d, i) => {
+    for (const [lower, display] of d.toks) {
+      if (!byTok.has(lower)) byTok.set(lower, { display, idxs: [] });
+      byTok.get(lower).idxs.push(i);
+    }
+  });
+
+  const used = new Set();
+  const lines = [];
+  // greedy: each round takes the entity that explains the most uncovered
+  // stories — the brief reads as "what is developing", biggest first
+  while (lines.length < 5) {
+    let bestTok = null;
+    let bestCov = [];
+    for (const [lower, { idxs }] of byTok) {
+      const cov = idxs.filter((i) => !used.has(i));
+      if (
+        cov.length > bestCov.length ||
+        (cov.length === bestCov.length && bestTok && lower.includes(' ') && !bestTok.includes(' '))
+      ) {
+        bestTok = lower;
+        bestCov = cov;
+      }
+    }
+    if (!bestTok || bestCov.length < 2) break;
+    bestCov.forEach((i) => used.add(i));
+    const group = bestCov
+      .map((i) => docs[i].a)
+      .sort((x, y) => (x.publishedAt < y.publishedAt ? 1 : -1));
+    const lead = group[0];
+    const sources = [...new Set(group.map((x) => x.source).filter(Boolean))];
+    const breadth =
+      group.length > 1
+        ? ` — ${group.length} stories from ${sources.slice(0, 3).join(', ')}`
+        : lead.source
+          ? ` (${lead.source})`
+          : '';
+    // skip the entity prefix when the lede already opens with it
+    const display = byTok.get(bestTok).display;
+    const prefix = lead.title.toLowerCase().startsWith(bestTok.split(' ')[0]) ? '' : display + ': ';
+    lines.push(`${prefix}${lead.title}${breadth}`);
+  }
+  // singletons: the freshest of what's left, briefly
+  const rest = docs
+    .map((d, i) => ({ d, i }))
+    .filter(({ i }) => !used.has(i))
+    .slice(0, Math.max(0, 7 - lines.length));
+  for (const { d } of rest) {
+    lines.push(`Also: ${d.a.title}${d.a.source ? ` (${d.a.source})` : ''}`);
+  }
+  return lines.length ? lines : articles.slice(0, 5).map((a) => a.title);
 }
 
 /* ── Translate ladder ───────────────────────────────────────────────────── */
