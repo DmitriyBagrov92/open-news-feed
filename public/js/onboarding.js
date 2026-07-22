@@ -10,7 +10,9 @@ import { animateFlyOff, animateSpringBack, animateSwapIn } from './motion.js';
 
 const SWIPE_PX = 80; // pointer travel that commits a rating
 
-export function initOnboarding({ section, onRate, onDone }) {
+// translateArticle(article) → Promise<{title, description}|null>: when the
+// translation setting is active the staged story follows it live.
+export function initOnboarding({ section, onRate, onDone, translateArticle }) {
   const stage = section.querySelector('#onboardCard');
   const progressEl = section.querySelector('#onboardProgress');
   const likeBtn = section.querySelector('#onboardLike');
@@ -137,6 +139,34 @@ export function initOnboarding({ section, onRate, onDone }) {
     activeCard = buildStoryCard(article);
     stage.append(activeCard);
     animateSwapIn([activeCard], 1);
+    applyTranslation(activeCard);
+  }
+
+  // Paint the staged card in the user's language (or back to the original
+  // when translation turns off). Stale resolutions are ignored.
+  async function applyTranslation(card) {
+    const article = card._article;
+    const headline = card.querySelector('.onboard-headline');
+    const desc = card.querySelector('.onboard-desc');
+    let tr = null;
+    try {
+      tr = await translateArticle?.(article);
+    } catch {
+      tr = null;
+    }
+    if (activeCard !== card) return; // already swiped away
+    if (tr) {
+      headline.textContent = tr.title || article.title;
+      if (desc) desc.textContent = tr.description || article.description || '';
+    } else {
+      headline.textContent = article.title;
+      if (desc) desc.textContent = article.description || '';
+    }
+  }
+
+  // Language switched while a story is on stage — repaint it.
+  function retranslate() {
+    if (activeCard) applyTranslation(activeCard);
   }
 
   function onKeys(e) {
@@ -177,5 +207,5 @@ export function initOnboarding({ section, onRate, onDone }) {
   likeBtn.addEventListener('click', () => activeCard?._article && commit(activeCard._article, 1));
   skipBtn.addEventListener('click', () => activeCard?._article && commit(activeCard._article, -1));
 
-  return { enter, leave };
+  return { enter, leave, retranslate };
 }

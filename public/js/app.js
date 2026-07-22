@@ -459,6 +459,23 @@ async function enterOnboarding() {
       onboardingView = { initOnboarding, applyRating, pickOnboardingCandidates, ui: null };
       onboardingView.ui = initOnboarding({
         section: $('#onboard'),
+        // the staged story follows the translation setting, sharing the
+        // grid's per-article cache; native-language stories pass through
+        translateArticle: async (article) => {
+          const lang = prefs.targetLang || 'en';
+          if (!prefs.autoTranslate || lang === 'en' || (article.language || 'en') === lang) return null;
+          const key = article.id + ':' + lang;
+          let cached = translationCache.get(key);
+          if (!cached) {
+            const res = await translateTexts([article.title, article.description || ''], lang, {
+              sourceLang: article.language || 'en',
+            }).catch(() => null);
+            if (!res) return null;
+            cached = { title: res.texts[0], description: res.texts[1] };
+            translationCache.set(key, cached);
+          }
+          return cached;
+        },
         onRate: (article, dir) => {
           onboardingView.applyRating(prefs.taste, article, dir);
           // a like IS a save — but never un-save an already saved story
@@ -853,6 +870,7 @@ function initLangControl() {
     translationBust();
     scheduleBrief(400); // the brief follows the target language
     document.dispatchEvent(new CustomEvent('meridian:langchange'));
+    onboardingView?.ui?.retranslate(); // the staged onboarding story too
     // native feeds exist for this target → refetch the hybrid stream
     if (nativeLangs.size && state.category !== 'saved' && state.category !== 'battle') {
       loadFeed({ reset: true });
