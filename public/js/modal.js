@@ -220,6 +220,7 @@ function buildArticleView(article, { onCountChange } = {}) {
       chip.hidden = true;
       title.textContent = article.title;
       renderOriginal();
+      maybeAutoTranslate();
     })
     .catch(() => {
       // 422 (extraction failed), 403, network… → RSS description + note
@@ -227,7 +228,15 @@ function buildArticleView(article, { onCountChange } = {}) {
       paragraphs = [article.description || ''];
       renderParagraphs(paragraphs);
       note.hidden = false;
+      maybeAutoTranslate();
     });
+
+  // The details view follows the feed's translation setting: with
+  // auto-translate on, the story opens already translated (quietly — no
+  // toasts for a failure the user didn't ask about).
+  function maybeAutoTranslate() {
+    if (prefs.autoTranslate) doTranslate({ manual: false });
+  }
 
   /* ── summarize ────────────────────────────────────────────────────────── */
 
@@ -290,11 +299,11 @@ function buildArticleView(article, { onCountChange } = {}) {
     applyVersion();
   });
 
-  translateBtn.addEventListener('click', async () => {
+  async function doTranslate({ manual = true } = {}) {
     const target = prefs.targetLang || 'en';
     const sourceLang = article.language || 'en';
     if (target === sourceLang) {
-      toast(t('lang.pick'));
+      if (manual) toast(t('lang.pick'));
       return;
     }
     if (translated) {
@@ -319,8 +328,9 @@ function buildArticleView(article, { onCountChange } = {}) {
           if (pct != null) translateBtn.textContent = t('ai.downloading', { pct });
         },
       });
+      if (!articleCol.isConnected) return; // navigated away mid-translate
       if (!result) {
-        toast(t('lang.unavailable'));
+        if (manual) toast(t('lang.unavailable'));
         return;
       }
       translated = {
@@ -333,7 +343,9 @@ function buildArticleView(article, { onCountChange } = {}) {
       translateBtn.disabled = false;
       translateBtn.textContent = t('modal.translate');
     }
-  });
+  }
+
+  translateBtn.addEventListener('click', () => doTranslate());
 
   return { articleCol, commentsCol };
 }
