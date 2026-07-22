@@ -2057,26 +2057,61 @@ body.battle-mode #newPill {
   100% { box-shadow: 0 0 22px 10px transparent; filter: brightness(1); }
 }
 
-/* per-cluster auto AI summary: appears when the group scrolls into view */
+/* per-cluster auto AI summary: a colliding tile at the heart of the group.
+   Every generation state animates — the pill scales in, breathes while
+   thinking, then GROWS into the content while physics shoves the news
+   tiles aside (its body is swapped to the new size). */
 .battle-brief {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%) translateY(6px);
-  width: min(460px, calc(100% - 32px));
-  padding: 10px 14px 12px;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0;
   background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: 12px;
+  border: 1.5px solid var(--hairline-strong);
+  border-radius: 18px;
+  overflow: hidden;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease, transform 0.3s ease;
   z-index: 2;
+  transition:
+    width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease;
+  animation: brief-tile-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.battle-brief.is-on {
+@keyframes brief-tile-in {
+  from { opacity: 0; scale: 0.6; }
+  to { opacity: 1; scale: 1; }
+}
+.battle-brief.is-thinking {
+  animation: brief-tile-in 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    brief-breathe 2s ease-in-out 0.35s infinite;
+}
+@keyframes brief-breathe {
+  0%, 100% { border-color: var(--hairline-strong); }
+  50% { border-color: var(--accent); }
+}
+.battle-brief-thinking {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-2);
+  text-transform: uppercase;
+}
+.battle-brief-body {
+  width: 100%;
+  padding: 12px 16px 12px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.35s ease 0.15s, transform 0.35s ease 0.15s;
+}
+.battle-brief.is-ready .battle-brief-body {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }
-.battle-brief { max-height: 146px; overflow: hidden; } /* fits its reserved band */
 .battle-brief-head {
   display: block;
   font-size: 0.56rem;

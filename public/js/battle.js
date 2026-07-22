@@ -17,8 +17,9 @@ import { summarize, translateTexts, toBullets } from './ai.js';
 import { initHoverTip } from './tooltip.js';
 
 const TOPIC_BAND = 58;        // reserved height for the topic label
-const BRIEF_BAND = 158;       // reserved band under each cluster for its AI brief
-const CLUSTER_GAP = 76;       // clearance between a brief and the next topic
+const CLUSTER_GAP = 84;       // clearance between clusters
+const BRIEF_FULL_H = 182;     // reserved height of an expanded brief tile
+const BRIEF_THINK_H = 52;     // collapsed "thinking" pill height
 const STALE_MS = 5 * 60_000;  // refetch on enter() when older than this
 const CLICK_PX = 6;           // pointer travel below this = click, not drag
 const CLICK_MS = 400;
@@ -146,18 +147,28 @@ export function initBattle({ section, onArticles } = {}) {
 
   /* ── overlap-free cluster layout ───────────────────────────────────────── */
 
-  // Golden-angle spiral seed + pairwise relaxation: bubbles start packed
-  // with clear rims — overlap is resolved before physics ever runs.
-  function layoutCluster(items) {
+  // Golden-angle ring seed + pairwise relaxation AROUND the central brief
+  // core (coreR): tiles start packed with clear rims and never sit on the
+  // summary — it is one of the colliding elements, not an overlay.
+  function layoutCluster(items, coreR = 0) {
     items.forEach((it, j) => {
       const a = j * 2.399963;
-      const d = j ? 40 + Math.sqrt(j) * 58 : 0;
+      const d = coreR + packR(it.r) + 6 + (j % 3) * 26;
       it.x = Math.cos(a) * d;
       it.y = Math.sin(a) * d;
     });
-    for (let iter = 0; iter < 60; iter += 1) {
+    for (let iter = 0; iter < 80; iter += 1) {
       let moved = false;
       for (let i = 0; i < items.length; i += 1) {
+        // keep clear of the central brief core
+        const it = items[i];
+        const dc = Math.hypot(it.x, it.y) || 0.01;
+        const minC = coreR + packR(it.r);
+        if (coreR && dc < minC) {
+          it.x += (it.x / dc) * (minC - dc);
+          it.y += (it.y / dc) * (minC - dc);
+          moved = true;
+        }
         for (let k = i + 1; k < items.length; k += 1) {
           const a = items[i];
           const b = items[k];
@@ -180,7 +191,7 @@ export function initBattle({ section, onArticles } = {}) {
       if (!moved) break;
     }
     // cluster radius = farthest rim from the centroid
-    let R = 0;
+    let R = coreR;
     for (const it of items) R = Math.max(R, Math.hypot(it.x, it.y) + packR(it.r));
     return R;
   }
@@ -232,7 +243,7 @@ export function initBattle({ section, onArticles } = {}) {
     world = engine.world;
     Composite.clear(world, false);
     clusterObserver?.disconnect();
-    clusterObserver = new IntersectionObserver(onClusterVisible, { rootMargin: '-15% 0px -15%' });
+    clusterObserver = new IntersectionObserver(onClusterVisible, { rootMargin: '60px 0px' });
     clear(space);
     clusters = [];
 
@@ -253,24 +264,35 @@ export function initBattle({ section, onArticles } = {}) {
         article,
         r: Math.round(radiusFor(article, innerWidth) * sizeFactor),
       }));
-      const R = layoutCluster(items);
+      // the AI brief is a colliding tile at the heart of the group; the
+      // layout reserves its EXPANDED size so growth never forces a reflow
+      const briefW = Math.min(340, w * 0.72);
+      const coreR = Math.hypot(briefW / 2, BRIEF_FULL_H / 2) * 0.9;
+      const R = layoutCluster(items, coreR);
       const topicY = yCursor;
       const anchor = {
-        x: Math.max(R + 20, Math.min(w - R - 20, w * (0.5 + (i % 2 ? 0.14 : -0.14)))),
+        x: Math.max(R + 20, Math.min(w - R - 20, w * (0.5 + (i % 2 ? 0.12 : -0.12)))),
         y: topicY + TOPIC_BAND + R,
       };
-      yCursor = anchor.y + R + 26 + BRIEF_BAND + CLUSTER_GAP;
+      yCursor = anchor.y + R + CLUSTER_GAP;
 
       const topicEl = el('p', { class: 'battle-topic mono', text: battle.topic.join(' · ') });
       topicEl.style.top = topicY + 'px';
       space.append(topicEl);
 
-      // auto AI summary panel lives in its reserved band under the cluster
+      // the brief tile: a static chamfered body the bubbles collide with
       const briefEl = el('div', { class: 'battle-brief', hidden: true });
-      briefEl.style.top = anchor.y + R + 26 + 'px';
       space.append(briefEl);
 
-      const cluster = { battle, anchor, radius: R, bubbles: [], mounted: false, topicEl, briefEl };
+      const cluster = {
+        battle, anchor, radius: R, bubbles: [], mounted: false, topicEl, briefEl,
+        briefW, briefH: BRIEF_THINK_H,
+        briefBody: Matter.Bodies.rectangle(anchor.x, anchor.y, briefW, BRIEF_THINK_H, {
+          isStatic: true,
+          chamfer: { radius: 18 },
+        }),
+      };
+      syncBrief(cluster);
       items.forEach(({ article, r, x, y }) => {
         // chamfered rectangle = the tile's true collision shape (a circle
         // collider would let square corners overlap); no rotation — text
@@ -290,7 +312,12 @@ export function initBattle({ section, onArticles } = {}) {
         btn.style.transform = `translate3d(${body.position.x - r}px, ${body.position.y - r}px, 0)`;
         cluster.bubbles.push({ article, body, btn, r, baseR: r / sizeFactor });
       });
+      // both the topic AND the brief band count as "the cluster is in
+      // view" — the first group's band sits below the fold on open, and
+      // watching only the topic cancelled its pending brief on scroll
+      cluster.visTargets = new Set();
       clusterObserver.observe(topicEl);
+      clusterObserver.observe(briefEl);
       clusters.push(cluster);
     });
     space.style.height = yCursor + 40 + 'px';
@@ -393,11 +420,13 @@ export function initBattle({ section, onArticles } = {}) {
       if (should && !cluster.mounted) {
         Matter.Composite.add(world, cluster.bubbles.map((b) => b.body));
         Matter.Composite.add(world, cluster.links);
+        if (cluster.briefBody) Matter.Composite.add(world, cluster.briefBody);
         for (const b of cluster.bubbles) bodyBubble.set(b.body.id, b);
         cluster.mounted = true;
       } else if (!should && cluster.mounted) {
         Matter.Composite.remove(world, cluster.bubbles.map((b) => b.body));
         Matter.Composite.remove(world, cluster.links);
+        if (cluster.briefBody) Matter.Composite.remove(world, cluster.briefBody);
         for (const b of cluster.bubbles) bodyBubble.delete(b.body.id);
         cluster.mounted = false;
       }
@@ -438,17 +467,51 @@ export function initBattle({ section, onArticles } = {}) {
 
   function onClusterVisible(entries) {
     for (const entry of entries) {
-      const cluster = clusters.find((c) => c.topicEl === entry.target);
+      const cluster = clusters.find((c) => c.topicEl === entry.target || c.briefEl === entry.target);
       if (!cluster) continue;
-      if (entry.isIntersecting) {
-        clearTimeout(cluster.briefTimer);
-        // a beat of dwell time so fast scrolling doesn't summarize everything
-        cluster.briefTimer = setTimeout(() => runClusterBrief(cluster), 700);
+      if (entry.isIntersecting) cluster.visTargets.add(entry.target);
+      else cluster.visTargets.delete(entry.target);
+      if (cluster.visTargets.size) {
+        if (!cluster.briefTimer) {
+          // a beat of dwell time so fast scrolling doesn't summarize everything
+          cluster.briefTimer = setTimeout(() => {
+            cluster.briefTimer = null;
+            runClusterBrief(cluster);
+          }, 700);
+        }
         if (langActive()) translateCluster(cluster);
       } else {
         clearTimeout(cluster.briefTimer);
+        cluster.briefTimer = null;
       }
     }
+  }
+
+  // Position + size the brief tile's DOM and swap its physics body when the
+  // size changes. Width/height are CSS-transitioned, so every state change
+  // (pill → thinking → expanded content) animates; the fresh static body
+  // makes neighbours shove aside rather than get overlapped.
+  function syncBrief(cluster) {
+    const b = cluster.briefEl;
+    b.style.width = cluster.briefW + 'px';
+    b.style.height = cluster.briefH + 'px';
+    b.style.transform = `translate3d(${cluster.anchor.x - cluster.briefW / 2}px, ${cluster.anchor.y - cluster.briefH / 2}px, 0)`;
+  }
+
+  function setBriefSize(cluster, h) {
+    if (cluster.briefH === h) return;
+    cluster.briefH = h;
+    syncBrief(cluster);
+    if (!Matter || staticMode || !cluster.briefBody) return;
+    const wasMounted = cluster.mounted;
+    if (wasMounted) Matter.Composite.remove(world, cluster.briefBody);
+    cluster.briefBody = Matter.Bodies.rectangle(cluster.anchor.x, cluster.anchor.y, cluster.briefW, h, {
+      isStatic: true,
+      chamfer: { radius: 18 },
+    });
+    if (wasMounted) Matter.Composite.add(world, cluster.briefBody);
+    // the grown tile shoves its neighbours aside — wake them so they react
+    for (const bubble of cluster.bubbles) Matter.Sleeping.set(bubble.body, false);
   }
 
   // The battle brief is about CONTRAST: how the same story is framed on
@@ -465,8 +528,14 @@ export function initBattle({ section, onArticles } = {}) {
     if (!payload) {
       briefEl.hidden = false;
       briefEl.dataset.key = key;
+      briefEl.classList.add('is-thinking');
+      briefEl.classList.remove('is-ready');
       clear(briefEl);
-      briefEl.append(el('span', { class: 'battle-brief-spin', 'aria-hidden': 'true' }));
+      briefEl.append(
+        el('span', { class: 'battle-brief-spin', 'aria-hidden': 'true' }),
+        el('span', { class: 'battle-brief-thinking mono', text: t('brief.working') })
+      );
+      setBriefSize(cluster, BRIEF_THINK_H);
       try {
         const result = await summarize({
           mode: 'brief',
@@ -493,15 +562,19 @@ export function initBattle({ section, onArticles } = {}) {
         }
         briefCache.set(key, payload);
       } catch {
+        briefEl.classList.remove('is-thinking');
         briefEl.hidden = true;
         delete briefEl.dataset.key;
+        setBriefSize(cluster, BRIEF_THINK_H);
         return;
       }
     }
     if (!active) return;
     briefEl.dataset.key = key;
     clear(briefEl);
-    briefEl.append(el('span', { class: 'battle-brief-head mono', text: t('battle.diffHead') }));
+    briefEl.classList.remove('is-thinking');
+    const inner = el('div', { class: 'battle-brief-body' });
+    inner.append(el('span', { class: 'battle-brief-head mono', text: t('battle.diffHead') }));
     const list = el('ul', { class: 'battle-brief-list' });
     if (payload.bullets) {
       for (const line of payload.bullets) list.append(el('li', { text: line }));
@@ -515,10 +588,15 @@ export function initBattle({ section, onArticles } = {}) {
         list.append(li);
       }
     }
-    briefEl.append(list);
+    inner.append(list);
+    briefEl.append(inner);
     briefEl.hidden = false;
-    briefEl.classList.remove('is-on');
-    requestAnimationFrame(() => briefEl.classList.add('is-on'));
+    // expand to the measured content (capped at the reserved core height)
+    // — the CSS transition animates the growth while the swapped physics
+    // body shoves the tiles aside
+    const target = Math.min(BRIEF_FULL_H, inner.scrollHeight + 26);
+    setBriefSize(cluster, target);
+    requestAnimationFrame(() => briefEl.classList.add('is-ready'));
   }
 
   // freshest headline per lean — the raw material of the framing gap
