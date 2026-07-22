@@ -124,6 +124,42 @@ export function animateFadeOut(element) {
   return m.animate(element, { opacity: 0 }, { duration: 0.22, ease: 'linear' }).finished.catch(() => {});
 }
 
+// FLIP relayout: measure the elements, run mutate() (a layout-changing DOM
+// write), then glide every moved element from its old position into the new
+// one. With no lib / reduced motion the mutation applies instantly. Inline
+// transforms are cleared two frames after finish (Motion re-commits final
+// keyframes a frame late) so CSS hover transforms keep working.
+export function animateRelayout(elements, mutate) {
+  const m = lib();
+  const list = [...elements];
+  if (!m || !list.length) {
+    mutate();
+    return;
+  }
+  const before = list.map((el) => el.getBoundingClientRect());
+  mutate();
+  list.forEach((el, i) => {
+    const b = before[i];
+    const a = el.getBoundingClientRect();
+    const dx = b.left - a.left;
+    const dy = b.top - a.top;
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+    m.animate(
+      el,
+      { transform: [`translate(${dx}px, ${dy}px)`, 'translate(0px, 0px)'] },
+      { duration: 0.34, ease: EASE_OUT }
+    )
+      .finished.catch(() => {})
+      .then(() =>
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            el.style.transform = '';
+          })
+        )
+      );
+  });
+}
+
 // Crossfade a content swap: fade the elements out, run swap() while they
 // are invisible, fade back in. With no lib / reduced motion the swap runs
 // immediately — same end state, no dead frames.

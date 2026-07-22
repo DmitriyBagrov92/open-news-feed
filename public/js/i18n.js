@@ -41,8 +41,6 @@ const TABLES = {
 
     // card sizing
     'grid.size': 'Card size',
-    'grid.smaller': 'Smaller cards',
-    'grid.bigger': 'Bigger cards',
 
     // theme / settings
     'theme.toggle': 'Toggle light or dark theme',

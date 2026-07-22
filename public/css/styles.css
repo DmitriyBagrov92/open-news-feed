@@ -957,8 +957,93 @@ html[data-grid-size="2"] { --card-min: 330px; }
   gap: 14px;
 }
 
-.zoom-ctl { display: flex; align-items: center; }
-.icon-btn:disabled { opacity: 0.35; pointer-events: none; }
+/* card-size slider: five stops between the two grid glyphs; the thumb
+   glides on a spring-ish curve, drags 1:1, and every stop change FLIPs
+   the mosaic (js/motion.js animateRelayout) */
+.size-ctl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 6px;
+}
+.size-ic { width: 12px; height: 12px; color: var(--ink-2); flex: none; }
+.size-slider {
+  --pos: 50%;
+  position: relative;
+  width: 88px;
+  height: 26px;
+  cursor: pointer;
+  touch-action: none;
+  border-radius: 13px;
+}
+.size-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: var(--hairline);
+}
+.size-fill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 3px;
+  width: var(--pos);
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.5;
+  transition: width 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.size-tick {
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--hairline-strong);
+}
+.size-tick:nth-of-type(3) { left: 0; }
+.size-tick:nth-of-type(4) { left: 25%; }
+.size-tick:nth-of-type(5) { left: 50%; }
+.size-tick:nth-of-type(6) { left: 75%; }
+.size-tick:nth-of-type(7) { left: 100%; }
+.size-thumb {
+  position: absolute;
+  top: 50%;
+  left: var(--pos);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 0 transparent;
+  transition:
+    left 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+.size-slider:hover .size-thumb {
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 0 0 0 4px rgb(127 127 127 / 0.12);
+}
+.size-slider.is-dragging .size-thumb {
+  transition: transform 0.15s ease, box-shadow 0.2s ease; /* 1:1 tracking */
+  transform: translate(-50%, -50%) scale(1.3);
+  box-shadow: 0 0 10px 2px rgb(127 127 127 / 0.18);
+}
+.size-slider.is-dragging .size-fill { transition: none; }
+.size-slider:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (max-width: 700px) {
+  .size-ctl { display: none; } /* masthead space is precious on phones */
+}
 
 /* text cards: no media, tight — a solar top-rule keeps them on-theme */
 .card--text {
@@ -1949,11 +2034,90 @@ body.battle-mode #newPill {
   overflow: hidden;
   overflow-wrap: break-word;
 }
+.bubble-time {
+  font-size: 0.48rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+}
+.bubble--img .bubble-time { color: rgb(255 255 255 / 0.75); }
 .bubble.is-dragging {
   cursor: grabbing;
   z-index: 5;
   box-shadow: var(--shadow-modal);
 }
+/* the fight: a charging bubble glows, a landed punch flashes */
+.bubble--fighter {
+  box-shadow: 0 0 14px 2px rgb(127 127 127 / 0.25);
+}
+.bubble--hit {
+  animation: bubble-hit 0.38s ease-out;
+}
+@keyframes bubble-hit {
+  0% { box-shadow: 0 0 0 0 currentColor; filter: brightness(1.6); }
+  100% { box-shadow: 0 0 22px 10px transparent; filter: brightness(1); }
+}
+
+/* per-cluster auto AI summary: appears when the group scrolls into view */
+.battle-brief {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  width: min(460px, calc(100% - 32px));
+  padding: 10px 14px 12px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 2;
+}
+.battle-brief.is-on {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.battle-brief-head {
+  display: block;
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.battle-brief-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.battle-brief-list li {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--ink);
+  padding-left: 14px;
+  position: relative;
+}
+.battle-brief-list li::before {
+  content: '–';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+.battle-brief-spin {
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: 4px auto;
+  border: 2px solid var(--hairline);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: brief-spin 0.8s linear infinite;
+}
+@keyframes brief-spin {
+  to { transform: rotate(360deg); }
+}
+.battle--static .battle-brief { position: static; transform: none; margin: 0 auto 14px; }
 .bubble:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;

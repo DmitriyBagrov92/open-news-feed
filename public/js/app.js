@@ -7,7 +7,7 @@ import { api } from './api.js';
 import { initWireClocks, refreshTimes } from './time.js';
 import { initPlasma } from './plasma.js';
 import { initTimescale } from './timescale.js';
-import { animateIn, animatePop } from './motion.js';
+import { animateIn, animatePop, animateRelayout } from './motion.js';
 import { toast } from './toast.js';
 import { buildCard, skeletonCard, applyCardText, setCardCommentCount, applyCardReactions } from './cards.js';
 import { initCardTooltip } from './tooltip.js';
@@ -695,12 +695,14 @@ function initLangControl() {
     }
     translationBust();
     scheduleBrief(400); // the brief follows the target language
+    document.dispatchEvent(new CustomEvent('meridian:langchange'));
   });
   auto.addEventListener('change', () => {
     setPref('autoTranslate', auto.checked);
     translateBroken = false;
     if (auto.checked) translationBust();
     else revertAllCards();
+    document.dispatchEvent(new CustomEvent('meridian:langchange'));
   });
 
   function translationBust() {
@@ -755,7 +757,21 @@ async function enterBattle() {
   try {
     if (!battleView) {
       const mod = await import('./battle.js');
-      battleView = mod.initBattle({ section: $('#battle') });
+      battleView = mod.initBattle({
+        section: $('#battle'),
+        // the plasma rail becomes the battle timeline: 24 buckets of the
+        // page's article freshness (bucket 23 = NOW, same as the feed)
+        onArticles: (articles) => {
+          const buckets = new Array(24).fill(0);
+          const now = Date.now();
+          for (const a of articles) {
+            const age = now - Date.parse(a.publishedAt);
+            if (age < 0 || age >= 48 * 3600_000) continue;
+            buckets[23 - Math.floor((age / (48 * 3600_000)) * 24)] += 1;
+          }
+          plasma.setHistogram(buckets);
+        },
+      });
     }
     if (state.category === 'battle') battleView.enter(); // user may have left already
   } catch {
@@ -897,28 +913,86 @@ function initBrief() {
 
 // Five density levels around the standard mosaic; the CSS variable ladder
 // keyed off html[data-grid-size] does the actual re-layout (auto-fill).
+// The control is an animated slider: the thumb glides between the five
+// stops, and every level change FLIPs the visible cards into their new
+// spots instead of snapping the mosaic.
 const GRID_SIZE_MIN = -2;
 const GRID_SIZE_MAX = 2;
 
 function initGridSize() {
-  const smaller = $('#gridSmaller');
-  const bigger = $('#gridBigger');
-  const apply = () => {
-    const level = prefs.gridSize || 0;
+  const slider = $('#sizeSlider');
+  const clampLevel = (n) => Math.max(GRID_SIZE_MIN, Math.min(GRID_SIZE_MAX, Math.round(n)));
+  const pctOf = (level) => ((level - GRID_SIZE_MIN) / (GRID_SIZE_MAX - GRID_SIZE_MIN)) * 100;
+
+  const paint = (level, exactPct = null) => {
+    const pct = exactPct ?? pctOf(level);
+    slider.style.setProperty('--pos', pct + '%');
+    slider.setAttribute('aria-valuenow', String(level - GRID_SIZE_MIN + 1));
+    slider.setAttribute('aria-valuetext', `${level - GRID_SIZE_MIN + 1} / 5`);
+  };
+
+  const applyLevel = (level) => {
     if (level) document.documentElement.dataset.gridSize = String(level);
     else delete document.documentElement.dataset.gridSize;
-    smaller.disabled = level <= GRID_SIZE_MIN;
-    bigger.disabled = level >= GRID_SIZE_MAX;
   };
-  const nudge = (dir) => {
-    const next = Math.max(GRID_SIZE_MIN, Math.min(GRID_SIZE_MAX, (prefs.gridSize || 0) + dir));
+
+  const setLevel = (next, { exactPct = null } = {}) => {
+    paint(next, exactPct);
     if (next === prefs.gridSize) return;
     setPref('gridSize', next);
-    apply();
+    // FLIP only the cards near the viewport — the far tail just snaps
+    const margin = innerHeight * 1.5;
+    const cards = [...grid.querySelectorAll('.card')].filter((c) => {
+      const r = c.getBoundingClientRect();
+      return r.bottom > -margin && r.top < innerHeight + margin;
+    });
+    animateRelayout(cards, () => applyLevel(next));
+    // other views (battle bubbles) scale themselves off this signal
+    document.dispatchEvent(new CustomEvent('meridian:gridsize', { detail: { level: next } }));
   };
-  smaller.addEventListener('click', () => nudge(-1));
-  bigger.addEventListener('click', () => nudge(1));
-  apply();
+
+  const levelFromEvent = (e) => {
+    const rect = slider.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    return { level: clampLevel(GRID_SIZE_MIN + ratio * (GRID_SIZE_MAX - GRID_SIZE_MIN)), pct: ratio * 100 };
+  };
+
+  // drag: the thumb tracks the pointer 1:1 (transition off), the grid
+  // re-FLIPs whenever the nearest stop changes, and on release the thumb
+  // springs onto its stop
+  slider.addEventListener('pointerdown', (e) => {
+    slider.setPointerCapture(e.pointerId);
+    slider.classList.add('is-dragging');
+    const { level, pct } = levelFromEvent(e);
+    setLevel(level, { exactPct: pct });
+  });
+  slider.addEventListener('pointermove', (e) => {
+    if (!slider.classList.contains('is-dragging')) return;
+    const { level, pct } = levelFromEvent(e);
+    setLevel(level, { exactPct: pct });
+  });
+  const release = () => {
+    if (!slider.classList.contains('is-dragging')) return;
+    slider.classList.remove('is-dragging');
+    paint(prefs.gridSize || 0); // spring onto the snapped stop
+  };
+  slider.addEventListener('pointerup', release);
+  slider.addEventListener('pointercancel', release);
+
+  slider.addEventListener('keydown', (e) => {
+    const level = prefs.gridSize || 0;
+    let next = null;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = clampLevel(level - 1);
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = clampLevel(level + 1);
+    else if (e.key === 'Home') next = GRID_SIZE_MIN;
+    else if (e.key === 'End') next = GRID_SIZE_MAX;
+    if (next === null) return;
+    e.preventDefault();
+    setLevel(next);
+  });
+
+  applyLevel(prefs.gridSize || 0);
+  paint(prefs.gridSize || 0);
 }
 
 /* ── Settings drawer ────────────────────────────────────────────────────── */
