@@ -682,6 +682,13 @@ function initLangControl() {
     setPref('targetLang', select.value);
     translateBroken = false;
     revertAllCards();
+    // Picking a language IS asking for translation. Without this only the
+    // brief followed the selection (it ignores the auto flag) while cards
+    // and the details page stayed original wherever the checkbox was off.
+    if (select.value !== 'en' && !prefs.autoTranslate) {
+      setPref('autoTranslate', true);
+      auto.checked = true;
+    }
     translationBust();
     scheduleBrief(400); // the brief follows the target language
   });
