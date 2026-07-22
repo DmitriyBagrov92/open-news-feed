@@ -2212,6 +2212,27 @@ body.battle-mode #newPill {
 .tab--battle svg { width: 15px; height: 15px; margin-right: 5px; vertical-align: -3px; }
 .tab--battle[aria-current="true"] svg circle:first-child { fill: rgb(127 127 127 / 0.15); }
 
+/* like/dislike in the story preview */
+.modal-react { display: flex; gap: 6px; margin-left: auto; }
+.modal-vote {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 0.7rem;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.modal-vote svg { width: 14px; height: 14px; }
+.modal-vote:hover { color: var(--accent); border-color: var(--hairline-strong); }
+.modal-vote[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--hairline-strong);
+  background: rgb(127 127 127 / 0.08);
+}
+
 /* ── Your Feed: subtabs + taste onboarding ──────────────────────────────── */
 
 .feed-subtabs {

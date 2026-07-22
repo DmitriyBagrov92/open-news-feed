@@ -3,13 +3,13 @@
 // grid card. The shell (root, scrim, arrows, key handling) lives for the
 // whole preview session; everything article-specific is rebuilt per story.
 
-import { el, iconButton } from './dom.js';
+import { el, icon, iconButton } from './dom.js';
 import { t, catLabel } from './i18n.js';
 import { api } from './api.js';
-import { prefs } from './prefs.js';
+import { prefs, ensureAuthorId } from './prefs.js';
 import { toast } from './toast.js';
 import { absTime } from './time.js';
-import { buildMedia } from './cards.js';
+import { buildMedia, applyCardReactions } from './cards.js';
 import { summarize, translateTexts, splitSentences, providerLabel, toBullets } from './ai.js';
 import {
   animateDialog,
@@ -91,6 +91,79 @@ function chunkParagraph(text, maxLen = 1000) {
   return chunks.length ? chunks : [text.slice(0, maxLen)];
 }
 
+// Like/dislike for the opened story: optimistic pills mirroring the grid
+// cards, reconciled with the server, and mirrored back onto the story's
+// grid card the moment the vote lands.
+let modalVoteInFlight = false;
+
+function buildVotes(article) {
+  const wrap = el('div', { class: 'modal-react' });
+  const buttons = {};
+  const paint = () => {
+    for (const kind of ['up', 'down']) {
+      buttons[kind].querySelector('span').textContent = String(article[kind] || 0);
+      buttons[kind].setAttribute('aria-pressed', String(article.myVote === (kind === 'up' ? 1 : -1)));
+    }
+  };
+  const syncGridCard = () => {
+    const card = active?.cardFor?.();
+    if (card) applyCardReactions(card, { comments: article.commentCount || 0, up: article.up || 0, down: article.down || 0, myVote: article.myVote ?? null });
+  };
+  for (const kind of ['up', 'down']) {
+    const val = kind === 'up' ? 1 : -1;
+    const btn = el('button', {
+      class: 'modal-vote mono modal-vote--' + kind,
+      type: 'button',
+      'aria-label': t(kind === 'up' ? 'card.like' : 'card.dislike'),
+      'aria-pressed': 'false',
+    });
+    btn.append(icon(kind), el('span', { text: '0' }));
+    btn.addEventListener('click', async () => {
+      if (modalVoteInFlight) return;
+      modalVoteInFlight = true;
+      const next = article.myVote === val ? 0 : val; // second tap retracts
+      const prev = { up: article.up || 0, down: article.down || 0, myVote: article.myVote ?? null };
+      const opt = { ...prev, myVote: next === 0 ? null : next };
+      if (prev.myVote === 1) opt.up -= 1;
+      if (prev.myVote === -1) opt.down -= 1;
+      if (next === 1) opt.up += 1;
+      if (next === -1) opt.down += 1;
+      Object.assign(article, opt);
+      paint();
+      try {
+        const res = await api.voteNews(article.id, next, ensureAuthorId());
+        Object.assign(article, res);
+      } catch (err) {
+        Object.assign(article, prev);
+        toast(t(err?.code === 'unknown-article' ? 'card.voteClosed' : 'card.voteFailed'));
+      } finally {
+        modalVoteInFlight = false;
+        paint();
+        syncGridCard();
+      }
+    });
+    buttons[kind] = btn;
+    wrap.append(btn);
+  }
+  paint();
+  // battle/saved articles arrive without counters — fetch the truth
+  if (article.up === undefined || article.myVote === undefined) {
+    api
+      .reactions([article.id], prefs.authorId || undefined)
+      .then((res) => {
+        const r = res.reactions?.[article.id];
+        if (!r || !wrap.isConnected) return;
+        article.up = r.up;
+        article.down = r.down;
+        article.myVote = r.myVote;
+        article.commentCount = r.comments;
+        paint();
+      })
+      .catch(() => {});
+  }
+  return wrap;
+}
+
 // Everything specific to one story: close button, media, text, summary,
 // translation, comments. Stale async work is guarded by articleCol.isConnected
 // — false both after navigation (column replaced) and after close.
@@ -114,7 +187,7 @@ function buildArticleView(article, { onCountChange } = {}) {
     text: t('modal.readAtSource'),
   });
   const actions = el('div', { class: 'modal-actions' });
-  actions.append(translateBtn, summarizeBtn, sourceLink);
+  actions.append(translateBtn, summarizeBtn, sourceLink, buildVotes(article));
 
   const chip = el('button', { class: 'chip', type: 'button', hidden: true });
   const summaryBox = el('div', { class: 'modal-summary', hidden: true });
@@ -258,6 +331,18 @@ function buildArticleView(article, { onCountChange } = {}) {
           },
         }
       );
+      let lines = toBullets(result.summary);
+      // the on-device model already answers in targetLang; the local
+      // extractive fallback quotes the article's own language — run those
+      // bullets through the translate ladder (whole sentences only)
+      const target = prefs.targetLang || 'en';
+      if (result.provider === 'local' && target !== (article.language || 'en')) {
+        const tr = await translateTexts(lines, target, {
+          sourceLang: article.language || 'en',
+        }).catch(() => null);
+        if (tr && Array.isArray(tr.texts) && tr.texts.length === lines.length) lines = tr.texts;
+      }
+      if (!articleCol.isConnected) return; // navigated away mid-summarize
       while (summaryBox.firstChild) summaryBox.firstChild.remove();
       const head = el('div', { class: 'modal-summary-head' });
       head.append(
@@ -265,7 +350,7 @@ function buildArticleView(article, { onCountChange } = {}) {
         el('span', { class: 'badge mono', text: providerLabel(result.provider) })
       );
       const list = el('ul', { class: 'bullets' });
-      for (const line of toBullets(result.summary)) list.append(el('li', { text: line }));
+      for (const line of lines) list.append(el('li', { text: line }));
       summaryBox.append(head, list);
       summaryBox.hidden = false;
       animateReveal(summaryBox);
