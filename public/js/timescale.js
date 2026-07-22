@@ -98,7 +98,11 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
   }
 
   function placeCursor(frac, iso) {
-    cursorEl.style.top = Math.max(0, Math.min(1, frac)) * 100 + '%';
+    const f = Math.max(0, Math.min(1, frac));
+    cursorEl.style.top = f * 100 + '%';
+    // near the rail's top the centered label would collide with the
+    // masthead controls — hang it below the cursor line instead
+    cursorEl.classList.toggle('is-top', f < 0.09);
     labelEl.textContent = frac <= 0.005 ? 'NOW' : relTime(iso) + ' · ' + fmtClock(iso);
   }
 

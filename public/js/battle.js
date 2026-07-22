@@ -26,7 +26,7 @@ const STALE_MS = 5 * 60_000;  // refetch on enter() when older than this
 const CLICK_PX = 6;           // pointer travel below this = click, not drag
 const CLICK_MS = 400;
 const BUBBLE_GAP = 12;        // minimum clearance between bubble rims
-const MIN_R = 110;            // absolute floor: no tile ever below 220px
+const MIN_R = 78;             // safety floor only — the ladder itself stays dynamic
 const FIGHT_EVERY_MS = 4500;
 
 // Matter's UMD wrapper needs `this` as root — import() would hand it
@@ -73,7 +73,7 @@ export function initBattle(options = {}) {
   const abort = { scroll: null };
 
   function levelFactor(level) {
-    return 1 + (level || 0) * 0.22; // -2 → 0.56 … +2 → 1.44
+    return 1 + (level || 0) * 0.15; // -2 → 0.70 … +2 → 1.30
   }
 
   const langActive = () => prefs.autoTranslate && (prefs.targetLang || 'en') !== 'en';
@@ -142,9 +142,11 @@ export function initBattle(options = {}) {
   function radiusFor(article, viewportW) {
     const age = Date.now() - Date.parse(article.publishedAt);
     const fresh = Math.max(0, 1 - age / (48 * 3600_000)); // 0..1
-    let r = 84 + fresh * 44 + (article.image ? 12 : 0);
+    // high base ladder: even the smallest slider stop yields real cards
+    // (~210px), while every stop stays visibly distinct
+    let r = 130 + fresh * 40 + (article.image ? 10 : 0);
     if (viewportW < 640) r *= 0.72;
-    return Math.max(68, Math.min(156, Math.round(r)));
+    return Math.max(118, Math.min(195, Math.round(r)));
   }
 
   // squares meet at corners — pack with an effective radius between the
@@ -290,7 +292,7 @@ export function initBattle(options = {}) {
         const avail = w / 2 - 44;
         if (xNeed > avail) {
           const shrink = avail / xNeed;
-          for (const it of items) it.r = Math.max(96, Math.round(it.r * shrink));
+          for (const it of items) it.r = Math.max(78, Math.round(it.r * shrink));
           R = layoutCluster(items, coreR);
         }
       }
@@ -307,8 +309,13 @@ export function initBattle(options = {}) {
         xR = Math.max(xR, Math.abs(it.x) + it.r + 8);
       }
       const topicY = yCursor;
+      // a cluster wider than the container CENTERS (clipping equally on
+      // both sides) — the old max-clamp shoved its middle to the right,
+      // which is exactly what phones hit every time
       const anchor = {
-        x: Math.max(xR + 20, Math.min(w - xR - 20, w * (0.5 + (i % 2 ? 0.12 : -0.12)))),
+        x: xR * 2 + 40 > w
+          ? w / 2
+          : Math.max(xR + 20, Math.min(w - xR - 20, w * (0.5 + (i % 2 ? 0.12 : -0.12)))),
         y: topicY + TOPIC_BAND - yMin,
       };
       yCursor = anchor.y + yMax + CLUSTER_GAP;
@@ -941,10 +948,12 @@ export function initBattle(options = {}) {
       if (staticMode || !clusters.length) return;
       const w = space.clientWidth;
       clusters.forEach((cluster, i) => {
-        cluster.anchor.x = Math.max(
-          cluster.radius + 20,
-          Math.min(w - cluster.radius - 20, w * (0.5 + (i % 2 ? 0.14 : -0.14)))
-        );
+        cluster.anchor.x = cluster.radius * 2 + 40 > w
+          ? w / 2
+          : Math.max(
+              cluster.radius + 20,
+              Math.min(w - cluster.radius - 20, w * (0.5 + (i % 2 ? 0.12 : -0.12)))
+            );
       });
     }, 200);
   }

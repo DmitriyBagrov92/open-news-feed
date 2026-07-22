@@ -283,6 +283,13 @@ a:hover { text-decoration: underline; }
   right: 22px;
   top: 50%;
   transform: translateY(-50%);
+  transition: transform 0.15s ease;
+}
+/* near the rail top: hang below the cursor so the masthead row stays clear */
+.timescale-cursor.is-top .timescale-label {
+  transform: translateY(8px);
+}
+.timescale-label {
   white-space: nowrap;
   padding: 3px 8px;
   border-radius: 6px;
