@@ -21,6 +21,7 @@ const CLUSTER_GAP = 84;       // clearance between clusters
 const BRIEF_FULL_H = 210;     // packing reserve for an expanded brief tile
 const BRIEF_MAX_H = 360;      // hard ceiling — rows are line-clamped anyway
 const BRIEF_THINK_H = 52;     // collapsed "thinking" pill height
+const BRIEF_CLEAR = 24;       // invisible margin: news tiles keep this gap
 const STALE_MS = 5 * 60_000;  // refetch on enter() when older than this
 const CLICK_PX = 6;           // pointer travel below this = click, not drag
 const CLICK_MS = 400;
@@ -268,7 +269,7 @@ export function initBattle({ section, onArticles } = {}) {
       // the AI brief is a colliding tile at the heart of the group; the
       // layout reserves its EXPANDED size so growth never forces a reflow
       const briefW = Math.min(340, w * 0.72);
-      const coreR = Math.hypot(briefW / 2, BRIEF_FULL_H / 2) * 0.9;
+      const coreR = Math.hypot((briefW + BRIEF_CLEAR * 2) / 2, (BRIEF_FULL_H + BRIEF_CLEAR * 2) / 2) * 0.9;
       const R = layoutCluster(items, coreR);
       const topicY = yCursor;
       const anchor = {
@@ -288,10 +289,13 @@ export function initBattle({ section, onArticles } = {}) {
       const cluster = {
         battle, anchor, radius: R, bubbles: [], mounted: false, topicEl, briefEl,
         briefW, briefH: BRIEF_THINK_H,
-        briefBody: Matter.Bodies.rectangle(anchor.x, anchor.y, briefW, BRIEF_THINK_H, {
-          isStatic: true,
-          chamfer: { radius: 18 },
-        }),
+        // the body is padded by BRIEF_CLEAR on every side — colliding news
+        // tiles stop at the invisible rim, leaving a clean visual gap
+        briefBody: Matter.Bodies.rectangle(
+          anchor.x, anchor.y,
+          briefW + BRIEF_CLEAR * 2, BRIEF_THINK_H + BRIEF_CLEAR * 2,
+          { isStatic: true, chamfer: { radius: 18 + BRIEF_CLEAR } }
+        ),
       };
       syncBrief(cluster);
       items.forEach(({ article, r, x, y }) => {
@@ -490,10 +494,11 @@ export function initBattle({ section, onArticles } = {}) {
     if (!Matter || staticMode || !cluster.briefBody) return;
     const wasMounted = cluster.mounted;
     if (wasMounted) Matter.Composite.remove(world, cluster.briefBody);
-    cluster.briefBody = Matter.Bodies.rectangle(cluster.anchor.x, cluster.anchor.y, cluster.briefW, h, {
-      isStatic: true,
-      chamfer: { radius: 18 },
-    });
+    cluster.briefBody = Matter.Bodies.rectangle(
+      cluster.anchor.x, cluster.anchor.y,
+      cluster.briefW + BRIEF_CLEAR * 2, h + BRIEF_CLEAR * 2,
+      { isStatic: true, chamfer: { radius: 18 + BRIEF_CLEAR } }
+    );
     if (wasMounted) Matter.Composite.add(world, cluster.briefBody);
     // the grown tile shoves its neighbours aside — wake them so they react
     for (const bubble of cluster.bubbles) Matter.Sleeping.set(bubble.body, false);
