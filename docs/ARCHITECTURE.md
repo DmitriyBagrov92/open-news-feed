@@ -343,6 +343,15 @@ Used as the Railway healthcheck path.
   (`fonts.googleapis.com`, `fonts.gstatic.com`) + `img-src https: data:`
   (article images come from many hosts). No inline event handlers.
 - **PORT** from `process.env.PORT` (Railway sets it).
+- **Logging** (`lib/log.js`). One JSON object per line on stdout with
+  `level` (`info|warn|error`), `message` and attribute fields — Railway's
+  structured-log format (`@level:warn`, `@message:usage`, `@source:…`).
+  `lib/usage.js` meters requests per feature, unique visitors / authors
+  (hashed with a per-boot salt, counted only, bounded sets), status classes,
+  latency and process memory, and emits a `usage` info line every
+  `USAGE_LOG_MINUTES` (default 5, `0` off). Health checks and static assets
+  are not usage; `GET /` is a page load. Raw IPs and `X-Author-Id` values
+  never appear in logs.
 
 ## Frontend behavior
 

@@ -2,6 +2,7 @@
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getHeapStatistics } from 'node:v8';
 import express from 'express';
 import compression from 'compression';
 import * as store from './lib/store.js';
@@ -13,6 +14,8 @@ import {
   reactionCounts, CommentError,
 } from './lib/comments.js';
 import { getBattles } from './lib/battles.js';
+import * as log from './lib/log.js';
+import { usageMiddleware, startUsageLog } from './lib/usage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -42,6 +45,8 @@ app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy', CSP);
   next();
 });
+// Before static: page loads of index.html count as visits.
+app.use(usageMiddleware());
 app.use(express.json({ limit: '256kb' }));
 app.use(express.static(path.join(__dirname, 'public'), { index: 'index.html' }));
 
@@ -256,7 +261,11 @@ app.use((err, req, res, next) => {
       : err.status || err.statusCode || 500;
   const hasCode = typeof err.code === 'string' && /^[a-z][a-z-]*$/.test(err.code);
   const code = hasCode ? err.code : status >= 500 ? 'internal' : 'bad-request';
-  if (status >= 500 && !hasCode) console.error(`[server] ${err.stack || err}`);
+  if (status >= 500 && !hasCode) {
+    log.error('request failed', {
+      method: req.method, path: req.path, status, ...log.errorFields(err, { stack: true }),
+    });
+  }
   // Uncontrolled 5xx messages may carry internals (paths, library errors) —
   // log them above, mask them to the client.
   const message = hasCode || status < 500 ? err.message || 'Request failed' : 'Internal error';
@@ -266,10 +275,33 @@ app.use((err, req, res, next) => {
 // ── boot ─────────────────────────────────────────────────────────────────────
 
 const PORT = Number(process.env.PORT) || 3000;
+// Minutes between `usage` log lines (default 5; 0 disables).
+const usageRaw = process.env.USAGE_LOG_MINUTES;
+const USAGE_LOG_MINUTES = usageRaw === undefined || usageRaw === '' ? 5 : Number(usageRaw);
+
 app.listen(PORT, () => {
-  console.log(`[server] Meridian listening on :${PORT}`);
+  log.info('listening', {
+    port: PORT,
+    node: process.version,
+    refresh_minutes: Math.max(1, Number(process.env.REFRESH_MINUTES) || 5),
+    usage_log_minutes: USAGE_LOG_MINUTES,
+    heap_limit_mb: Math.round(v8HeapLimit() / 1048576),
+  });
 });
 initComments({ dbPath: process.env.COMMENTS_DB || './data/comments.db' }).catch((err) =>
-  console.warn(`[comments] init failed: ${err.message}`)
+  log.warn('comments init failed', log.errorFields(err))
 );
 store.startRefreshLoop();
+if (USAGE_LOG_MINUTES > 0) {
+  startUsageLog({
+    intervalMs: USAGE_LOG_MINUTES * 60_000,
+    extra: () => {
+      const s = store.stats();
+      return { articles: s.articles, sources_ok: s.sources.ok, sources_failing: s.sources.failing };
+    },
+  });
+}
+
+function v8HeapLimit() {
+  return getHeapStatistics().heap_size_limit;
+}

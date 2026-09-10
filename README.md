@@ -71,6 +71,7 @@ Every variable is optional — the app works out of the box.
 | `LIBRETRANSLATE_URL` | Server-side translation fallback: a LibreTranslate instance URL |
 | `LIBRETRANSLATE_API_KEY` | API key for that LibreTranslate instance, if it needs one |
 | `COMMENTS_DB` | SQLite file for anonymous comments (default `./data/comments.db`; point it at a mounted volume in production) |
+| `USAGE_LOG_MINUTES` | Minutes between `usage` log lines (default `5`; `0` disables) — see Logs below |
 
 ## Deploy on Railway
 
@@ -99,6 +100,36 @@ Every variable is optional — the app works out of the box.
    worst case (a refresh cycle, six article extractions and a query burst at
    once peak at ~32 MB of heap). Edit the `start` script in `package.json` if
    you add many sources or raise the store cap.
+
+### Logs
+
+Every log line is a single JSON object with `level` (`info` / `warn` /
+`error`), `message` and searchable attributes — the format Railway's log
+explorer parses, so you can filter with `@level:warn`, `@message:usage`,
+`@source:bbc-world` or `@visitors:>0`.
+
+Every `USAGE_LOG_MINUTES` (default 5) the service emits one `usage` line
+answering *who is here and what do they use*:
+
+```jsonc
+{ "level": "info", "message": "usage", "window_min": 5,
+  "visitors": 14, "authors": 3,            // unique clients / comment identities this window
+  "visitors_today": 212, "authors_today": 19,
+  "requests": 380, "page_loads": 17, "news": 120, "reactions": 190,
+  "comments_read": 8, "comments_posted": 1, "comment_votes": 0, "story_votes": 4,
+  "article_reads": 22, "translations": 9, "battles": 6,
+  "ok": 372, "client_error": 6, "rate_limited": 2, "server_error": 0,
+  "avg_ms": 4, "max_ms": 812,
+  "rss_mb": 148, "heap_mb": 21, "uptime_h": 36.5,
+  "articles": 2610, "sources_ok": 82, "sources_failing": 1 }
+```
+
+Identities are counted, never logged: IPs and comment ids are hashed with a
+per-boot random salt before they enter a bounded set, and only the set
+sizes leave the process. A zero-visitor line is still emitted as a heartbeat.
+Boot (`listening`), each refresh (`refreshed`, `enriched images`), storage
+mode (`comments storage ready`) and every failing feed (`source failed`) are
+logged the same way.
 
 ## Architecture
 
