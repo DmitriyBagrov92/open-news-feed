@@ -92,6 +92,13 @@ Every variable is optional — the app works out of the box.
    `container disk`, or `memory fallback`).
 5. Nixpacks picks a Node ≥ 22.13 automatically from `engines`; if your build
    pins an older Node, set `NIXPACKS_NODE_VERSION=22`.
+6. **Memory** — Railway bills by resident memory, and an uncapped Node heap
+   drifts to 250–300 MB regardless of how little data is live. `npm start`
+   therefore runs Node with `--max-old-space-size=160 --max-semi-space-size=8`,
+   which keeps the service around 150 MB with ~5× headroom over the measured
+   worst case (a refresh cycle, six article extractions and a query burst at
+   once peak at ~32 MB of heap). Edit the `start` script in `package.json` if
+   you add many sources or raise the store cap.
 
 ## Architecture
 

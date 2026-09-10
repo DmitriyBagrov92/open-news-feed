@@ -132,7 +132,8 @@ Server-side readability extraction for the preview modal. **SSRF guard:** the
 host of `url` (or of the final redirect target) must belong to a domain in the
 allowlist derived from `config/sources.js` (registered homepages + feed
 domains, subdomains included) — otherwise respond `403`. Timeout 10s, response
-body capped at 2.5 MB, only `text/html` content types.
+body capped at 2.5 MB, only `text/html` content types. At most 4 extractions
+run concurrently; further requests queue (each parse holds a full-page DOM).
 
 Response `200`:
 
@@ -297,8 +298,10 @@ Used as the Railway healthcheck path.
 
 ## Backend behavior
 
-- **Refresh loop.** On boot, fetch all enabled sources concurrently (per-source
-  timeout 12s), then re-fetch every `REFRESH_MINUTES` (default 5). Keyed API
+- **Refresh loop.** On boot, fetch all enabled sources — at most 8 in flight
+  at once (per-source timeout 12s): a feed's XML plus its parse tree is the
+  cycle's transient memory, so the peak is bounded by 8 feeds rather than the
+  whole registry — then re-fetch every `REFRESH_MINUTES` (default 5). Keyed API
   sources additionally respect a 15-minute minimum interval between
   *successful* fetches (free-quota protection); a failed attempt is retried on
   the next cycle. A failing source keeps its last good articles; log a single
@@ -315,6 +318,17 @@ Used as the Railway healthcheck path.
   host, drops `utm_*`/`fbclid`-style params, trailing slashes and hash.
   Additionally drop same-source items with identical normalized titles.
 - **Store cap.** Keep at most 3000 articles; evict oldest beyond that.
+- **Memory discipline.** Every string the store keeps is copied out of the
+  feed it was cut from (`normalize.detach`): V8 substrings are views onto
+  their parent, so a 500-char description or an og:image URL would otherwise
+  pin the whole feed body / page prefix for as long as the article lives.
+  Feed queries are a single pass over the store (no materialized match
+  list), batch SQLite reads reuse prepared statements, `/api/article` runs at
+  most 4 extractions at once (later requests wait, none are rejected), and
+  `npm start` caps the V8 heap (`--max-old-space-size=160
+  --max-semi-space-size=8`) so resident memory tracks live data instead of
+  growing to whatever the host allows. Measured worst case (refresh + 6
+  extractions + query burst) peaks at ~32 MB of heap under that cap.
 - **AI providers** (`lib/ai.js`): summarize → always `501 premium-only` in the
   free version (structure the module so a premium provider chain — configurable
   OpenAI-compatible endpoint + Anthropic — can be added later without touching
