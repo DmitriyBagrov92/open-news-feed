@@ -118,7 +118,7 @@ answering *who is here and what do they use*:
   "requests": 380, "page_loads": 17, "news": 120, "reactions": 190,
   "comments_read": 8, "comments_posted": 1, "comment_votes": 0, "story_votes": 4,
   "article_reads": 22, "translations": 9, "battles": 6,
-  "ok": 372, "client_error": 6, "rate_limited": 2, "server_error": 0,
+  "ok": 372, "client_error": 6, "rate_limited": 2, "not_implemented": 3, "server_error": 0,
   "avg_ms": 4, "max_ms": 812,
   "rss_mb": 148, "heap_mb": 21, "uptime_h": 36.5,
   "articles": 2610, "sources_ok": 82, "sources_failing": 1 }

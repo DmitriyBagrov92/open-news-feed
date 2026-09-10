@@ -279,7 +279,7 @@ const PORT = Number(process.env.PORT) || 3000;
 const usageRaw = process.env.USAGE_LOG_MINUTES;
 const USAGE_LOG_MINUTES = usageRaw === undefined || usageRaw === '' ? 5 : Number(usageRaw);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   log.info('listening', {
     port: PORT,
     node: process.version,
@@ -288,6 +288,21 @@ app.listen(PORT, () => {
     heap_limit_mb: Math.round(v8HeapLimit() / 1048576),
   });
 });
+
+// Railway retires a deployment with SIGTERM. Without a handler Node exits
+// 143, which Railway reports as a crash of the old deployment on every
+// redeploy. Finish in-flight responses, then exit 0; cap the wait so a
+// lingering keep-alive connection cannot hold the container open.
+function shutdown(signal) {
+  log.info('shutting down', { signal, uptime_s: Math.round(process.uptime()) });
+  server.close(() => process.exit(0));
+  setTimeout(() => {
+    server.closeAllConnections();
+    process.exit(0);
+  }, 5000).unref();
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 initComments({ dbPath: process.env.COMMENTS_DB || './data/comments.db' }).catch((err) =>
   log.warn('comments init failed', log.errorFields(err))
 );
