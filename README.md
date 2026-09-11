@@ -101,6 +101,11 @@ Every variable is optional — the app works out of the box.
    worst case (a refresh cycle, six article extractions and a query burst at
    once peak at ~32 MB of heap). Edit the `start` script in `package.json` if
    you add many sources or raise the store cap.
+7. **Start command** — `railway.json` runs `exec node … server.js` directly
+   (same flags as `npm start`) rather than `npm start`: Railway retires a
+   deployment with SIGTERM, and through npm the signal stops at npm's
+   `sh -c` wrapper, so Node never shuts down cleanly and Railway reports the
+   old deployment as crashed. Keep the two commands' flags in sync.
 
 ### Logs
 
