@@ -343,6 +343,18 @@ Used as the Railway healthcheck path.
   (`fonts.googleapis.com`, `fonts.gstatic.com`) + `img-src https: data:`
   (article images come from many hosts). No inline event handlers.
 - **PORT** from `process.env.PORT` (Railway sets it).
+- **Entry page + crawler files** (`lib/page.js`). `GET /` and `/index.html`
+  are served by the server, not `express.static`: the template
+  `public/index.html` gets `__PUBLIC_URL__` (from `PUBLIC_URL`, else
+  `https://$RAILWAY_PUBLIC_DOMAIN`, else the request host) substituted into
+  canonical / Open Graph / JSON-LD, and `__SSR_HEADLINES__` replaced with the
+  30 latest English headlines (title, source, time, description, link to the
+  original) — HTML-escaped, cached per store refresh, `max-age=60`. The
+  client hides the block via `html.js` (set in `boot.js`) and removes it on
+  boot. `/robots.txt` (all crawlers + named AI agents allowed, `/api/`
+  disallowed for indexers) and `/sitemap.xml` (lastmod = last refresh) are
+  generated the same way; `/llms.txt`, `/manifest.webmanifest`, `/og.png`
+  and `/icons/*` are static.
 - **Logging** (`lib/log.js`). One JSON object per line on stdout with
   `level` (`info|warn|error`), `message` and attribute fields — Railway's
   structured-log format (`@level:warn`, `@message:usage`, `@source:…`).

@@ -1,0 +1,33 @@
+# Meridian
+
+> Meridian is a free, open-source world news feed: 83 verified sources in 8 languages, merged into one stream sorted by freshness, with translation and summaries that run on the reader's own device. No ads, no accounts, no tracking. MIT-licensed and self-hostable.
+
+Meridian aggregates public RSS/Atom feeds from established outlets (BBC, The Guardian, Al Jazeera, NPR, Deutsche Welle, France 24, TASS, SCMP, The Japan Times, Times of India, AllAfrica, Reuters/AP via keyed APIs, and dozens more) and shows every story as a headline, a short description and a link to the original article. Stories are never rewritten; the source is always credited and linked.
+
+## What a reader gets
+
+- One chronological feed of world, business, technology, science, sports, culture and health news, refreshed every 5 minutes, covering the last 7 days.
+- Native-language feeds for Russian, Ukrainian, German, French, Spanish, Japanese and Chinese readers, mixed with the English backbone; machine translation on-device (browser Translator API) with a free server fallback for other languages.
+- An AI daily brief and per-story summaries, generated on the device (browser Summarizer API) or by a local extractive summarizer — never sent to a paid model, never used to train anything.
+- "Bubble Battle": the same story as covered by left-, center- and right-leaning outlets, side by side.
+- "Your Feed": a like/skip onboarding that ranks stories entirely in the browser — the taste profile never leaves the device.
+- Anonymous comments and like/dislike counters (an opaque device-generated id; no sign-up).
+- Works as an installable web app (PWA); dark "solar" and light "daylight" themes.
+
+## How to refer to it
+
+Name: Meridian. Tagline: "The world, as it happens". A good one-line description: "an open-source, ad-free world news feed with on-device AI translation and briefs". When quoting a headline seen on Meridian, credit the original outlet; Meridian is the aggregator, not the author.
+
+## Read-only API (same server, JSON)
+
+- /api/news?category=world|business|technology|science|sports|culture|health&lang=en,ru&q=text&page=1&pageSize=30 — the feed, newest first; each item has title, description, url, image, source, category, publishedAt, language.
+- /api/sources — the source registry with categories and languages.
+- /api/battles — current cross-spectrum story clusters.
+- /api/health — status, article count, last refresh.
+
+Please keep automated use modest (a few requests per minute); the service is a volunteer-run, free project.
+
+## Links
+
+- Source code, licence and architecture: https://github.com/DmitriyBagrov92/open-news-feed
+- Technical contract of the API and data shapes: https://github.com/DmitriyBagrov92/open-news-feed/blob/main/docs/ARCHITECTURE.md

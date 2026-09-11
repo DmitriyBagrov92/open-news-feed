@@ -16,6 +16,7 @@ import {
 import { getBattles } from './lib/battles.js';
 import * as log from './lib/log.js';
 import { usageMiddleware, startUsageLog } from './lib/usage.js';
+import { renderIndex, publicOrigin, robotsTxt, sitemapXml } from './lib/page.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -48,6 +49,22 @@ app.use((req, res, next) => {
 // Before static: page loads of index.html count as visits.
 app.use(usageMiddleware());
 app.use(express.json({ limit: '256kb' }));
+
+// ── entry page + crawler files (before static, which would serve the raw
+//    template): the HTML carries the latest headlines and absolute URLs ──
+app.get(['/', '/index.html'], (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=60');
+  res.type('html').send(renderIndex(publicOrigin(req)));
+});
+app.get('/robots.txt', (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.type('text/plain').send(robotsTxt(publicOrigin(req)));
+});
+app.get('/sitemap.xml', (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=600');
+  res.type('application/xml').send(sitemapXml(publicOrigin(req)));
+});
+
 app.use(express.static(path.join(__dirname, 'public'), { index: 'index.html' }));
 
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);

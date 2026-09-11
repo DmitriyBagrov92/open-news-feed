@@ -72,6 +72,7 @@ Every variable is optional — the app works out of the box.
 | `LIBRETRANSLATE_API_KEY` | API key for that LibreTranslate instance, if it needs one |
 | `COMMENTS_DB` | SQLite file for anonymous comments (default `./data/comments.db`; point it at a mounted volume in production) |
 | `USAGE_LOG_MINUTES` | Minutes between `usage` log lines (default `5`; `0` disables) — see Logs below |
+| `PUBLIC_URL` | Public origin (e.g. `https://meridi.info`) for canonical, Open Graph and sitemap URLs; defaults to Railway's domain, else the request host |
 
 ## Deploy on Railway
 
@@ -130,6 +131,34 @@ sizes leave the process. A zero-visitor line is still emitted as a heartbeat.
 Boot (`listening`), each refresh (`refreshed`, `enriched images`), storage
 mode (`comments storage ready`) and every failing feed (`source failed`) are
 logged the same way.
+
+## Discoverability & sharing
+
+Meridian is built to be found and recommended — by search engines, by AI
+assistants and by people sharing a link — at zero cost:
+
+- **Server-rendered headlines.** `GET /` is rendered by the server
+  (`lib/page.js`): the HTML already contains the 30 latest headlines with
+  source, time and description, so crawlers and answer engines that do not
+  run JavaScript (GPTBot, ClaudeBot, PerplexityBot, Googlebot's first pass)
+  see real, fresh content. The app hides the list and takes over.
+- **`/llms.txt`** — a plain-language description of the service, how to
+  refer to it and the read-only API, for AI assistants ([llmstxt.org](https://llmstxt.org)).
+- **`/robots.txt`** welcomes every crawler and AI agent explicitly and points
+  to **`/sitemap.xml`** (lastmod = last refresh).
+- **Social cards.** Open Graph + Twitter tags with `/og.png` (1200×630), so a
+  shared link unfurls with the wordmark and the pitch on X, Telegram,
+  Slack, LinkedIn, WhatsApp.
+- **Structured data.** JSON-LD `WebSite` / `Organization` / `WebApplication`
+  (free, MIT, feature list) for rich results.
+- **Installable.** `/manifest.webmanifest` + icons: "Add to Home Screen" on
+  phones, install on desktop Chrome/Edge.
+- **The pitch is on the page.** The footer states what Meridian is: open
+  source, AI on your device, no ads, no accounts, no tracking.
+
+Absolute URLs come from `PUBLIC_URL` (or Railway's domain). If you rebrand
+or change the domain, edit the inline SVGs in `scripts/brand-assets.sh` and
+run it (macOS, no dependencies) to regenerate `og.png` and the icons.
 
 ## Architecture
 

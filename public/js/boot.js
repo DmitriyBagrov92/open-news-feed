@@ -1,5 +1,8 @@
 // Runs synchronously in <head> so the saved theme applies before first paint.
 (function () {
+  // JavaScript is on: hide the server-rendered headline list (crawlers and
+  // no-JS readers keep it) before the body is even parsed — no flash.
+  document.documentElement.classList.add('js');
   try {
     var prefs = JSON.parse(localStorage.getItem('meridian:prefs') || '{}');
     if (prefs && (prefs.theme === 'dark' || prefs.theme === 'light')) {

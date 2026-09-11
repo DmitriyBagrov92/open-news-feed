@@ -1380,6 +1380,8 @@ function boot() {
       return (lang && translationCache.get(article.id + ':' + lang)) || article;
     },
   });
+  // the live grid replaces the server-rendered headline list (see index.html)
+  $('#ssrFeed')?.remove();
   initSearch();
   initLangControl();
   initTabs();

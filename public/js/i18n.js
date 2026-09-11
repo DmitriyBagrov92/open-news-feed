@@ -155,7 +155,8 @@ const TABLES = {
     'time.days': '{n} DAYS AGO',
 
     // footer
-    'foot.tagline': 'MERIDIAN — OPEN SOURCE',
+    'about.blurb': 'Meridian is a free, open-source world news feed: 83 sources in 8 languages, one stream sorted by freshness, translated and summarized by AI on your own device. No ads, no accounts, no tracking — ever.',
+    'foot.tagline': 'MERIDIAN — OPEN SOURCE · NO ADS · NO TRACKING',
     'foot.sources': '{n} SOURCES',
     'foot.github': 'GITHUB',
   },
