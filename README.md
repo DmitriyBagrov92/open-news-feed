@@ -73,6 +73,8 @@ Every variable is optional — the app works out of the box.
 | `COMMENTS_DB` | SQLite file for anonymous comments (default `./data/comments.db`; point it at a mounted volume in production) |
 | `USAGE_LOG_MINUTES` | Minutes between `usage` log lines (default `5`; `0` disables) — see Logs below |
 | `PUBLIC_URL` | Public origin (e.g. `https://meridi.info`) for canonical, Open Graph and sitemap URLs; defaults to Railway's domain, else the request host |
+| `GOOGLE_SITE_VERIFICATION` | Google Search Console ownership token — rendered as the `google-site-verification` meta tag (see Getting indexed) |
+| `BING_SITE_VERIFICATION` | Bing Webmaster Tools ownership token — rendered as the `msvalidate.01` meta tag |
 
 ## Deploy on Railway
 
@@ -164,6 +166,42 @@ assistants and by people sharing a link — at zero cost:
 Absolute URLs come from `PUBLIC_URL` (or Railway's domain). If you rebrand
 or change the domain, edit the inline SVGs in `scripts/brand-assets.sh` and
 run it (macOS, no dependencies) to regenerate `og.png` and the icons.
+
+### Getting indexed (free, ~15 minutes, once)
+
+Search engines find a site on their own eventually; registering it makes
+that days instead of months and gives you crawl/impression stats. Both
+consoles are free with no paid tier.
+
+**Google Search Console** — <https://search.google.com/search-console>
+
+1. Sign in with any Google account → **Add property** → choose
+   **URL prefix** and enter `https://meridi.info` (your `PUBLIC_URL`).
+2. Under verification methods pick **HTML tag**. Google shows
+   `<meta name="google-site-verification" content="TOKEN">`. Copy only the
+   `TOKEN`.
+3. On Railway set the variable `GOOGLE_SITE_VERIFICATION=TOKEN`
+   (`railway variables --set GOOGLE_SITE_VERIFICATION=TOKEN`) and redeploy.
+   Check `curl -s https://meridi.info/ | grep google-site-verification`.
+4. Back in Search Console press **Verify**. Then **Sitemaps** → enter
+   `sitemap.xml` → **Submit**. Optionally **URL inspection** →
+   `https://meridi.info/` → **Request indexing**.
+
+**Bing Webmaster Tools** — <https://www.bing.com/webmasters> (also feeds
+DuckDuckGo, Yahoo, Ecosia and Microsoft Copilot)
+
+- Easiest: sign in (Microsoft, Google or Facebook account) → **Import from
+  Google Search Console** → pick the site. Ownership and the sitemap are
+  imported; nothing to configure.
+- Manual alternative: **Add a site** → `https://meridi.info` → **HTML Meta
+  Tag** → copy the `content` of `<meta name="msvalidate.01" content="…">`
+  into the Railway variable `BING_SITE_VERIFICATION`, redeploy, **Verify**,
+  then **Sitemaps** → submit `https://meridi.info/sitemap.xml`.
+
+Keep the variables set: both services re-check the tag periodically.
+Yandex Webmaster (<https://webmaster.yandex.com>) works the same way with
+`<meta name="yandex-verification">`; add it to `VERIFICATION_TAGS` in
+`lib/page.js` if you want it.
 
 ## Architecture
 
