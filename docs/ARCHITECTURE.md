@@ -408,7 +408,9 @@ Used as the Railway healthcheck path.
   `confidence` ∈ low/medium, `basis` indices → real article ids). The session
   carries one worked example (three stories → three next-step forecasts) —
   without it Gemini Nano copies the feed lines back. The model drafts six
-  candidates; the sanitizer drops echoes (≥60% of a basis headline's words),
+  candidates; the sanitizer drops echoes (≥80% of a basis headline's words)
+  and anything naming the example's invented entities or nothing from its
+  own story,
   scores the rest — names/figures shared with the cited stories, +1 for a
   concrete event noun, +1 for a date or figure, −2 per cliché — keeps the four
   best, and retries once when fewer than two survive (`forecast.abstract`). Output language = the translation target when the model

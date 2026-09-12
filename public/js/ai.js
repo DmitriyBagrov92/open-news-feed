@@ -395,19 +395,22 @@ function forecastSystemPrompt(outLang) {
 
 // One worked example (a small model copies the shape it is shown): three
 // stories, three NEXT-step forecasts that keep the names and add the event.
+// The names are invented so nothing from the example can pass as news —
+// and a forecast that mentions them anyway is dropped (EXAMPLE_ENTITIES).
 const FORECAST_EXAMPLE_USER =
   'Today is Tue, 09 Sep 2026 10:00:00 GMT. Headlines, newest first (index \u00b7 source \u00b7 age \u00b7 title \u2014 description):\n' +
-  "0 \u00b7 ESPN \u00b7 3h ago \u00b7 Sources: Bears, Swift agree to $33.75M extension \u2014 The Chicago Bears and RB D'Andre Swift have reached an agreement on a three-year extension.\n" +
-  "1 \u00b7 Reuters \u00b7 5h ago \u00b7 Fed expected to hold rates this week as inflation cools \u2014 Markets price a hold at Wednesday's FOMC meeting; the statement language is in focus.\n" +
-  '2 \u00b7 BBC \u00b7 1h ago \u00b7 Typhoon Ragasa strengthens as it heads for Taiwan \u2014 Forecasters expect landfall on the east coast late Thursday.\n\n' +
+  '0 \u00b7 Harbor Sports \u00b7 3h ago \u00b7 Sources: Halden Wolves, Rask agree to $33.75M extension \u2014 The Wolves and striker Teo Rask have reached an agreement on a three-year extension ahead of Sunday\u2019s opener against Vardo.\n' +
+  '1 \u00b7 Meridian Wire \u00b7 5h ago \u00b7 Sable Bank expected to hold rates this week as inflation cools \u2014 Markets price a hold at Wednesday\u2019s policy meeting; the statement language is in focus.\n' +
+  '2 \u00b7 Coast News \u00b7 1h ago \u00b7 Storm Kestrel strengthens as it heads for Port Averly \u2014 Forecasters expect landfall on the east coast late Thursday.\n\n' +
   'Return exactly 3 forecasts as JSON.';
 const FORECAST_EXAMPLE_ASSISTANT = JSON.stringify({
   forecasts: [
-    { headline: "Swift starts at running back in the Bears' Sunday opener", why: 'The three-year, $33.75M extension signed this week makes him the lead back going into the opener.', timeframe: '48h', confidence: 'medium', basis: [0] },
-    { headline: 'Fed holds rates on Wednesday and hints at a December cut', why: "Markets price a hold at this week's FOMC meeting, so the statement's wording is the next move.", timeframe: '3d', confidence: 'medium', basis: [1] },
-    { headline: 'Taiwan closes schools and offices on Thursday as Ragasa makes landfall', why: 'Forecasters expect landfall on the east coast late Thursday; closures follow every typhoon warning.', timeframe: '7d', confidence: 'low', basis: [2] },
+    { headline: 'Rask starts for the Halden Wolves in Sunday\u2019s opener against Vardo', why: 'The three-year, $33.75M extension signed this week makes him the lead striker going into the opener.', timeframe: '48h', confidence: 'medium', basis: [0] },
+    { headline: 'Sable Bank holds rates on Wednesday and hints at a December cut', why: 'Markets price a hold at this week\u2019s policy meeting, so the statement\u2019s wording is the next move.', timeframe: '3d', confidence: 'medium', basis: [1] },
+    { headline: 'Port Averly closes schools and offices on Thursday as Kestrel makes landfall', why: 'Forecasters expect landfall on the east coast late Thursday; closures follow every storm warning.', timeframe: '7d', confidence: 'low', basis: [2] },
   ],
 });
+const EXAMPLE_ENTITIES = ['halden', 'wolves', 'rask', 'vardo', 'sable bank', 'kestrel', 'averly'];
 
 function forecastSchema(n) {
   return {
@@ -658,12 +661,21 @@ function concreteness(f, basisArticles) {
   for (const a of basisArticles) for (const t of forecastEntities(a.title + ' ' + (a.description || ''))) basis.add(t);
   let shared = 0;
   for (const t of own) if (basis.has(t)) shared += 1;
+  if (!shared) return 0; // names nothing from its own story: not grounded, whatever else it says
   const cliches = (f.headline.match(VAGUE_RE) || []).length;
   return shared + (EVENT_RE.test(f.headline) ? 1 : 0) + (WHEN_RE.test(f.headline) ? 1 : 0) - 2 * cliches;
 }
 
-// A forecast that is really the story again: most of a basis headline's
-// words reappear in it (the model copied the line, dash-description and all).
+// the worked example leaking into the answer
+function mentionsExample(text) {
+  const lower = String(text).toLowerCase();
+  return EXAMPLE_ENTITIES.some((name) => lower.includes(name));
+}
+
+// A forecast that is really the story again: nearly all of a basis
+// headline's words reappear in it (the model copied the line, dash-
+// description and all). 80%, not less — a real forecast legitimately reuses
+// the story's names, and short titles hit 60% with three shared words.
 const contentWords = (s) => new Set(String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').split(' ').filter((w) => w.length > 2));
 function echoes(headline, articles) {
   const h = contentWords(headline);
@@ -672,7 +684,7 @@ function echoes(headline, articles) {
     if (!t.size) return false;
     let n = 0;
     for (const w of t) if (h.has(w)) n += 1;
-    return n / t.size >= 0.6;
+    return n / t.size >= 0.8;
   });
 }
 
@@ -702,6 +714,7 @@ export function sanitizeForecast(raw, articles, generatedAt = Date.now(), { stri
     const key = norm(headline);
     if (inputTitles.has(key) || seen.has(key)) continue;
     if (strict && echoes(headline, articles)) continue; // the story again, not its next step
+    if (strict && mentionsExample(headline + ' ' + why)) continue; // the example, not the news
     const timeframe = FORECAST_TIMEFRAMES[item.timeframe] ? item.timeframe : '7d';
     const hours = FORECAST_TIMEFRAMES[timeframe];
     const confidence = item.confidence === 'medium' ? 'medium' : 'low';
