@@ -24,6 +24,7 @@ import {
   generateForecast,
   translateTexts,
   providerLabel,
+  forecastability,
   FORECAST_OUTPUT_LANGS,
   FORECAST_COUNT,
 } from './ai.js';
@@ -305,20 +306,26 @@ export async function initForecast(deps) {
       }
       if (mySeq !== seq) return;
       const seen = new Set();
-      const articles = [];
+      const candidates = [];
       for (const a of pool || []) {
         if (!a || seen.has(a.id) || (a.language || 'en') !== 'en') continue;
         seen.add(a.id);
         if (!articleById.has(a.id)) poolById.set(a.id, a);
-        articles.push({
+        candidates.push({
           id: a.id,
           title: a.title,
           description: a.description || '',
           source: a.source?.name || '',
           publishedAt: a.publishedAt,
         });
-        if (articles.length === MAX_ARTICLES) break;
       }
+      // stories that name an upcoming event first (the pool is already
+      // newest-first, and the sort is stable, so recency breaks ties)
+      const articles = candidates
+        .map((a, i) => ({ a, i, cues: forecastability(a) }))
+        .sort((x, y) => y.cues - x.cues || x.i - y.i)
+        .slice(0, MAX_ARTICLES)
+        .map((x) => x.a);
       if (articles.length < MIN_ARTICLES) {
         renderNote('forecast.tooFew');
         return;

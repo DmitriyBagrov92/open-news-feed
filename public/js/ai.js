@@ -647,7 +647,15 @@ export function forecastEntities(text) {
   return out;
 }
 // headline clichés a small model reaches for when it has nothing concrete
-const VAGUE_RE = /\b(evolv\w*|continu\w*|develop\w*|shap\w* up|remain\w*|focus\w*|attention|momentum|reaction\w*|discussion\w*|speculation|scrutiny|tension\w*|uncertaint\w*|pressure|ongoing|planned|prowess|amaze\w*|showcase\w*|compelling|emerging|impact\w*|prompt\w*|prepare\w*|heighten\w*|increas\w*|strategy|condemnation|escalat\w*|faces|face|sparks|fuels|raises questions|spotlight)\b/gi;
+const VAGUE_RE = /\b(evolv\w*|continu\w*|develop\w*|shap\w*|remain\w*|focus\w*|shift\w*|attention|momentum|reaction\w*|discussion\w*|speculation|scrutiny|tension\w*|uncertaint\w*|pressure|ongoing|planned|prowess|amaze\w*|showcase\w*|compelling|emerging|impact\w*|prompt\w*|prepare\w*|heighten\w*|increas\w*|strategy|condemnation|escalat\w*|faces|face|sparks|fuels|raises questions|spotlight|boost\w*|outlook|seen as|potential\w*|narrative|complexit\w*|signal\w*|significant\w*|commit\w*|priorit\w*|amid)\b/gi;
+
+// Stories that name an upcoming event forecast well; the pool is ordered
+// by this so the model meets them first (it leans on the top of the list).
+const FUTURE_CUE_RE = /\b(will|set to|due|scheduled|expected|to (face|meet|vote|decide|announce|hold|open|close|release|play|host|begin|start|resume|testify|appear|unveil)|monday|tuesday|wednesday|thursday|friday|saturday|sunday|this (week|weekend|month)|next (week|month|year)|tomorrow|tonight|deadline|final\w*|semi-?final\w*|opener|vote\w*|hearing|trial|verdict|sentencing|summit|talks|meeting|election\w*|launch\w*|earnings|deal|strike|ceasefire|ruling|referendum|debate|inauguration|kickoff|matchday|playoff\w*)\b/gi;
+export function forecastability(article) {
+  const text = `${article.title || ''} ${article.description || ''}`;
+  return (text.match(FUTURE_CUE_RE) || []).length;
+}
 // the concrete nouns of a checkable event, and dates / figures
 const EVENT_RE = /\b(vote\w*|hearing|ruling|verdict|sentenc\w*|deadline|launch\w*|report\w*|earnings|deal|agreement|strike\w*|landfall|final\w*|semi-?final\w*|match|game|opener|derby|election\w*|summit|meeting|announce\w*|sign\w*|release\w*|ship\w*|cut\w*|hike\w*|hold\w* rates|ban\w*|approv\w*|reject\w*|fine\w*|indict\w*|charge\w*|arrest\w*|resign\w*|appoint\w*|acquir\w*|buy\w*|sell\w*|ipo|evacuat\w*|close\w*|open\w*|start\w*|play\w*|beat\w*|win\w*|lose\w*|return\w*|test\w*|unveil\w*|publish\w*|ceasefire|sanction\w*|tariff\w*)\b/i;
 const WHEN_RE = /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|tonight|tomorrow|weekend|\d{1,2}(st|nd|rd|th)?|\d+(\.\d+)?%|\$\d)/i;
