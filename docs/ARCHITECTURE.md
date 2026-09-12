@@ -372,7 +372,8 @@ Used as the Railway healthcheck path.
   set `textContent`, or escape rigorously. Feed content is untrusted.
 - Preferences in `localStorage` under the single key `meridian:prefs` (one JSON
   object: `theme`, `uiLocale`, `targetLang`, `autoTranslate`, `hiddenSources`,
-  `category`, `density`, `gridSize`, `saved` [array of Article], `feedSub`
+  `category`, `density`, `gridSize`, `saved` [array of Article], `feedSub`,
+  `forecast` (bool, AI forecast gesture)
   ('recommended' | 'saved'), `taste` — the onboarding like/dislike profile
   `{ count, sources{}, cats{}, tokens{}, rated[] }` used to rank the
   "Recommended to you" feed **entirely on the client**; it never reaches the
@@ -386,6 +387,32 @@ Used as the Railway healthcheck path.
   `create()` from a user gesture to allow model download; degrade to the
   server endpoints, then (for summarize) to a local frequency-based extractive
   summarizer. All wrapped in `public/js/ai.js`.
+- **AI forecast** (`public/js/forecast.js`, lazy-loaded from `boot()`; Prompt-API
+  wrapper in `public/js/ai.js`). Capability is probed once: no `LanguageModel`
+  global or `availability()` ≠ downloadable/downloading/available ⇒ the module
+  binds nothing and renders nothing (no hint, no gesture, no settings row).
+  Otherwise an in-flow hint button sits under the tabs; over-scrolling past the
+  top (wheel with accumulation + decay, touch, or the button for keyboard/AT —
+  a click is also the user activation a first-time model download needs)
+  reveals `section#forecast` above the brief: 4 skeleton cards with the
+  brief's thinking bars, then 4 `.fcard` forecasts. Input: the current view's
+  English stories (≥5, ≤30, re-fetched like the brief); output: JSON under a
+  `responseConstraint` schema (`headline`, `why`, `timeframe` ∈ 24h/48h/3d/7d,
+  `confidence` ∈ low/medium, `basis` indices → real article ids), sanitized
+  client-side. Output language = the translation target when the model
+  speaks it (en/es/ja/de/fr), else English pushed through the translate
+  ladder. Cached per view key (category|q|hidden sources|target|newestAt)
+  for 30 min; `clearPending()` hides it on any view change and
+  `meridian:langchange` clears the cache. The right rail reserves a dashed
+  "+7D" band above NOW (`timescale.setFuture`) while the section is on
+  screen. Invariants: forecast cards are never `.card` and never inside
+  `#grid` (clear/prepend/reactions/tooltip/prev-next/empty-state all sweep
+  `#grid .card`), and their due times use `time[data-due]`, never
+  `time[data-published]` (`refreshTimes` would render the future as "JUST
+  NOW" with a live dot). Pref `forecast` (default true) toggles the gesture.
+  `?forecast=mock` / `?forecast=mock-download` (or `localStorage
+  meridian:forecastMock` = `1` / `download`) drive a canned provider for UI
+  work on any machine.
 - i18n: `public/js/i18n.js` exports `t(key)` with an `en` table; UI locale is
   a preference. Adding a language = adding one table + (optionally) sources
   for that language in `config/sources.js`.

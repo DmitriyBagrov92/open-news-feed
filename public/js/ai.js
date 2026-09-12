@@ -340,6 +340,320 @@ export function extractive(sentences, max = 5) {
     .map((item) => item.sentence);
 }
 
+/* ── Forecast (Chrome Prompt API) ───────────────────────────────────────── */
+// "What may happen next": four speculative near-future events extrapolated
+// from the stories in view by the browser's built-in language model
+// (LanguageModel / Gemini Nano). On-device only — no server rung, no
+// third-party API; where the API is missing the feature does not exist.
+// The model writes en/es/ja/de/fr natively; for any other target the caller
+// asks for English and pushes the result through the translate ladder.
+
+export const FORECAST_OUTPUT_LANGS = new Set(['en', 'es', 'ja', 'de', 'fr']);
+export const FORECAST_COUNT = 4;
+export const FORECAST_TIMEFRAMES = { '24h': 24, '48h': 48, '3d': 72, '7d': 168 };
+const FORECAST_MAX_HEADLINE = 110;
+const FORECAST_MAX_WHY = 320;
+const FORECAST_MIN_ARTICLES = 5;
+const FORECAST_PROMPT_MS = 45000;
+const LANGUAGE_NAMES = { en: 'English', es: 'Spanish', ja: 'Japanese', de: 'German', fr: 'French' };
+
+// Mock provider for UI work and automated checks on machines without the
+// model: ?forecast=mock | ?forecast=mock-download, or localStorage
+// 'meridian:forecastMock' = '1' | 'download'. Never on by default.
+export function forecastMockMode() {
+  try {
+    const q = new URLSearchParams(location.search).get('forecast');
+    if (q === 'mock') return 'on';
+    if (q === 'mock-download') return 'download';
+    const ls = localStorage.getItem('meridian:forecastMock');
+    if (ls === '1') return 'on';
+    if (ls === 'download') return 'download';
+  } catch {
+    /* storage blocked */
+  }
+  return null;
+}
+let mockDownloaded = false;
+
+function forecastSystemPrompt(outLang) {
+  const language = LANGUAGE_NAMES[outLang] || 'English';
+  return (
+    `You are a cautious news analyst writing in ${language}. From today's headlines you list plausible NEXT developments that could happen within the next 7 days: scheduled votes, rulings, deadlines, launches, earnings, negotiations, weather, sports fixtures, or follow-ups the stories explicitly imply.\n` +
+    'Rules:\n' +
+    '- Never restate a headline as a forecast and never claim something has already happened.\n' +
+    '- Each forecast names ONE concrete, checkable event, phrased like a possible future headline (under 100 characters), then "why" in one or two sentences.\n' +
+    '- The four forecasts cover four different topics and are spread across different timeframes ("24h", "48h", "3d", "7d").\n' +
+    '- "confidence" is "low" unless several headlines point the same way; then "medium". Never higher.\n' +
+    '- "basis" lists the index numbers of the headlines each forecast builds on.\n' +
+    '- Output JSON only.'
+  );
+}
+
+function forecastSchema(n) {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: ['forecasts'],
+    properties: {
+      forecasts: {
+        type: 'array',
+        minItems: FORECAST_COUNT,
+        maxItems: FORECAST_COUNT,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['headline', 'why', 'timeframe', 'confidence', 'basis'],
+          properties: {
+            headline: { type: 'string', maxLength: FORECAST_MAX_HEADLINE },
+            why: { type: 'string', maxLength: FORECAST_MAX_WHY },
+            timeframe: { type: 'string', enum: Object.keys(FORECAST_TIMEFRAMES) },
+            confidence: { type: 'string', enum: ['low', 'medium'] },
+            basis: {
+              type: 'array',
+              minItems: 1,
+              maxItems: 3,
+              items: { type: 'integer', minimum: 0, maximum: Math.max(0, n - 1) },
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+function forecastUserPrompt(articles, now) {
+  const lines = articles.map((a, i) => {
+    const age = Math.max(0, Math.round((now - Date.parse(a.publishedAt)) / 3600000));
+    const title = String(a.title || '').slice(0, 120);
+    const desc = String(a.description || '').slice(0, 100);
+    return `${i} · ${a.source || 'unknown'} · ${age}h ago · ${title}${desc ? ' — ' + desc : ''}`;
+  });
+  return (
+    `Today is ${new Date(now).toUTCString()}. Headlines, newest first (index · source · age · title — description):\n` +
+    lines.join('\n') +
+    `\n\nReturn exactly ${FORECAST_COUNT} forecasts as JSON.`
+  );
+}
+
+function anySignal(signals) {
+  const list = signals.filter(Boolean);
+  if (list.length <= 1) return list[0];
+  return typeof AbortSignal.any === 'function' ? AbortSignal.any(list) : list[0];
+}
+
+// 'unavailable' | 'downloadable' | 'downloading' | 'available' — any
+// surprise (no global, API shape drift, probe hanging) counts as unavailable
+// so the feature stays invisible rather than half-working.
+export async function forecastAvailability() {
+  const mock = forecastMockMode();
+  if (mock === 'download') return mockDownloaded ? 'available' : 'downloadable';
+  if (mock === 'on') return 'available';
+  if (typeof LanguageModel === 'undefined') return 'unavailable';
+  try {
+    const state = await withTimeout(
+      LanguageModel.availability({
+        expectedInputs: [{ type: 'text', languages: ['en'] }],
+        expectedOutputs: [{ type: 'text', languages: ['en'] }],
+      }),
+      4000,
+      'forecast availability'
+    );
+    return ['downloadable', 'downloading', 'available'].includes(state) ? state : 'unavailable';
+  } catch {
+    return 'unavailable';
+  }
+}
+
+// Session creation costs seconds even when the model is on disk, so the
+// gesture warms one up as soon as the pull starts; a run consumes it, an
+// abandoned pull releases it after a grace period.
+let warmSession = null; // { session, outLang }
+let releaseTimer = null;
+let activeCtrl = null;  // the in-flight generateForecast, for pagehide
+
+export async function warmForecastSession({ outLang = 'en', onProgress, signal } = {}) {
+  clearTimeout(releaseTimer);
+  if (warmSession && warmSession.outLang === outLang) return warmSession.session;
+  releaseForecastSession();
+  const mock = forecastMockMode();
+  if (mock) {
+    if (mock === 'download' && !mockDownloaded) {
+      for (let pct = 0; pct <= 100; pct += 20) {
+        if (signal?.aborted) throw new DOMException('aborted', 'AbortError');
+        onProgress?.(pct);
+        await new Promise((r) => setTimeout(r, 500));
+      }
+      mockDownloaded = true;
+    }
+    warmSession = { session: { mock: true, destroy() {} }, outLang };
+    return warmSession.session;
+  }
+  const create = (lang) =>
+    createGuarded(
+      (monitor, stallSignal) =>
+        LanguageModel.create({
+          initialPrompts: [{ role: 'system', content: forecastSystemPrompt(lang) }],
+          expectedInputs: [{ type: 'text', languages: ['en'] }],
+          expectedOutputs: [{ type: 'text', languages: [lang] }],
+          monitor,
+          signal: anySignal([stallSignal, signal]),
+        }),
+      onProgress
+    );
+  let session;
+  let lang = outLang;
+  try {
+    session = await create(lang);
+  } catch (err) {
+    // the model may not speak this language after all: fall back to
+    // English, the caller translates. Anything else (NotAllowedError when
+    // a download needs a user gesture, aborts) propagates with its name.
+    if (err?.name === 'NotSupportedError' && lang !== 'en') {
+      lang = 'en';
+      session = await create(lang);
+    } else {
+      throw err;
+    }
+  }
+  warmSession = { session, outLang: lang };
+  return session;
+}
+
+export function releaseForecastSession(delayMs = 0) {
+  clearTimeout(releaseTimer);
+  const drop = () => {
+    try { warmSession?.session?.destroy(); } catch { /* already gone */ }
+    warmSession = null;
+  };
+  if (delayMs > 0) releaseTimer = setTimeout(drop, delayMs);
+  else drop();
+}
+
+const MOCK_FORECASTS = [
+  { headline: 'Follow-up talks announced after this week’s breakthrough', timeframe: '24h', confidence: 'medium' },
+  { headline: 'Regulators schedule a hearing on the disputed decision', timeframe: '48h', confidence: 'low' },
+  { headline: 'Rival bid emerges as the deal heads for a shareholder vote', timeframe: '3d', confidence: 'low' },
+  { headline: 'Weekend deadline passes without a signed agreement', timeframe: '7d', confidence: 'medium' },
+];
+
+// articles: [{ id, title, description, source, publishedAt }] — already
+// filtered to what the model may see. Returns { forecasts, lang, provider }.
+export async function generateForecast({ articles, outLang = 'en', onProgress, signal } = {}) {
+  if (!Array.isArray(articles) || articles.length < FORECAST_MIN_ARTICLES) {
+    throw new Error('forecast.tooFew');
+  }
+  const now = Date.now();
+  const ctrl = new AbortController();
+  const stop = () => ctrl.abort(signal?.reason);
+  signal?.addEventListener('abort', stop, { once: true });
+  activeCtrl = ctrl;
+  try {
+    const session = await warmForecastSession({ outLang, onProgress, signal: ctrl.signal });
+    const lang = warmSession?.outLang || outLang;
+    onProgress?.(null); // model ready → thinking
+    let raw;
+    if (session.mock) {
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(resolve, 2000);
+        ctrl.signal.addEventListener('abort', () => {
+          clearTimeout(timer);
+          reject(new DOMException('aborted', 'AbortError'));
+        }, { once: true });
+      });
+      raw = JSON.stringify({
+        forecasts: MOCK_FORECASTS.map((f, i) => ({
+          ...f,
+          why: `Mock reasoning built on "${String(articles[i % articles.length].title).slice(0, 60)}" — the real model explains which signals in the headlines point this way.`,
+          basis: [i % articles.length],
+        })),
+      });
+      return { forecasts: sanitizeForecast(raw, articles, now), lang, provider: 'mock' };
+    }
+    let pool = articles;
+    const window_ = session.contextWindow ?? session.inputQuota;
+    const measure = session.measureContextUsage || session.measureInputUsage;
+    if (window_ && typeof measure === 'function') {
+      // keep a margin for the response; drop the oldest headlines first
+      while (pool.length > FORECAST_MIN_ARTICLES) {
+        const used = await measure.call(session, forecastUserPrompt(pool, now)).catch(() => 0);
+        if (!used || used <= window_ - 700) break;
+        pool = pool.slice(0, -3);
+      }
+    }
+    const prompt = forecastUserPrompt(pool, now);
+    try {
+      raw = await withTimeout(
+        session.prompt(prompt, { responseConstraint: forecastSchema(pool.length), signal: ctrl.signal }),
+        FORECAST_PROMPT_MS,
+        'forecast'
+      );
+    } catch (err) {
+      // a build without structured output: ask for JSON in plain text once
+      if (ctrl.signal.aborted || err?.name === 'AbortError' || /timed out/.test(err?.message || '')) throw err;
+      raw = await withTimeout(
+        session.prompt(prompt + ' Output only the JSON object, no prose.', { signal: ctrl.signal }),
+        FORECAST_PROMPT_MS,
+        'forecast'
+      );
+    }
+    return { forecasts: sanitizeForecast(raw, pool, now), lang, provider: 'on-device' };
+  } finally {
+    signal?.removeEventListener('abort', stop);
+    if (activeCtrl === ctrl) activeCtrl = null;
+    releaseForecastSession(); // one session per run: no context creep
+  }
+}
+
+// Never trust the model's JSON: clamp, coerce, map basis indices to real
+// article ids and drop echoes of the input headlines.
+export function sanitizeForecast(raw, articles, generatedAt = Date.now()) {
+  let data;
+  try {
+    const text = String(raw).replace(/^\s*```(?:json)?\s*|\s*```\s*$/g, '').trim();
+    data = JSON.parse(text);
+  } catch {
+    throw new Error('forecast.error');
+  }
+  const list = Array.isArray(data?.forecasts) ? data.forecasts : Array.isArray(data) ? data : null;
+  if (!list) throw new Error('forecast.error');
+  const norm = (s) => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  const inputTitles = new Set(articles.map((a) => norm(a.title)));
+  const seen = new Set();
+  const out = [];
+  for (const item of list) {
+    if (!item || typeof item !== 'object') continue;
+    const headline = String(item.headline || '').replace(/\s+/g, ' ').trim().slice(0, FORECAST_MAX_HEADLINE);
+    const why = String(item.why || '').replace(/\s+/g, ' ').trim().slice(0, FORECAST_MAX_WHY);
+    if (headline.length < 8) continue;
+    const key = norm(headline);
+    if (inputTitles.has(key) || seen.has(key)) continue;
+    const timeframe = FORECAST_TIMEFRAMES[item.timeframe] ? item.timeframe : '7d';
+    const hours = FORECAST_TIMEFRAMES[timeframe];
+    const confidence = item.confidence === 'medium' ? 'medium' : 'low';
+    const basis = [];
+    for (const idx of Array.isArray(item.basis) ? item.basis : []) {
+      const i = Math.trunc(Number(idx));
+      const a = Number.isInteger(i) && i >= 0 && i < articles.length ? articles[i] : null;
+      if (a && !basis.includes(a.id)) basis.push(a.id);
+      if (basis.length === 3) break;
+    }
+    if (!basis.length) continue;
+    seen.add(key);
+    out.push({
+      headline,
+      why,
+      timeframe,
+      hours,
+      dueAt: new Date(generatedAt + hours * 3600000).toISOString(),
+      confidence,
+      basis,
+    });
+  }
+  out.sort((a, b) => a.hours - b.hours);
+  if (out.length < 2) throw new Error('forecast.tooFew');
+  return out.slice(0, FORECAST_COUNT);
+}
+
 /* ── UI helpers ─────────────────────────────────────────────────────────── */
 
 export function providerLabel(provider) {
@@ -361,6 +675,8 @@ export function toBullets(summary, max = 7) {
 
 // Free on-device models when the page is going away.
 window.addEventListener('pagehide', () => {
+  try { activeCtrl?.abort(new Error('pagehide')); } catch { /* noop */ }
+  releaseForecastSession();
   try { summarizer?.destroy(); } catch { /* noop */ }
   summarizer = null;
   summarizerKey = '';

@@ -59,7 +59,8 @@ function markTranslateBroken() {
   }, 75_000);
 }
 let plasma = { setHistogram() {}, pulse() {} };  // replaced in boot()
-let timescale = { refresh() {}, hide() {} };     // replaced in boot()
+let timescale = { refresh() {}, hide() {}, setFuture() {} }; // replaced in boot()
+let forecast = null; // AI forecast module, loaded in boot() where supported
 
 /* ── Theme ──────────────────────────────────────────────────────────────── */
 
@@ -217,6 +218,7 @@ function clearGrid() {
 function clearPending() {
   state.pending = [];
   newPill.hidden = true;
+  forecast?.invalidate(); // a forecast belongs to the view it was drawn from
   scheduleBrief(300); // thinking state shows instantly; the run is debounced
 }
 
@@ -1256,6 +1258,20 @@ function initDrawer() {
   });
 }
 
+// The AI forecast row exists only where the Prompt API does: the module
+// reports `supported` after probing, and only then does the row appear.
+function initForecastSetting(f) {
+  const row = $('#forecastSetting');
+  const toggle = $('#forecastToggle');
+  if (!row || !toggle) return;
+  row.hidden = false;
+  toggle.checked = prefs.forecast !== false;
+  toggle.addEventListener('change', () => {
+    setPref('forecast', toggle.checked);
+    f.setEnabled(toggle.checked);
+  });
+}
+
 function renderSourcesList() {
   const wrap = $('#sourcesList');
   clear(wrap);
@@ -1396,6 +1412,32 @@ function boot() {
 
   loadSources();
   schedulePoll();
+  // AI forecast (Chrome built-in model only): probed after the feed is on
+  // its way; an unsupported browser gets no hint, no gesture, no setting
+  import('./forecast.js')
+    .then(({ initForecast }) =>
+      initForecast({
+        section: $('#forecast'),
+        hint: $('#forecastHint'),
+        fetchPool: () => api.news(buildParams({ pageSize: 30 })).then((r) => visibleArticles(r.articles)),
+        fallbackPool: () => state.articles,
+        articleById,
+        openArticle: (a) => cardHandlers.onOpen(articleById.get(a.id) || a),
+        timescale,
+        viewKey: () =>
+          [state.category, state.q, prefs.hiddenSources.join(','), prefs.targetLang || 'en', state.newestAt || ''].join('|'),
+        isFeedView: () =>
+          state.category !== 'battle' &&
+          state.category !== 'saved' &&
+          !document.body.classList.contains('onboard-mode'),
+        targetLang: () => prefs.targetLang || 'en',
+      })
+    )
+    .then((f) => {
+      forecast = f;
+      if (f.supported) initForecastSetting(f);
+    })
+    .catch(() => {});
   // returning to the tab: check for news immediately instead of waiting
   // out the interval (polls are skipped entirely while hidden)
   document.addEventListener('visibilitychange', () => {

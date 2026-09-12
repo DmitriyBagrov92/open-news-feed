@@ -27,6 +27,19 @@ export function relTime(iso, now = Date.now()) {
   return days === 1 ? t('time.day') : t('time.days', { n: days });
 }
 
+// Forward-looking counterpart of relTime for forecast due times. relTime
+// clamps the future to "JUST NOW" and freshness() would call it 'live' —
+// forecasts must never borrow the breaking-news voice.
+export function relFuture(iso, now = Date.now()) {
+  const ts = Date.parse(iso);
+  if (Number.isNaN(ts)) return '';
+  const hours = (ts - now) / HOUR;
+  if (hours <= 1) return t('time.anyMoment');
+  if (hours < 48) return t('time.withinHrs', { n: Math.ceil(hours) });
+  if (hours < 144) return t('time.withinDays', { n: Math.ceil(hours / 24) });
+  return t('time.thisWeek');
+}
+
 const absFmt = new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' });
 
 export function absTime(iso) {
@@ -64,5 +77,9 @@ export function refreshTimes(root = document) {
     timeEl.textContent = relTime(iso, now);
     const dot = timeEl.closest('.card-meta')?.querySelector('.dot');
     if (dot) dot.className = 'dot dot--' + freshness(iso, now);
+  }
+  // forecast due times count down instead of up; they carry no freshness dot
+  for (const timeEl of root.querySelectorAll('time[data-due]')) {
+    timeEl.textContent = relFuture(timeEl.dataset.due, now);
   }
 }

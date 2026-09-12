@@ -72,7 +72,8 @@
           "Bubble Battle: the same story from left, center and right outlets",
           "Your Feed: like/skip ranking that never leaves the device",
           "Anonymous comments and reactions, no sign-up",
-          "No ads, no tracking, open source"
+          "No ads, no tracking, open source",
+          "AI forecast (experimental): pull past the top of the feed for four clearly labelled possible next events, drafted on-device by Chrome's built-in model"
         ]
       }
     ]
@@ -223,6 +224,51 @@
     </div>
   </nav>
 
+  <!-- 3b · AI forecast — the future sits above the present. Revealed by
+       pulling past the top of the feed; exists only where the browser has
+       the built-in Prompt API (the module unhides the hint after probing) -->
+  <button class="forecast-hint mono" id="forecastHint" type="button" hidden>
+    <span class="forecast-hint-arrow" aria-hidden="true">↓</span>
+    <span class="forecast-hint-text" data-i18n="forecast.hint">Pull down for an AI forecast</span>
+    <span class="forecast-hint-bar" aria-hidden="true"></span>
+  </button>
+  <section class="forecast" id="forecast" hidden aria-label="AI forecast" data-i18n-label="forecast.aria">
+    <div class="forecast-card">
+      <div class="forecast-head">
+        <span class="ai-orb" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <defs>
+              <linearGradient id="aiGradF" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="var(--ai-g1)"/>
+                <stop offset="1" stop-color="var(--ai-g2)"/>
+              </linearGradient>
+            </defs>
+            <path class="ai-orb-star" fill="url(#aiGradF)"
+              d="M11 2.8l1.9 5.2 5.2 1.9-5.2 1.9L11 17l-1.9-5.2L3.9 9.9l5.2-1.9L11 2.8Z"/>
+            <path class="ai-orb-mini" fill="url(#aiGradF)"
+              d="M18.6 14.6l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9.9-2.3Z"/>
+          </svg>
+        </span>
+        <span class="forecast-label mono" data-i18n="forecast.label">AI forecast · next 7 days</span>
+        <span class="forecast-status mono" id="forecastStatus" aria-live="polite"></span>
+        <span class="badge mono" id="forecastBadge" hidden></span>
+        <button class="icon-btn forecast-regen" id="forecastRegen" type="button"
+          data-i18n-label="forecast.regenerate" aria-label="Regenerate the forecast">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/>
+          </svg>
+        </button>
+        <button class="icon-btn forecast-close" id="forecastClose" type="button"
+          data-i18n-label="forecast.close" aria-label="Close the forecast">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <p class="forecast-disclaimer"><span class="forecast-spec mono" data-i18n="forecast.specTag">Speculative</span><span data-i18n="forecast.disclaimer">Possible events an AI model on this device extrapolated from the stories in view — not news, not reporting, not verified. Read them as things to watch, nothing more.</span></p>
+      <div class="forecast-grid" id="forecastGrid"></div>
+    </div>
+  </section>
+
   <!-- 4 · Daily brief — auto-runs on load and on fresh news; fixed height
        so the grid below never moves -->
   <section class="brief" aria-label="Daily brief">
@@ -264,6 +310,9 @@
   <!-- 5 · Feed -->
   <!-- Right-rail plasma timescale: scroll position ↔ story time -->
   <aside class="timescale is-empty" id="timescale" aria-hidden="true">
+    <span class="timescale-future mono" id="timescaleFuture" hidden>
+      <span class="timescale-future-label" data-i18n="forecast.railFuture">+7D</span>
+    </span>
     <canvas class="timescale-canvas" id="plasma"></canvas>
     <span class="timescale-end mono">NOW</span>
     <div class="timescale-ticks" id="timescaleTicks"></div>
@@ -363,6 +412,14 @@
         <h3 class="drawer-label mono" data-i18n="settings.sources">Sources</h3>
         <p class="drawer-hint" data-i18n="settings.sourcesHint">Uncheck a source to hide its stories from the feed.</p>
         <div id="sourcesList"><p class="drawer-hint" data-i18n="settings.sourcesLoading">Loading sources…</p></div>
+      </section>
+      <section class="drawer-section" id="forecastSetting" hidden>
+        <h3 class="drawer-label mono" data-i18n="settings.forecast">AI forecast</h3>
+        <label class="check">
+          <input type="checkbox" id="forecastToggle">
+          <span data-i18n="settings.forecastToggle">Pull down at the top of the feed for an AI forecast</span>
+        </label>
+        <p class="drawer-hint" data-i18n="settings.forecastHint">Runs entirely on this device with Chrome’s built-in model. Shown only where the browser supports it.</p>
       </section>
       <section class="drawer-section">
         <h3 class="drawer-label mono" data-i18n="settings.about">About</h3>

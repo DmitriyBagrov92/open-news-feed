@@ -22,6 +22,14 @@ tracking — your preferences never leave your browser.
 - **AI daily brief** via the browser's built-in Summarizer API (on-device),
   with a local extractive fallback for every other browser. No keys, no server
   cost.
+- **AI forecast (experimental)** — pull past the top of the feed and
+  Chrome's built-in Prompt API (Gemini Nano, on-device) drafts four clearly
+  labelled *possible* events for the next 7 days from the stories in view,
+  each with a timeframe, a low/medium confidence tag and the real stories it
+  builds on. Nothing leaves the device, no keys, no server cost. The feature
+  simply does not exist on browsers without the API (currently Chrome 138+
+  on desktop with the model installed); `?forecast=mock` previews the UI
+  anywhere.
 - **Cosmic design.** Deep-space dark theme by default with the timeline
   rendered as a living WebGL plasma band behind live world clocks (30fps,
   GPU, zero dependencies; static under reduced motion), plus a clean

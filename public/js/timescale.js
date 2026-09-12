@@ -4,8 +4,12 @@
 // rail seeks the feed to that moment.
 
 import { relTime } from './time.js';
+import { t } from './i18n.js';
 
 const HEADER_OFFSET = 150; // sticky band + masthead ≈ where "in view" starts
+// Band reserved ABOVE NOW while the AI forecast section is on screen: the
+// feed range keeps the rest of the rail, the future gets a dashed ghost.
+const FUTURE_H = 40;
 
 function fmtClock(iso) {
   const d = new Date(iso);
@@ -13,15 +17,24 @@ function fmtClock(iso) {
 }
 
 export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, articleById, plasma, onSeekBeyond }) {
-  if (!container) return { refresh() {}, hide() {}, setSource() {} };
+  if (!container) return { refresh() {}, hide() {}, setSource() {}, setFuture() {} };
 
   let newestT = 0;
   let oldestT = 0;
   let dragging = false;
+  let futureFor = null; // the forecast section, while it is shown
+  const futureEl = container.querySelector('.timescale-future');
 
   function articleTime(card) {
     const article = articleById.get(card?.dataset.id);
     return article ? Date.parse(article.publishedAt) : NaN;
+  }
+
+  // frac 0 (NOW) … 1 (oldest) → a `top` inside the feed part of the rail,
+  // which starts below the future band when one is shown
+  function railTop(frac) {
+    const f = Math.max(0, Math.min(1, frac));
+    return `calc(var(--future-h, 0px) * ${(1 - f).toFixed(4)} + ${(f * 100).toFixed(3)}%)`;
   }
 
   // The rail works off a source of { t, el } points in top-to-bottom page
@@ -81,7 +94,7 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
       const t = newest - (newest - oldest) * frac;
       const tick = document.createElement('span');
       tick.className = 'timescale-tick mono';
-      tick.style.top = frac * 100 + '%';
+      tick.style.top = railTop(frac);
       tick.textContent = relTime(new Date(t).toISOString());
       ticksEl.append(tick);
     }
@@ -99,15 +112,26 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
 
   function placeCursor(frac, iso) {
     const f = Math.max(0, Math.min(1, frac));
-    cursorEl.style.top = f * 100 + '%';
+    cursorEl.style.top = railTop(f);
     // near the rail's top the centered label would collide with the
     // masthead controls — hang it below the cursor line instead
     cursorEl.classList.toggle('is-top', f < 0.09);
     labelEl.textContent = frac <= 0.005 ? 'NOW' : relTime(iso) + ' · ' + fmtClock(iso);
   }
 
+  // the reader is looking at the forecast: park the cursor in the future band
+  function parkFuture() {
+    cursorEl.style.top = FUTURE_H / 2 + 'px';
+    cursorEl.classList.add('is-top');
+    labelEl.textContent = t('forecast.railLabel');
+  }
+
   function syncCursor() {
     if (dragging || newestT === oldestT) return;
+    if (futureFor && !futureFor.hidden && futureFor.getBoundingClientRect().bottom > HEADER_OFFSET) {
+      parkFuture();
+      return;
+    }
     const item = topVisibleItem();
     if (!item) return;
     placeCursor((newestT - item.t) / (newestT - oldestT), new Date(item.t).toISOString());
@@ -131,7 +155,8 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
 
   function fracFromEvent(e) {
     const rect = container.getBoundingClientRect();
-    return Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    const fh = futureFor ? FUTURE_H : 0;
+    return Math.max(0, Math.min(1, (e.clientY - rect.top - fh) / Math.max(1, rect.height - fh)));
   }
 
   function seek(frac) {
@@ -170,6 +195,7 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
   }
 
   container.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.timescale-future')) return; // the ghost is a plain button
     dragging = true;
     container.setPointerCapture(e.pointerId);
     const frac = fracFromEvent(e);
@@ -192,9 +218,26 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
     syncCursor();
   });
 
+  // The forecast section is on screen: reserve the future band above NOW.
+  // Pass null when it goes away.
+  function setFuture(el) {
+    futureFor = el || null;
+    container.classList.toggle('has-future', Boolean(futureFor));
+    container.style.setProperty('--future-h', futureFor ? FUTURE_H + 'px' : '0px');
+    if (futureEl) futureEl.hidden = !futureFor;
+    refresh();
+  }
+  futureEl?.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    });
+  });
+
   return {
     refresh,
     setSource,
+    setFuture,
     hide() {
       container.classList.add('is-empty');
     },

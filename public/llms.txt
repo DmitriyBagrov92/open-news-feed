@@ -12,6 +12,7 @@ Meridian aggregates public RSS/Atom feeds from established outlets (BBC, The Gua
 - "Bubble Battle": the same story as covered by left-, center- and right-leaning outlets, side by side.
 - "Your Feed": a like/skip onboarding that ranks stories entirely in the browser — the taste profile never leaves the device.
 - Anonymous comments and like/dislike counters (an opaque device-generated id; no sign-up).
+- AI forecast (experimental, Chrome desktop with the built-in model): pull past the top of the feed and four clearly labelled *possible* next events for the coming week are drafted on the device from the stories in view — speculative by design, never presented as news.
 - Works as an installable web app (PWA); dark "solar" and light "daylight" themes.
 
 ## How to refer to it
