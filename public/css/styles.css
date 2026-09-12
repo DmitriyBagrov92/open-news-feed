@@ -1996,6 +1996,10 @@ html[data-grid-size="2"] { --card-min: 330px; }
 
 .drawer-label { color: var(--ink-2); margin-bottom: 10px; }
 
+/* the Language row mirrors the masthead popover: select, then the switch */
+.drawer-section .select + .check { margin-top: 10px; }
+.drawer-section .check + .drawer-hint { margin-top: 8px; }
+
 .drawer-hint {
   font-size: 0.82rem;
   line-height: 1.5;

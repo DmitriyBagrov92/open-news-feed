@@ -153,23 +153,12 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18Z"/></svg>
         </button>
         <div class="popover" id="langPopover" hidden>
-          <label class="popover-label mono" for="langSelect" data-i18n="lang.target">Translate to</label>
-          <select class="select" id="langSelect">
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="de">Deutsch</option>
-            <option value="fr">Français</option>
-            <option value="pt">Português</option>
-            <option value="it">Italiano</option>
-            <option value="nl">Nederlands</option>
-            <option value="pl">Polski</option>
-            <option value="uk">Українська</option>
-            <option value="ru">Русский</option>
-            <option value="ja">日本語</option>
-            <option value="zh">中文</option>
-          </select>
+          <label class="popover-label mono" for="langSelect" data-i18n="lang.target">Language</label>
+          <!-- options come from LANGUAGES in i18n.js — the same list fills the
+               Settings drawer; both controls bind to prefs.targetLang -->
+          <select class="select" id="langSelect" data-lang-select></select>
           <label class="check">
-            <input type="checkbox" id="autoTranslate">
+            <input type="checkbox" id="autoTranslate" data-auto-translate>
             <span data-i18n="lang.auto">Auto-translate the feed</span>
           </label>
           <p class="popover-hint" data-i18n="lang.hint">Runs on your device when the browser supports it; otherwise a free server fallback.</p>
@@ -403,10 +392,13 @@
     </div>
     <div class="drawer-body">
       <section class="drawer-section">
-        <h3 class="drawer-label mono" data-i18n="settings.uiLang">Interface language</h3>
-        <select class="select" id="uiLocale" aria-label="Interface language">
-          <option value="en">English</option>
-        </select>
+        <h3 class="drawer-label mono" data-i18n="settings.language">Language</h3>
+        <select class="select" id="langSelectDrawer" aria-label="Language" data-i18n-label="settings.language" data-lang-select></select>
+        <label class="check">
+          <input type="checkbox" id="autoTranslateDrawer" data-auto-translate>
+          <span data-i18n="lang.auto">Auto-translate the feed</span>
+        </label>
+        <p class="drawer-hint" data-i18n="settings.languageHint">One setting for everything: stories are translated into it (on your device when the browser can, otherwise a free server fallback), the AI brief and forecast answer in it, and the interface follows wherever a translation of the interface exists — English only so far.</p>
       </section>
       <section class="drawer-section">
         <h3 class="drawer-label mono" data-i18n="settings.sources">Sources</h3>

@@ -5,8 +5,7 @@ const KEY = 'meridian:prefs';
 
 const DEFAULTS = Object.freeze({
   theme: 'auto',            // 'auto' | 'light' | 'dark'
-  uiLocale: 'en',
-  targetLang: 'en',
+  targetLang: 'en',         // THE language: translation target, AI output, interface where available
   autoTranslate: false,
   hiddenSources: [],        // source ids excluded from the feed
   category: 'all',
@@ -24,8 +23,8 @@ const DEFAULTS = Object.freeze({
 function sanitize(raw) {
   const p = { ...DEFAULTS, ...(raw && typeof raw === 'object' ? raw : {}) };
   if (!['auto', 'light', 'dark'].includes(p.theme)) p.theme = 'auto';
-  if (typeof p.uiLocale !== 'string') p.uiLocale = 'en';
   if (typeof p.targetLang !== 'string') p.targetLang = 'en';
+  delete p.uiLocale; // pre-unification interface-language pref, superseded by targetLang
   if (typeof p.category !== 'string') p.category = 'all';
   if (typeof p.density !== 'string') p.density = 'comfortable';
   p.gridSize = Math.max(-2, Math.min(2, Math.trunc(Number(p.gridSize)) || 0));

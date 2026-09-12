@@ -1,7 +1,7 @@
 // Meridian app shell: feed, tabs, search, settings, polling, auto-translate.
 
 import { el, clear } from './dom.js';
-import { t, catLabel, setLocale, applyI18n } from './i18n.js';
+import { t, catLabel, setLocale, applyI18n, LANGUAGES, isLanguage } from './i18n.js';
 import { prefs, setPref, savePrefs, isSaved, toggleSaved, ensureAuthorId } from './prefs.js';
 import { api } from './api.js';
 import { initWireClocks, refreshTimes } from './time.js';
@@ -829,18 +829,78 @@ function initSearch() {
   });
 }
 
+/* ── Language: one preference, every control mirrors it ─────────────────── */
+
+// prefs.targetLang is the app's only language setting. Two controls expose
+// it — the masthead globe popover and the Settings drawer — both built from
+// LANGUAGES and both kept in step here, so there is nothing to reconcile.
+const langSelects = () => document.querySelectorAll('select[data-lang-select]');
+const autoChecks = () => document.querySelectorAll('input[data-auto-translate]');
+
+function fillLanguageSelects() {
+  for (const select of langSelects()) {
+    clear(select);
+    for (const { code, name } of LANGUAGES) select.append(el('option', { value: code, text: name }));
+  }
+}
+
+function syncLanguageControls() {
+  for (const select of langSelects()) select.value = prefs.targetLang;
+  for (const box of autoChecks()) box.checked = prefs.autoTranslate;
+}
+
+function translationBust() {
+  if (prefs.autoTranslate && prefs.targetLang !== 'en') {
+    // Create/download the on-device translator NOW, while the user's
+    // gesture is active — observer callbacks have no user activation.
+    warmTranslator('en', prefs.targetLang);
+    reobserveCards();
+  }
+}
+
+function setLanguage(lang) {
+  if (!isLanguage(lang) || lang === prefs.targetLang) {
+    syncLanguageControls();
+    return;
+  }
+  setPref('targetLang', lang);
+  setLocale(lang); // the interface follows wherever a table exists
+  applyI18n();
+  translateBroken = false;
+  revertAllCards();
+  // Picking a language IS asking for translation. Without this only the
+  // brief followed the selection (it ignores the auto flag) while cards
+  // and the details page stayed original wherever the checkbox was off.
+  if (lang !== 'en' && !prefs.autoTranslate) setPref('autoTranslate', true);
+  syncLanguageControls();
+  translationBust();
+  scheduleBrief(400); // the brief follows the language
+  document.dispatchEvent(new CustomEvent('meridian:langchange'));
+  onboardingView?.ui?.retranslate(); // the staged onboarding story too
+  // native feeds exist for this language → refetch the hybrid stream
+  if (nativeLangs.size && state.category !== 'saved' && state.category !== 'battle') {
+    loadFeed({ reset: true });
+  }
+}
+
+function setAutoTranslate(on) {
+  setPref('autoTranslate', Boolean(on));
+  syncLanguageControls();
+  translateBroken = false;
+  if (prefs.autoTranslate) translationBust();
+  else revertAllCards();
+  document.dispatchEvent(new CustomEvent('meridian:langchange'));
+}
+
 function initLangControl() {
   const toggle = $('#langToggle');
   const popover = $('#langPopover');
-  const select = $('#langSelect');
-  const auto = $('#autoTranslate');
 
-  select.value = prefs.targetLang;
-  if (select.value !== prefs.targetLang) {
-    select.value = 'en'; // unknown stored value
-    setPref('targetLang', 'en'); // and persist the correction
-  }
-  auto.checked = prefs.autoTranslate;
+  fillLanguageSelects();
+  if (!isLanguage(prefs.targetLang)) setPref('targetLang', 'en'); // unknown stored value
+  syncLanguageControls();
+  for (const select of langSelects()) select.addEventListener('change', () => setLanguage(select.value));
+  for (const box of autoChecks()) box.addEventListener('change', () => setAutoTranslate(box.checked));
 
   const setOpen = (open) => {
     popover.hidden = !open;
@@ -857,43 +917,6 @@ function initLangControl() {
       toggle.focus();
     }
   });
-
-  select.addEventListener('change', () => {
-    setPref('targetLang', select.value);
-    translateBroken = false;
-    revertAllCards();
-    // Picking a language IS asking for translation. Without this only the
-    // brief followed the selection (it ignores the auto flag) while cards
-    // and the details page stayed original wherever the checkbox was off.
-    if (select.value !== 'en' && !prefs.autoTranslate) {
-      setPref('autoTranslate', true);
-      auto.checked = true;
-    }
-    translationBust();
-    scheduleBrief(400); // the brief follows the target language
-    document.dispatchEvent(new CustomEvent('meridian:langchange'));
-    onboardingView?.ui?.retranslate(); // the staged onboarding story too
-    // native feeds exist for this target → refetch the hybrid stream
-    if (nativeLangs.size && state.category !== 'saved' && state.category !== 'battle') {
-      loadFeed({ reset: true });
-    }
-  });
-  auto.addEventListener('change', () => {
-    setPref('autoTranslate', auto.checked);
-    translateBroken = false;
-    if (auto.checked) translationBust();
-    else revertAllCards();
-    document.dispatchEvent(new CustomEvent('meridian:langchange'));
-  });
-
-  function translationBust() {
-    if (prefs.autoTranslate && prefs.targetLang !== 'en') {
-      // Create/download the on-device translator NOW, while the user's
-      // gesture is active — observer callbacks have no user activation.
-      warmTranslator('en', prefs.targetLang);
-      reobserveCards();
-    }
-  }
 }
 
 /* ── Tabs ───────────────────────────────────────────────────────────────── */
@@ -1248,14 +1271,6 @@ function initDrawer() {
     }
   });
 
-  const uiLocale = $('#uiLocale');
-  uiLocale.value = prefs.uiLocale;
-  if (uiLocale.value !== prefs.uiLocale) uiLocale.value = 'en';
-  uiLocale.addEventListener('change', () => {
-    setPref('uiLocale', uiLocale.value);
-    setLocale(uiLocale.value);
-    applyI18n();
-  });
 }
 
 // The AI forecast row exists only where the Prompt API does: the module
@@ -1348,7 +1363,7 @@ function initOffline() {
 /* ── Boot ───────────────────────────────────────────────────────────────── */
 
 function boot() {
-  setLocale(prefs.uiLocale);
+  setLocale(prefs.targetLang); // the interface speaks the one language where it can
   applyI18n();
   initTheme();
   initWireClocks(document.querySelector('.wire'));

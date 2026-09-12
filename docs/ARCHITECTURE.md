@@ -378,7 +378,9 @@ Used as the Railway healthcheck path.
 - **Never insert feed-derived strings via `innerHTML`.** Build DOM nodes and
   set `textContent`, or escape rigorously. Feed content is untrusted.
 - Preferences in `localStorage` under the single key `meridian:prefs` (one JSON
-  object: `theme`, `uiLocale`, `targetLang`, `autoTranslate`, `hiddenSources`,
+  object: `theme`, `targetLang` — THE language: translation target, AI output
+  language and interface locale where a table exists (`uiLocale` was folded
+  into it and is deleted on load) —, `autoTranslate`, `hiddenSources`,
   `category`, `density`, `gridSize`, `saved` [array of Article], `feedSub`,
   `forecast` (bool, AI forecast gesture)
   ('recommended' | 'saved'), `taste` — the onboarding like/dislike profile
@@ -427,9 +429,12 @@ Used as the Railway healthcheck path.
   `?forecast=mock` / `?forecast=mock-download` (or `localStorage
   meridian:forecastMock` = `1` / `download`) drive a canned provider for UI
   work on any machine.
-- i18n: `public/js/i18n.js` exports `t(key)` with an `en` table; UI locale is
-  a preference. Adding a language = adding one table + (optionally) sources
-  for that language in `config/sources.js`.
+- i18n: `public/js/i18n.js` exports `t(key)` with an `en` table, plus the
+  `LANGUAGES` list every language control is built from (masthead popover and
+  Settings drawer are two views of `prefs.targetLang`, synced by
+  `setLanguage()` in app.js). `setLocale(lang)` speaks `lang` when a table
+  exists and English otherwise. Adding a language = adding one table +
+  (optionally) sources for that language in `config/sources.js`.
 
 ## Module ownership (for parallel work)
 

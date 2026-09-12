@@ -4,6 +4,26 @@
 //   3. add the locale to the interface-language <select> in index.html.
 // Missing keys fall back to `en`, then to the key itself.
 
+// The one language list. Every language control (masthead popover, settings
+// drawer) is built from it, and `prefs.targetLang` is the single language
+// preference: stories are translated into it, the AI brief and forecast
+// answer in it, and the interface follows wherever a table below exists.
+export const LANGUAGES = [
+  { code: 'en', name: 'English' },
+  { code: 'es', name: 'Español' },
+  { code: 'de', name: 'Deutsch' },
+  { code: 'fr', name: 'Français' },
+  { code: 'pt', name: 'Português' },
+  { code: 'it', name: 'Italiano' },
+  { code: 'nl', name: 'Nederlands' },
+  { code: 'pl', name: 'Polski' },
+  { code: 'uk', name: 'Українська' },
+  { code: 'ru', name: 'Русский' },
+  { code: 'ja', name: '日本語' },
+  { code: 'zh', name: '中文' },
+];
+export const isLanguage = (code) => LANGUAGES.some((l) => l.code === code);
+
 const TABLES = {
   en: {
     // categories / tabs
@@ -50,7 +70,7 @@ const TABLES = {
 
     // translation control
     'lang.title': 'Translation',
-    'lang.target': 'TRANSLATE TO',
+    'lang.target': 'LANGUAGE',
     'lang.auto': 'Auto-translate the feed',
     'lang.hint': 'Runs on your device when the browser supports it; otherwise a free server fallback.',
     'lang.pick': 'Choose a target language other than English first.',
@@ -64,7 +84,8 @@ const TABLES = {
     'settings.open': 'Settings',
     'settings.title': 'Settings',
     'settings.close': 'Close settings',
-    'settings.uiLang': 'INTERFACE LANGUAGE',
+    'settings.language': 'LANGUAGE',
+    'settings.languageHint': 'One setting for everything: stories are translated into it (on your device when the browser can, otherwise a free server fallback), the AI brief and forecast answer in it, and the interface follows wherever a translation of the interface exists — English only so far.',
     'settings.sources': 'SOURCES',
     'settings.sourcesHint': 'Uncheck a source to hide its stories from the feed.',
     'settings.sourcesLoading': 'Loading sources…',
@@ -198,9 +219,12 @@ const TABLES = {
 
 let locale = 'en';
 
+// The interface speaks the chosen language when a table for it exists,
+// English otherwise — no separate "interface language" to keep in sync.
 export function setLocale(next) {
-  if (TABLES[next]) locale = next;
+  locale = TABLES[next] ? next : 'en';
 }
+export const hasLocale = (code) => Boolean(TABLES[code]);
 
 export function t(key, vars) {
   let str = TABLES[locale]?.[key] ?? TABLES.en[key] ?? key;
