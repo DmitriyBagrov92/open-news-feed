@@ -16,7 +16,8 @@ import {
 import { getBattles } from './lib/battles.js';
 import * as log from './lib/log.js';
 import { usageMiddleware, startUsageLog } from './lib/usage.js';
-import { renderIndex, publicOrigin, robotsTxt, sitemapXml } from './lib/page.js';
+import { renderIndex, publicOrigin, configuredOrigin, robotsTxt, sitemapXml } from './lib/page.js';
+import { indexNowKey, createIndexNow } from './lib/indexnow.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -64,6 +65,15 @@ app.get('/sitemap.xml', (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=600');
   res.type('application/xml').send(sitemapXml(publicOrigin(req)));
 });
+// IndexNow ownership proof: /{key}.txt must answer with the key. Served from
+// the variable itself — nothing to write to disk, nothing to keep in sync.
+const INDEXNOW_KEY = indexNowKey();
+if (INDEXNOW_KEY) {
+  app.get(`/${INDEXNOW_KEY}.txt`, (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.type('text/plain').send(INDEXNOW_KEY);
+  });
+}
 
 app.use(express.static(path.join(__dirname, 'public'), { index: 'index.html' }));
 
@@ -295,6 +305,9 @@ const PORT = Number(process.env.PORT) || 3000;
 // Minutes between `usage` log lines (default 5; 0 disables).
 const usageRaw = process.env.USAGE_LOG_MINUTES;
 const USAGE_LOG_MINUTES = usageRaw === undefined || usageRaw === '' ? 5 : Number(usageRaw);
+// Minimum minutes between IndexNow pings for the front page (default 60).
+const INDEXNOW_MINUTES = Math.max(5, Number(process.env.INDEXNOW_MINUTES) || 60);
+const INDEXNOW_ORIGIN = INDEXNOW_KEY ? configuredOrigin() : null;
 
 const server = app.listen(PORT, () => {
   log.info('listening', {
@@ -303,6 +316,7 @@ const server = app.listen(PORT, () => {
     refresh_minutes: Math.max(1, Number(process.env.REFRESH_MINUTES) || 5),
     usage_log_minutes: USAGE_LOG_MINUTES,
     heap_limit_mb: Math.round(v8HeapLimit() / 1048576),
+    indexnow: Boolean(INDEXNOW_KEY && INDEXNOW_ORIGIN),
   });
 });
 
@@ -324,6 +338,16 @@ initComments({ dbPath: process.env.COMMENTS_DB || './data/comments.db' }).catch(
   log.warn('comments init failed', log.errorFields(err))
 );
 store.startRefreshLoop();
+if (INDEXNOW_KEY && INDEXNOW_ORIGIN) {
+  const indexNow = createIndexNow({
+    key: INDEXNOW_KEY,
+    origin: INDEXNOW_ORIGIN,
+    minIntervalMs: INDEXNOW_MINUTES * 60_000,
+  });
+  store.onRefresh(({ latestId }) => indexNow.notify(latestId));
+} else if (INDEXNOW_KEY) {
+  log.warn('indexnow disabled: no public origin — set PUBLIC_URL');
+}
 if (USAGE_LOG_MINUTES > 0) {
   startUsageLog({
     intervalMs: USAGE_LOG_MINUTES * 60_000,

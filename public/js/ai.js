@@ -350,6 +350,8 @@ export function extractive(sentences, max = 5) {
 
 export const FORECAST_OUTPUT_LANGS = new Set(['en', 'es', 'ja', 'de', 'fr']);
 export const FORECAST_COUNT = 4;
+// the model drafts one spare so the least concrete candidate can be dropped
+const FORECAST_CANDIDATES = FORECAST_COUNT + 1;
 export const FORECAST_TIMEFRAMES = { '24h': 24, '48h': 48, '3d': 72, '7d': 168 };
 const FORECAST_MAX_HEADLINE = 110;
 const FORECAST_MAX_WHY = 320;
@@ -378,14 +380,16 @@ let mockDownloaded = false;
 function forecastSystemPrompt(outLang) {
   const language = LANGUAGE_NAMES[outLang] || 'English';
   return (
-    `You are a cautious news analyst writing in ${language}. From today's headlines you list plausible NEXT developments that could happen within the next 7 days: scheduled votes, rulings, deadlines, launches, earnings, negotiations, weather, sports fixtures, or follow-ups the stories explicitly imply.\n` +
+    `You are a cautious news analyst writing in ${language}. From today's headlines you list the plausible NEXT step each story points to, within the next 7 days.\n` +
     'Rules:\n' +
-    '- Never restate a headline as a forecast and never claim something has already happened.\n' +
-    '- Each forecast names ONE concrete, checkable event, phrased like a possible future headline (under 100 characters), then "why" in one or two sentences.\n' +
-    '- The four forecasts cover four different topics and are spread across different timeframes ("24h", "48h", "3d", "7d").\n' +
+    '- Stay inside the news. Every forecast names the specific people, organisations, teams, companies, places or numbers from the headline it builds on, and states ONE checkable event with who / what / where: a vote, ruling, hearing, deadline, match result, launch, earnings report, announcement, strike, deal, sentencing, election result, evacuation, price move.\n' +
+    '- Too abstract, never write these: "talks continue", "situation evolves", "focus shifts to", "tensions remain", "reactions follow", "events planned", "relationship develops".\n' +
+    '- Good: "Bears play Swift in Sunday\u2019s game against the Packers after his extension", "Fed keeps rates at 4.25% at Wednesday\u2019s meeting", "Court sets a hearing date for the Kawhi Leonard salary-cap case".\n' +
+    '- Never restate a headline and never claim something has already happened: the forecast is what comes NEXT.\n' +
+    '- "why": one or two sentences citing the specific fact in the headline that points there.\n' +
+    `- ${FORECAST_CANDIDATES} forecasts on ${FORECAST_CANDIDATES} different stories, spread across the timeframes "24h", "48h", "3d", "7d".\n` +
     '- "confidence" is "low" unless several headlines point the same way; then "medium". Never higher.\n' +
-    '- "basis" lists the index numbers of the headlines each forecast builds on.\n' +
-    '- Output JSON only.'
+    '- "basis" lists the index numbers of the headlines each forecast builds on. Headlines under 100 characters. Output JSON only.'
   );
 }
 
@@ -397,8 +401,8 @@ function forecastSchema(n) {
     properties: {
       forecasts: {
         type: 'array',
-        minItems: FORECAST_COUNT,
-        maxItems: FORECAST_COUNT,
+        minItems: FORECAST_CANDIDATES,
+        maxItems: FORECAST_CANDIDATES,
         items: {
           type: 'object',
           additionalProperties: false,
@@ -425,13 +429,13 @@ function forecastUserPrompt(articles, now) {
   const lines = articles.map((a, i) => {
     const age = Math.max(0, Math.round((now - Date.parse(a.publishedAt)) / 3600000));
     const title = String(a.title || '').slice(0, 120);
-    const desc = String(a.description || '').slice(0, 100);
+    const desc = String(a.description || '').slice(0, 160);
     return `${i} · ${a.source || 'unknown'} · ${age}h ago · ${title}${desc ? ' — ' + desc : ''}`;
   });
   return (
     `Today is ${new Date(now).toUTCString()}. Headlines, newest first (index · source · age · title — description):\n` +
     lines.join('\n') +
-    `\n\nReturn exactly ${FORECAST_COUNT} forecasts as JSON.`
+    `\n\nReturn exactly ${FORECAST_CANDIDATES} forecasts as JSON.`
   );
 }
 
@@ -567,7 +571,7 @@ export async function generateForecast({ articles, outLang = 'en', onProgress, s
           basis: [i % articles.length],
         })),
       });
-      return { forecasts: sanitizeForecast(raw, articles, now), lang, provider: 'mock' };
+      return { forecasts: sanitizeForecast(raw, articles, now, { strict: false }), lang, provider: 'mock' };
     }
     let pool = articles;
     const window_ = session.contextWindow ?? session.inputQuota;
@@ -604,9 +608,38 @@ export async function generateForecast({ articles, outLang = 'en', onProgress, s
   }
 }
 
+// Capitalised words and numbers — the names, places and figures a concrete
+// forecast has to carry over from the story it builds on.
+const ENTITY_STOP = new Set(('the a an and of in on at to for with by from as is are was were be after before over ' +
+  'under into amid vs new his her their this that these those it its he she they we you why how what when').split(' '));
+export function forecastEntities(text) {
+  const out = new Set();
+  for (const raw of String(text).split(/[^\p{L}\p{N}'\u2019.%-]+/u)) {
+    const w = raw.replace(/^[\u2019'.-]+|[\u2019'.-]+$/g, '').replace(/['\u2019]s$/, '');
+    if (!w) continue;
+    // figures: 2+ digits, a decimal, or a percentage ("4.25%", "2026", "33.75M" → "33.75")
+    if (/^\d+([.,]\d+)?%?$/.test(w) && (w.replace(/\D/g, '').length >= 2 || w.endsWith('%'))) out.add(w.toLowerCase());
+    else if (w.length >= 3 && /^\p{Lu}/u.test(w) && !ENTITY_STOP.has(w.toLowerCase())) out.add(w.toLowerCase());
+  }
+  return out;
+}
+const VAGUE_RE = /\b(evolv|continu|develop|shape up|shapes up|remain|focus|attention|momentum|reaction|discussion|speculation|scrutiny|tension|uncertaint|pressure mount|ongoing|planned|expected to)\b/i;
+
+// How firmly a forecast stands on its stories: shared names/numbers with
+// the basis headlines, minus one for headline clichés.
+function concreteness(f, basisArticles) {
+  const own = forecastEntities(f.headline + ' ' + f.why);
+  const basis = new Set();
+  for (const a of basisArticles) for (const t of forecastEntities(a.title + ' ' + (a.description || ''))) basis.add(t);
+  let shared = 0;
+  for (const t of own) if (basis.has(t)) shared += 1;
+  return shared - (VAGUE_RE.test(f.headline) ? 1 : 0);
+}
+
 // Never trust the model's JSON: clamp, coerce, map basis indices to real
-// article ids and drop echoes of the input headlines.
-export function sanitizeForecast(raw, articles, generatedAt = Date.now()) {
+// article ids, drop echoes of the input headlines and — strict mode — keep
+// only the FORECAST_COUNT candidates that actually name what they build on.
+export function sanitizeForecast(raw, articles, generatedAt = Date.now(), { strict = true } = {}) {
   let data;
   try {
     const text = String(raw).replace(/^\s*```(?:json)?\s*|\s*```\s*$/g, '').trim();
@@ -631,15 +664,18 @@ export function sanitizeForecast(raw, articles, generatedAt = Date.now()) {
     const hours = FORECAST_TIMEFRAMES[timeframe];
     const confidence = item.confidence === 'medium' ? 'medium' : 'low';
     const basis = [];
+    const basisArticles = [];
     for (const idx of Array.isArray(item.basis) ? item.basis : []) {
       const i = Math.trunc(Number(idx));
       const a = Number.isInteger(i) && i >= 0 && i < articles.length ? articles[i] : null;
-      if (a && !basis.includes(a.id)) basis.push(a.id);
+      if (a && !basis.includes(a.id)) {
+        basis.push(a.id);
+        basisArticles.push(a);
+      }
       if (basis.length === 3) break;
     }
     if (!basis.length) continue;
-    seen.add(key);
-    out.push({
+    const forecast = {
       headline,
       why,
       timeframe,
@@ -647,11 +683,18 @@ export function sanitizeForecast(raw, articles, generatedAt = Date.now()) {
       dueAt: new Date(generatedAt + hours * 3600000).toISOString(),
       confidence,
       basis,
-    });
+    };
+    const score = strict ? concreteness(forecast, basisArticles) : 1;
+    if (score < 1) continue; // names nothing from its own story: abstract, out
+    seen.add(key);
+    out.push({ forecast, score });
   }
-  out.sort((a, b) => a.hours - b.hours);
-  if (out.length < 2) throw new Error('forecast.tooFew');
-  return out.slice(0, FORECAST_COUNT);
+  // the most concrete first, then the spare is dropped; shown soonest-first
+  out.sort((a, b) => b.score - a.score);
+  const kept = out.slice(0, FORECAST_COUNT).map((x) => x.forecast);
+  kept.sort((a, b) => a.hours - b.hours);
+  if (kept.length < 2) throw new Error('forecast.tooFew');
+  return kept;
 }
 
 /* ── UI helpers ─────────────────────────────────────────────────────────── */

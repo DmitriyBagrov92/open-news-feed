@@ -355,6 +355,13 @@ Used as the Railway healthcheck path.
   disallowed for indexers) and `/sitemap.xml` (lastmod = last refresh) are
   generated the same way; `/llms.txt`, `/manifest.webmanifest`, `/og.png`
   and `/icons/*` are static.
+- **IndexNow** (`lib/indexnow.js`). With `INDEXNOW_KEY` set and a public
+  origin known (`PUBLIC_URL` / Railway domain), the server answers
+  `/{key}.txt` with the key and, via `store.onRefresh`, POSTs the front page
+  URL to `api.indexnow.org` whenever the newest article id changed since the
+  last ping, at most once per `INDEXNOW_MINUTES` (default 60, floor 5).
+  200/202 log `indexnow submitted`; 403/422/429 log `indexnow rejected` and
+  back off a full interval.
 - **Logging** (`lib/log.js`). One JSON object per line on stdout with
   `level` (`info|warn|error`), `message` and attribute fields — Railway's
   structured-log format (`@level:warn`, `@message:usage`, `@source:…`).
@@ -398,8 +405,11 @@ Used as the Railway healthcheck path.
   brief's thinking bars, then 4 `.fcard` forecasts. Input: the current view's
   English stories (≥5, ≤30, re-fetched like the brief); output: JSON under a
   `responseConstraint` schema (`headline`, `why`, `timeframe` ∈ 24h/48h/3d/7d,
-  `confidence` ∈ low/medium, `basis` indices → real article ids), sanitized
-  client-side. Output language = the translation target when the model
+  `confidence` ∈ low/medium, `basis` indices → real article ids). The model
+  drafts five candidates; the sanitizer keeps the four most concrete — each
+  must share at least one name, place or figure with the stories it cites
+  (`forecastEntities`), headline clichés cost a point — and retries once when
+  fewer than two survive. Output language = the translation target when the model
   speaks it (en/es/ja/de/fr), else English pushed through the translate
   ladder. Cached per view key (category|q|hidden sources|target|newestAt)
   for 30 min; `clearPending()` hides it on any view change and

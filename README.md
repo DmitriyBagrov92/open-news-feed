@@ -83,6 +83,8 @@ Every variable is optional — the app works out of the box.
 | `PUBLIC_URL` | Public origin (e.g. `https://meridi.info`) for canonical, Open Graph and sitemap URLs; defaults to Railway's domain, else the request host |
 | `GOOGLE_SITE_VERIFICATION` | Google Search Console ownership token — rendered as the `google-site-verification` meta tag (see Getting indexed) |
 | `BING_SITE_VERIFICATION` | Bing Webmaster Tools ownership token — rendered as the `msvalidate.01` meta tag |
+| `INDEXNOW_KEY` | Enables IndexNow pings (Bing, Yandex, Seznam, Naver) when the front page has a new top story; any 8–128 chars of `[A-Za-z0-9-]` — see Getting indexed |
+| `INDEXNOW_MINUTES` | Minimum minutes between IndexNow pings (default `60`) |
 
 ## Deploy on Railway
 
@@ -207,6 +209,22 @@ DuckDuckGo, Yahoo, Ecosia and Microsoft Copilot)
   then **Sitemaps** → submit `https://meridi.info/sitemap.xml`.
 
 Keep the variables set: both services re-check the tag periodically.
+**IndexNow — fresh headlines within minutes** (Bing, Yandex, Seznam, Naver
+and every other engine on the protocol). Crawlers otherwise decide when to
+come back; IndexNow lets the server say "the front page changed" itself.
+
+1. Make up a key: `openssl rand -hex 16`.
+2. Set it on Railway: `railway variables --set INDEXNOW_KEY=<key>` and
+   redeploy. The server now answers `https://meridi.info/<key>.txt` with the
+   key (the protocol's ownership proof) and, after each feed refresh that
+   brings a new top story — at most once per `INDEXNOW_MINUTES` — POSTs
+   `https://meridi.info/` to `api.indexnow.org`, which fans the ping out to
+   all participating engines.
+3. Watch the logs: `indexnow submitted` with `status` 200 (or 202 while the
+   key file is being verified the first time); `indexnow rejected` names the
+   HTTP status (403 = key file not reachable, 422 = URL/host mismatch,
+   429 = too many). Bing Webmaster Tools → **IndexNow** lists the pings.
+
 Yandex Webmaster (<https://webmaster.yandex.com>) works the same way with
 `<meta name="yandex-verification">`; add it to `VERIFICATION_TAGS` in
 `lib/page.js` if you want it.
