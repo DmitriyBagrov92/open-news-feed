@@ -364,12 +364,13 @@ export async function initForecast(deps) {
         renderNote('forecast.needsGesture', { enable: true });
         return;
       }
-      if (err?.message === 'forecast.tooFew' && !retried) {
-        // the model echoed the news instead of extrapolating — one more try
+      const soft = err?.message === 'forecast.tooFew' || err?.message === 'forecast.abstract';
+      if (soft && !retried) {
+        // the model echoed or waffled instead of extrapolating — one more try
         run({ force: true, activation, retried: true });
         return;
       }
-      renderNote(err?.message === 'forecast.tooFew' ? 'forecast.tooFew' : 'forecast.error', { retry: true });
+      renderNote(soft ? err.message : 'forecast.error', { retry: true });
     }
   }
 

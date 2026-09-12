@@ -350,8 +350,8 @@ export function extractive(sentences, max = 5) {
 
 export const FORECAST_OUTPUT_LANGS = new Set(['en', 'es', 'ja', 'de', 'fr']);
 export const FORECAST_COUNT = 4;
-// the model drafts one spare so the least concrete candidate can be dropped
-const FORECAST_CANDIDATES = FORECAST_COUNT + 1;
+// the model drafts spares so the least concrete candidates can be dropped
+const FORECAST_CANDIDATES = FORECAST_COUNT + 2;
 export const FORECAST_TIMEFRAMES = { '24h': 24, '48h': 48, '3d': 72, '7d': 168 };
 const FORECAST_MAX_HEADLINE = 110;
 const FORECAST_MAX_WHY = 320;
@@ -380,18 +380,34 @@ let mockDownloaded = false;
 function forecastSystemPrompt(outLang) {
   const language = LANGUAGE_NAMES[outLang] || 'English';
   return (
-    `You are a cautious news analyst writing in ${language}. From today's headlines you list the plausible NEXT step each story points to, within the next 7 days.\n` +
+    `You are a cautious news analyst writing in ${language}. For each story you are given you predict the NEXT event it points to within 7 days \u2014 never the story itself.\n` +
     'Rules:\n' +
-    '- Stay inside the news. Every forecast names the specific people, organisations, teams, companies, places or numbers from the headline it builds on, and states ONE checkable event with who / what / where: a vote, ruling, hearing, deadline, match result, launch, earnings report, announcement, strike, deal, sentencing, election result, evacuation, price move.\n' +
-    '- Too abstract, never write these: "talks continue", "situation evolves", "focus shifts to", "tensions remain", "reactions follow", "events planned", "relationship develops".\n' +
-    '- Good: "Bears play Swift in Sunday\u2019s game against the Packers after his extension", "Fed keeps rates at 4.25% at Wednesday\u2019s meeting", "Court sets a hearing date for the Kawhi Leonard salary-cap case".\n' +
-    '- Never restate a headline and never claim something has already happened: the forecast is what comes NEXT.\n' +
-    '- "why": one or two sentences citing the specific fact in the headline that points there.\n' +
+    '- A forecast is a future headline: it names the same people, teams, companies, places or figures as the story it builds on, and states one checkable event with who / what / where (a vote, ruling, hearing, deadline, match result, launch, earnings report, announcement, strike, deal, sentencing, price move, landfall).\n' +
+    '- Never copy or paraphrase a headline. If a forecast could be read as a summary of the story, it is wrong.\n' +
+    '- No clich\u00e9s: "talks continue", "situation evolves", "tensions escalate", "focus shifts to", "reactions follow", "events planned", "prowess continues", "faces pressure".\n' +
+    '- "why": one or two sentences citing the specific fact in the story that points there.\n' +
     `- ${FORECAST_CANDIDATES} forecasts on ${FORECAST_CANDIDATES} different stories, spread across the timeframes "24h", "48h", "3d", "7d".\n` +
-    '- "confidence" is "low" unless several headlines point the same way; then "medium". Never higher.\n' +
-    '- "basis" lists the index numbers of the headlines each forecast builds on. Headlines under 100 characters. Output JSON only.'
+    '- "confidence" is "low" unless several stories point the same way; then "medium". Never higher.\n' +
+    '- "basis" lists the index numbers of the stories each forecast builds on. Headlines under 100 characters. Output JSON only.' +
+    (outLang === 'en' ? '' : ` Write every headline and "why" in ${language}, even though the example below is in English.`)
   );
 }
+
+// One worked example (a small model copies the shape it is shown): three
+// stories, three NEXT-step forecasts that keep the names and add the event.
+const FORECAST_EXAMPLE_USER =
+  'Today is Tue, 09 Sep 2026 10:00:00 GMT. Headlines, newest first (index \u00b7 source \u00b7 age \u00b7 title \u2014 description):\n' +
+  "0 \u00b7 ESPN \u00b7 3h ago \u00b7 Sources: Bears, Swift agree to $33.75M extension \u2014 The Chicago Bears and RB D'Andre Swift have reached an agreement on a three-year extension.\n" +
+  "1 \u00b7 Reuters \u00b7 5h ago \u00b7 Fed expected to hold rates this week as inflation cools \u2014 Markets price a hold at Wednesday's FOMC meeting; the statement language is in focus.\n" +
+  '2 \u00b7 BBC \u00b7 1h ago \u00b7 Typhoon Ragasa strengthens as it heads for Taiwan \u2014 Forecasters expect landfall on the east coast late Thursday.\n\n' +
+  'Return exactly 3 forecasts as JSON.';
+const FORECAST_EXAMPLE_ASSISTANT = JSON.stringify({
+  forecasts: [
+    { headline: "Swift starts at running back in the Bears' Sunday opener", why: 'The three-year, $33.75M extension signed this week makes him the lead back going into the opener.', timeframe: '48h', confidence: 'medium', basis: [0] },
+    { headline: 'Fed holds rates on Wednesday and hints at a December cut', why: "Markets price a hold at this week's FOMC meeting, so the statement's wording is the next move.", timeframe: '3d', confidence: 'medium', basis: [1] },
+    { headline: 'Taiwan closes schools and offices on Thursday as Ragasa makes landfall', why: 'Forecasters expect landfall on the east coast late Thursday; closures follow every typhoon warning.', timeframe: '7d', confidence: 'low', basis: [2] },
+  ],
+});
 
 function forecastSchema(n) {
   return {
@@ -496,7 +512,11 @@ export async function warmForecastSession({ outLang = 'en', onProgress, signal }
     createGuarded(
       (monitor, stallSignal) =>
         LanguageModel.create({
-          initialPrompts: [{ role: 'system', content: forecastSystemPrompt(lang) }],
+          initialPrompts: [
+            { role: 'system', content: forecastSystemPrompt(lang) },
+            { role: 'user', content: FORECAST_EXAMPLE_USER },
+            { role: 'assistant', content: FORECAST_EXAMPLE_ASSISTANT },
+          ],
           expectedInputs: [{ type: 'text', languages: ['en'] }],
           expectedOutputs: [{ type: 'text', languages: [lang] }],
           monitor,
@@ -623,17 +643,37 @@ export function forecastEntities(text) {
   }
   return out;
 }
-const VAGUE_RE = /\b(evolv|continu|develop|shape up|shapes up|remain|focus|attention|momentum|reaction|discussion|speculation|scrutiny|tension|uncertaint|pressure mount|ongoing|planned|expected to)\b/i;
+// headline clichés a small model reaches for when it has nothing concrete
+const VAGUE_RE = /\b(evolv\w*|continu\w*|develop\w*|shap\w* up|remain\w*|focus\w*|attention|momentum|reaction\w*|discussion\w*|speculation|scrutiny|tension\w*|uncertaint\w*|pressure|ongoing|planned|prowess|amaze\w*|showcase\w*|compelling|emerging|impact\w*|prompt\w*|prepare\w*|heighten\w*|increas\w*|strategy|condemnation|escalat\w*|faces|face|sparks|fuels|raises questions|spotlight)\b/gi;
+// the concrete nouns of a checkable event, and dates / figures
+const EVENT_RE = /\b(vote\w*|hearing|ruling|verdict|sentenc\w*|deadline|launch\w*|report\w*|earnings|deal|agreement|strike\w*|landfall|final\w*|semi-?final\w*|match|game|opener|derby|election\w*|summit|meeting|announce\w*|sign\w*|release\w*|ship\w*|cut\w*|hike\w*|hold\w* rates|ban\w*|approv\w*|reject\w*|fine\w*|indict\w*|charge\w*|arrest\w*|resign\w*|appoint\w*|acquir\w*|buy\w*|sell\w*|ipo|evacuat\w*|close\w*|open\w*|start\w*|play\w*|beat\w*|win\w*|lose\w*|return\w*|test\w*|unveil\w*|publish\w*|ceasefire|sanction\w*|tariff\w*)\b/i;
+const WHEN_RE = /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|tonight|tomorrow|weekend|\d{1,2}(st|nd|rd|th)?|\d+(\.\d+)?%|\$\d)/i;
 
-// How firmly a forecast stands on its stories: shared names/numbers with
-// the basis headlines, minus one for headline clichés.
+// How firmly a forecast stands on its stories: names/figures shared with
+// the basis headlines, a point for naming a concrete event and one for a
+// date or figure, two off per cliché.
 function concreteness(f, basisArticles) {
   const own = forecastEntities(f.headline + ' ' + f.why);
   const basis = new Set();
   for (const a of basisArticles) for (const t of forecastEntities(a.title + ' ' + (a.description || ''))) basis.add(t);
   let shared = 0;
   for (const t of own) if (basis.has(t)) shared += 1;
-  return shared - (VAGUE_RE.test(f.headline) ? 1 : 0);
+  const cliches = (f.headline.match(VAGUE_RE) || []).length;
+  return shared + (EVENT_RE.test(f.headline) ? 1 : 0) + (WHEN_RE.test(f.headline) ? 1 : 0) - 2 * cliches;
+}
+
+// A forecast that is really the story again: most of a basis headline's
+// words reappear in it (the model copied the line, dash-description and all).
+const contentWords = (s) => new Set(String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').split(' ').filter((w) => w.length > 2));
+function echoes(headline, articles) {
+  const h = contentWords(headline);
+  return articles.some((a) => {
+    const t = contentWords(a.title);
+    if (!t.size) return false;
+    let n = 0;
+    for (const w of t) if (h.has(w)) n += 1;
+    return n / t.size >= 0.6;
+  });
 }
 
 // Never trust the model's JSON: clamp, coerce, map basis indices to real
@@ -655,11 +695,13 @@ export function sanitizeForecast(raw, articles, generatedAt = Date.now(), { stri
   const out = [];
   for (const item of list) {
     if (!item || typeof item !== 'object') continue;
-    const headline = String(item.headline || '').replace(/\s+/g, ' ').trim().slice(0, FORECAST_MAX_HEADLINE);
+    // a copied feed line carries " — description": keep the headline part
+    const headline = String(item.headline || '').split(' \u2014 ')[0].replace(/\s+/g, ' ').trim().slice(0, FORECAST_MAX_HEADLINE);
     const why = String(item.why || '').replace(/\s+/g, ' ').trim().slice(0, FORECAST_MAX_WHY);
     if (headline.length < 8) continue;
     const key = norm(headline);
     if (inputTitles.has(key) || seen.has(key)) continue;
+    if (strict && echoes(headline, articles)) continue; // the story again, not its next step
     const timeframe = FORECAST_TIMEFRAMES[item.timeframe] ? item.timeframe : '7d';
     const hours = FORECAST_TIMEFRAMES[timeframe];
     const confidence = item.confidence === 'medium' ? 'medium' : 'low';
@@ -693,7 +735,9 @@ export function sanitizeForecast(raw, articles, generatedAt = Date.now(), { stri
   out.sort((a, b) => b.score - a.score);
   const kept = out.slice(0, FORECAST_COUNT).map((x) => x.forecast);
   kept.sort((a, b) => a.hours - b.hours);
-  if (kept.length < 2) throw new Error('forecast.tooFew');
+  // too little left: the model restated or waffled (abstract) — the runner
+  // retries once; a genuinely short list is tooFew
+  if (kept.length < 2) throw new Error(list.length >= 2 ? 'forecast.abstract' : 'forecast.tooFew');
   return kept;
 }
 

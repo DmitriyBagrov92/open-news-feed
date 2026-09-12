@@ -102,6 +102,7 @@ const TABLES = {
     'forecast.openBasis': 'Open the real story: {title}',
     'forecast.tooFew': 'Not enough English stories in this view to forecast from — try the All tab.',
     'forecast.error': 'The forecast could not be generated. Try again.',
+    'forecast.abstract': 'The model only restated the news this time — try again for a sharper set.',
     'forecast.needsGesture': 'The model still needs a one-time download — press Enable to start it.',
     'forecast.railLabel': 'FORECAST',
     'forecast.railFuture': '+7D',

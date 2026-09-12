@@ -405,11 +405,13 @@ Used as the Railway healthcheck path.
   brief's thinking bars, then 4 `.fcard` forecasts. Input: the current view's
   English stories (≥5, ≤30, re-fetched like the brief); output: JSON under a
   `responseConstraint` schema (`headline`, `why`, `timeframe` ∈ 24h/48h/3d/7d,
-  `confidence` ∈ low/medium, `basis` indices → real article ids). The model
-  drafts five candidates; the sanitizer keeps the four most concrete — each
-  must share at least one name, place or figure with the stories it cites
-  (`forecastEntities`), headline clichés cost a point — and retries once when
-  fewer than two survive. Output language = the translation target when the model
+  `confidence` ∈ low/medium, `basis` indices → real article ids). The session
+  carries one worked example (three stories → three next-step forecasts) —
+  without it Gemini Nano copies the feed lines back. The model drafts six
+  candidates; the sanitizer drops echoes (≥60% of a basis headline's words),
+  scores the rest — names/figures shared with the cited stories, +1 for a
+  concrete event noun, +1 for a date or figure, −2 per cliché — keeps the four
+  best, and retries once when fewer than two survive (`forecast.abstract`). Output language = the translation target when the model
   speaks it (en/es/ja/de/fr), else English pushed through the translate
   ladder. Cached per view key (category|q|hidden sources|target|newestAt)
   for 30 min; `clearPending()` hides it on any view change and
