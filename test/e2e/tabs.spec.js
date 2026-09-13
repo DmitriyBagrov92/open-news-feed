@@ -17,9 +17,15 @@ test('category tabs filter the feed and the choice survives a reload', async ({ 
   await expect(cards(page)).toHaveCount(30);
 });
 
-test('Your Feed and Bubble Battle are reachable without scrolling the tab strip', async ({ page }, testInfo) => {
-  test.fixme(isMobile(testInfo), 'the strip pushes Saved/Battle off-screen on phones — fixed by the redesign shell');
+test('Your Feed and Bubble Battle are reachable without scrolling anything', async ({ page }, testInfo) => {
   await gotoFeed(page);
-  await expect(page.locator('#tabs [data-cat="saved"]')).toBeInViewport();
-  await expect(page.locator('#tabs [data-cat="battle"]')).toBeInViewport();
+  // phones: the floating tab bar; wide screens: the category segment in the cluster
+  const root = isMobile(testInfo) ? '#tabbar' : '#tabs';
+  await expect(page.locator(`${root} [data-cat="saved"]`).first()).toBeInViewport();
+  await expect(page.locator(`${root} [data-cat="battle"]`).first()).toBeInViewport();
+  if (isMobile(testInfo)) {
+    await expect(page.locator('#tabs [data-cat="saved"]')).toBeHidden(); // not duplicated in the chip row
+  } else {
+    await expect(page.getByTestId('tabbar')).toBeHidden();
+  }
 });

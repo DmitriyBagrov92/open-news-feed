@@ -15,6 +15,7 @@ const DEFAULTS = Object.freeze({
   authorId: null,           // anonymous comment identity (lazy UUID)
   feedSub: 'recommended',   // Your Feed sub-tab: 'recommended' | 'saved'
   forecast: true,           // AI forecast pull gesture (only where the Prompt API exists)
+  glass: 0.5,               // Liquid Glass tint: 0 ultra clear … 1 tinted
   // Taste profile from onboarding likes/dislikes — device-only, never sent
   // to the server. Weights per source / category / title entity.
   taste: { count: 0, sources: {}, cats: {}, tokens: {}, rated: [] },
@@ -31,6 +32,7 @@ function sanitize(raw) {
   p.autoTranslate = Boolean(p.autoTranslate);
   p.feedSub = p.feedSub === 'saved' ? 'saved' : 'recommended';
   p.forecast = p.forecast !== false;
+  p.glass = Number.isFinite(Number(p.glass)) ? Math.max(0, Math.min(1, Number(p.glass))) : 0.5;
   p.taste = sanitizeTaste(p.taste);
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (typeof p.authorId !== 'string' || !UUID_RE.test(p.authorId)) p.authorId = null;

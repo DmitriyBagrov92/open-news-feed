@@ -3,7 +3,8 @@
 // grid card. The shell (root, scrim, arrows, key handling) lives for the
 // whole preview session; everything article-specific is rebuilt per story.
 
-import { el, icon, iconButton } from './dom.js';
+import { el, icon, iconButton, lockScroll, unlockScroll } from './dom.js';
+import { isRegular } from './chrome.js';
 import { t, catLabel } from './i18n.js';
 import { api } from './api.js';
 import { prefs, ensureAuthorId } from './prefs.js';
@@ -25,6 +26,18 @@ import {
 import { buildCommentsPanel } from './comments.js';
 
 let active = null; // { root, dialog, scrim, prevFocus, onKeydown, cardFor, closing }
+
+// On compact screens the story is a full-screen layer: the page behind it
+// is locked. On regular widths it is a pane beside the feed, which stays
+// scrollable; body.story-open lets the layout make room for the pane.
+function lockStory() {
+  document.body.classList.add('story-open');
+  if (!isRegular()) lockScroll();
+}
+function unlockStory() {
+  document.body.classList.remove('story-open');
+  unlockScroll();
+}
 
 function focusables(container) {
   return [...container.querySelectorAll(
@@ -57,7 +70,7 @@ async function close({ instant = false } = {}) {
     if (active?.root !== root) return; // a newer preview already took over
   }
   root.remove();
-  document.body.style.overflow = '';
+  unlockStory();
   (cardFor?.() ?? prevFocus)?.focus?.();
   active = null;
 }
@@ -68,7 +81,7 @@ function teardown() {
   if (!active) return;
   document.removeEventListener('keydown', active.onKeydown, true);
   active.root.remove();
-  document.body.style.overflow = '';
+  unlockStory();
   active = null;
 }
 
@@ -178,18 +191,48 @@ function buildArticleView(article, { onCountChange } = {}) {
 
   const title = el('h2', { class: 'modal-title', text: article.title });
 
-  const translateBtn = el('button', { class: 'btn', type: 'button', 'data-testid': 'preview-translate', text: t('modal.translate') });
-  const summarizeBtn = el('button', { class: 'btn', type: 'button', 'data-testid': 'preview-summarize', text: t('modal.summarize') });
+  // dock buttons: an icon plus a label span (the label collapses on phones)
+  const dockButton = (iconName, label, attrs) => {
+    const btn = el('button', { type: 'button', ...attrs });
+    btn.append(icon(iconName), el('span', { class: 'label', text: label }));
+    return btn;
+  };
+  const setLabel = (btn, text) => {
+    const span = btn.querySelector('.label');
+    if (span) span.textContent = text;
+    else btn.textContent = text;
+  };
+  const translateBtn = dockButton('globe', t('modal.translate'), { class: 'btn', 'data-testid': 'preview-translate' });
+  const summarizeBtn = dockButton('sparkle', t('modal.summarize'), { class: 'btn btn--prime', 'data-testid': 'preview-summarize' });
+  // the comments sheet rises over the story (a column beside it on wide screens)
+  const commentsBtn = el('button', {
+    class: 'btn btn--icon',
+    type: 'button',
+    'data-testid': 'preview-comments',
+    'aria-label': t('comments.title'),
+    'aria-expanded': 'false',
+  });
+  commentsBtn.append(icon('comment'));
+  commentsBtn.addEventListener('click', () => {
+    const dialog = commentsBtn.closest('.modal-dialog');
+    if (!dialog) return;
+    const open = dialog.dataset.pane !== 'comments';
+    if (open) dialog.dataset.pane = 'comments';
+    else delete dialog.dataset.pane;
+    commentsBtn.setAttribute('aria-expanded', String(open));
+    if (open) dialog.querySelector('.cmt-input')?.focus({ preventScroll: true });
+  });
   const sourceLink = el('a', {
     class: 'btn',
     'data-testid': 'preview-source',
     href: article.url,
     target: '_blank',
     rel: 'noopener',
-    text: t('modal.readAtSource'),
+    'aria-label': t('modal.readAtSource'),
   });
-  const actions = el('div', { class: 'modal-actions' });
-  actions.append(translateBtn, summarizeBtn, sourceLink, buildVotes(article));
+  sourceLink.append(icon('external'), el('span', { class: 'label', text: t('modal.readAtSource') }));
+  const actions = el('div', { class: 'modal-actions glass' });
+  actions.append(summarizeBtn, translateBtn, sourceLink, buildVotes(article), commentsBtn);
 
   const chip = el('button', { class: 'chip', type: 'button', 'data-testid': 'preview-chip', hidden: true });
   const summaryBox = el('div', { class: 'modal-summary', 'data-testid': 'preview-summary', hidden: true });
@@ -318,7 +361,7 @@ function buildArticleView(article, { onCountChange } = {}) {
 
   summarizeBtn.addEventListener('click', async () => {
     summarizeBtn.disabled = true;
-    summarizeBtn.textContent = t('modal.summarizing');
+    setLabel(summarizeBtn, t('modal.summarizing'));
     try {
       const result = await summarize(
         {
@@ -329,7 +372,7 @@ function buildArticleView(article, { onCountChange } = {}) {
         },
         {
           onProgress: (pct) => {
-            summarizeBtn.textContent = pct == null ? t('modal.summarizing') : t('ai.downloading', { pct });
+            setLabel(summarizeBtn, pct == null ? t('modal.summarizing') : t('ai.downloading', { pct }));
           },
         }
       );
@@ -360,7 +403,7 @@ function buildArticleView(article, { onCountChange } = {}) {
       toast(t('brief.error'));
     } finally {
       summarizeBtn.disabled = false;
-      summarizeBtn.textContent = t('modal.summarize');
+      setLabel(summarizeBtn, t('modal.summarize'));
     }
   });
 
@@ -404,7 +447,7 @@ function buildArticleView(article, { onCountChange } = {}) {
       return;
     }
     translateBtn.disabled = true;
-    translateBtn.textContent = t('modal.translating');
+    setLabel(translateBtn, t('modal.translating'));
     try {
       // Flatten title + chunked paragraphs, translate, then reassemble.
       const units = [article.title];
@@ -417,7 +460,7 @@ function buildArticleView(article, { onCountChange } = {}) {
       const result = await translateTexts(units, target, {
         sourceLang,
         onProgress: (pct) => {
-          if (pct != null) translateBtn.textContent = t('ai.downloading', { pct });
+          if (pct != null) setLabel(translateBtn, t('ai.downloading', { pct }));
         },
       });
       if (!articleCol.isConnected) return; // navigated away mid-translate
@@ -433,7 +476,7 @@ function buildArticleView(article, { onCountChange } = {}) {
       applyVersion();
     } finally {
       translateBtn.disabled = false;
-      translateBtn.textContent = t('modal.translate');
+      setLabel(translateBtn, t('modal.translate'));
     }
   }
 
@@ -460,14 +503,17 @@ export function openPreview(article, options = {}) {
   const scrim = el('div', { class: 'modal-scrim' });
   const dialog = el('div', { class: 'modal-dialog has-comments', 'data-testid': 'preview-dialog' });
 
-  const prevBtn = iconButton('prev', t('modal.prev'), 'modal-nav modal-nav--prev');
-  const nextBtn = iconButton('next', t('modal.next'), 'modal-nav modal-nav--next');
+  const prevBtn = iconButton('prev', t('modal.prev'), 'modal-nav modal-nav--prev glass');
+  const nextBtn = iconButton('next', t('modal.next'), 'modal-nav modal-nav--next glass');
   prevBtn.dataset.testid = 'preview-prev';
   nextBtn.dataset.testid = 'preview-next';
 
   // shell-owned close button: pinned to the top-right corner of the whole
   // story block, surviving prev/next column swaps
-  const closeBtn = iconButton('close', t('modal.close'), 'modal-close');
+  const closeBtn = el('button', { class: 'modal-close glass', type: 'button', 'aria-label': t('modal.close'), title: t('modal.close') });
+  closeBtn.append(icon('prev'), icon('close'));
+  closeBtn.children[0].classList.add('ic-back');
+  closeBtn.children[1].classList.add('ic-close');
   closeBtn.dataset.testid = 'preview-close';
   closeBtn.addEventListener('click', () => close());
 
@@ -511,6 +557,13 @@ export function openPreview(article, options = {}) {
   root.addEventListener('mousedown', (e) => {
     if (e.target === root) close();
   });
+  // a tap on the dimmed story behind the comments sheet lowers the sheet
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog && dialog.dataset.pane === 'comments') {
+      delete dialog.dataset.pane;
+      dialog.querySelector('[data-testid="preview-comments"]')?.setAttribute('aria-expanded', 'false');
+    }
+  });
 
   const onKeydown = (e) => {
     if (e.key === 'Escape') {
@@ -519,6 +572,11 @@ export function openPreview(article, options = {}) {
       // a comment draft must survive a reflexive Escape: blur, don't close
       if (e.target?.classList?.contains('cmt-input') && e.target.value.trim()) {
         e.target.blur();
+        return;
+      }
+      if (dialog.dataset.pane === 'comments') {
+        delete dialog.dataset.pane; // Escape lowers the sheet first
+        dialog.querySelector('[data-testid="preview-comments"]')?.setAttribute('aria-expanded', 'false');
         return;
       }
       close();
@@ -561,7 +619,7 @@ export function openPreview(article, options = {}) {
   animateFadeIn(scrim);
   if (origin) animateZoomFrom(dialog, origin.getBoundingClientRect());
   else animateDialog(dialog);
-  document.body.style.overflow = 'hidden';
+  lockStory();
   closeBtn.focus();
 }
 

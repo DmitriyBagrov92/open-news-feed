@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gotoFeed, cards, isMobile } from './_helpers.js';
+import { gotoFeed, cards, isMobile, navTo } from './_helpers.js';
 
 test('taste onboarding → recommended feed → saved stories', async ({ page }, testInfo) => {
   await gotoFeed(page);
@@ -9,7 +9,7 @@ test('taste onboarding → recommended feed → saved stories', async ({ page },
   await saveBtn.click();
   await expect(saveBtn).toHaveClass(/is-saved/);
 
-  await page.locator('#tabs [data-cat="saved"]').click();
+  await navTo(page, 'saved');
   const onboard = page.getByTestId('onboard');
   await expect(onboard).toBeVisible();
   await expect(page.getByTestId('onboard-card')).toBeVisible();

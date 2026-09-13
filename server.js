@@ -31,8 +31,8 @@ if (process.env.TRUST_PROXY !== '0') app.set('trust proxy', 1);
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self'",
   "img-src 'self' https: data:",
   "connect-src 'self'",
   "object-src 'none'",

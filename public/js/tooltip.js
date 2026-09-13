@@ -107,5 +107,15 @@ export function initHoverTip({ root, selector, articleFor, textFor, ignore = 'bu
     currentCard = null;
     hide();
   });
-  addEventListener('scroll', hide, { passive: true });
+  // scrolling hides the tip; when the page settles with the pointer still
+  // resting on a card, the hold starts over (a scroll-into-view can land a
+  // card under the pointer a frame after the hover began)
+  addEventListener(
+    'scroll',
+    () => {
+      hide();
+      if (currentCard) timer = setTimeout(() => show(currentCard), SHOW_DELAY_MS);
+    },
+    { passive: true }
+  );
 }

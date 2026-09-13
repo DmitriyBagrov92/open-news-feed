@@ -82,10 +82,29 @@ export async function openSettings(page) {
   const sheet = page.getByTestId('settings-sheet');
   await expect(sheet).toBeVisible();
   await expect(sheet).toHaveClass(/open/);
+  await page.waitForTimeout(320); // the sheet's slide-in settles before anything is measured
   return sheet;
 }
 
 export const isMobile = (testInfo) => testInfo.project.name === 'mobile';
+export const isCompact = (page) => (page.viewportSize()?.width ?? 1280) < 700;
+
+// Go to a section the way the reader would on this screen: Your Feed and
+// Bubble Battle live in the tab bar on phones, in the category row elsewhere.
+export async function navTo(page, cat) {
+  if (isCompact(page) && (cat === 'saved' || cat === 'battle')) {
+    await page.locator(`#tabbar [data-cat="${cat}"]`).first().click();
+  } else {
+    await page.locator(`#tabs [data-cat="${cat}"]`).click();
+  }
+}
+
+// The search field opens from the island by the tab bar on phones and from
+// the circle in the top cluster on wide screens.
+export async function openSearch(page) {
+  await page.getByTestId(isCompact(page) ? 'tabbar-search' : 'search-toggle').click();
+  await expect(page.getByTestId('search-input')).toBeFocused();
+}
 export const isReduced = (testInfo) => testInfo.project.name === 'reduced-motion';
 
 // The forecast pull: mouse wheel at the top of the page on desktop, a

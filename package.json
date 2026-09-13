@@ -40,8 +40,7 @@
     "express": "^4.21.2",
     "linkedom": "^0.18.5",
     "motion": "^12.42.2",
-    "rss-parser": "^3.13.0",
-    "three": "^0.185.1"
+    "rss-parser": "^3.13.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0"

@@ -1,11 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { gotoFeed, cards } from './_helpers.js';
+import { gotoFeed, cards, openSearch } from './_helpers.js';
 
 test('search filters the feed, shows an empty state, and Escape clears it', async ({ page }) => {
   await gotoFeed(page);
-  await page.getByTestId('search-toggle').click();
+  await openSearch(page);
   const input = page.getByTestId('search-input');
-  await expect(input).toBeFocused();
   await input.fill('Storm Idris');
   await expect.poll(() => cards(page).count()).toBeLessThan(10);
   const titles = await page.evaluate(() => [...document.querySelectorAll('#grid .card')].map((c) => c.querySelector('.card-title').textContent + ' ' + c.querySelector('.card-desc').textContent));

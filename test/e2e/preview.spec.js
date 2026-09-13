@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gotoFeed, cards, cardByTitle, openPreview, isMobile } from './_helpers.js';
+import { gotoFeed, cards, cardByTitle, openPreview, isMobile, isCompact } from './_helpers.js';
 
 test.describe('story preview', () => {
   test('extracts the article, summarises, translates, votes and returns focus', async ({ page }) => {
@@ -8,7 +8,9 @@ test.describe('story preview', () => {
     await card.click();
     const dialog = page.getByTestId('preview');
     await expect(dialog).toBeVisible();
-    expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
+    // phones: a full-screen layer over a locked page; wide: a pane beside the live feed
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe(isCompact(page) ? 'hidden' : '');
+    await expect(page.locator('body')).toHaveClass(/story-open/);
     await expect(page.getByTestId('preview-close')).toBeFocused();
 
     const text = page.getByTestId('preview-text');
@@ -37,6 +39,7 @@ test.describe('story preview', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('preview')).toBeHidden();
     expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
+    await expect(page.locator('body')).not.toHaveClass(/story-open/);
     await expect(card).toBeFocused();
   });
 
@@ -60,7 +63,11 @@ test.describe('story preview', () => {
     const card = cardByTitle(page, /Rail strike enters/);
     await card.click();
     await expect(page.getByTestId('preview')).toBeVisible();
+    // comments rise as a sheet from the dock
+    await page.getByTestId('preview-comments').click();
+    await expect(page.getByTestId('preview-dialog')).toHaveAttribute('data-pane', 'comments');
     const input = page.getByTestId('comments-input');
+    await expect(input).toBeVisible();
     await input.fill('First take from the suite');
     await page.getByTestId('comments-post').click();
     await expect(page.getByTestId('comment').first()).toContainText('First take from the suite');
@@ -76,6 +83,10 @@ test.describe('story preview', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('preview')).toBeVisible();
     await expect(input).not.toBeFocused();
+    // the next Escape lowers the sheet, the one after closes the story
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('preview-dialog')).not.toHaveAttribute('data-pane', /.+/);
+    await expect(page.getByTestId('preview')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('preview')).toBeHidden();
   });
@@ -102,6 +113,6 @@ test.describe('story preview', () => {
     await gotoFeed(page);
     await cardByTitle(page, /Coastal towns brace/).click();
     await expect(page.getByTestId('preview-text')).toContainText('Forecasters expect', { timeout: 15_000 });
-    await expect(page).toHaveScreenshot('preview.png', { mask: [page.getByTestId('wire')] });
+    await expect(page).toHaveScreenshot('preview.png', { mask: [page.getByTestId('wire'), page.getByTestId('feed-date')] });
   });
 });

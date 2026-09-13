@@ -6,7 +6,7 @@ test.describe('AI forecast (mock model)', () => {
     await gotoFeed(page, { query: '?forecast=mock' });
     const hint = page.getByTestId('forecast-hint');
     await expect(hint).toBeVisible();
-    await expect(hint).toHaveText(/PULL DOWN FOR AN AI FORECAST/);
+    await expect(hint).toHaveText(/Pull for Ahead/);
     const section = page.getByTestId('forecast');
     await expect(section).toBeHidden();
 
@@ -52,7 +52,7 @@ test.describe('AI forecast (mock model)', () => {
   test('a model that still needs downloading only opens from a click', async ({ page }, testInfo) => {
     await gotoFeed(page, { query: '?forecast=mock-download' });
     const hint = page.getByTestId('forecast-hint');
-    await expect(hint).toHaveText(/ENABLE AI FORECAST/);
+    await expect(hint).toHaveText(/Enable Ahead/);
     await pullForecast(page, testInfo);
     await expect(page.getByTestId('forecast')).toBeHidden();
     await hint.click();

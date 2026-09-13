@@ -30,10 +30,16 @@ tracking — your preferences never leave your browser.
   simply does not exist on browsers without the API (currently Chrome 138+
   on desktop with the model installed); `?forecast=mock` previews the UI
   anywhere.
-- **Cosmic design.** Deep-space dark theme by default with the timeline
-  rendered as a living WebGL plasma band behind live world clocks (30fps,
-  GPU, zero dependencies; static under reduced motion), plus a clean
-  light "dawn" variant.
+- **Liquid Glass design (iOS 27 language).** The news is the material:
+  full-bleed photography posters and thumbnail rows, no boxed cards. Every
+  control is glass floating above it — a top cluster (wordmark pill,
+  category segment, glass circles), a floating tab bar with a separate
+  search island on phones, the "uniform toolbar" frost band when content
+  scrolls under the cluster, a glass time scrubber on wide screens and a
+  floating time chip on phones. Appearance follows the system (Auto /
+  Light / Dark in Settings) and the glass tint is a user slider (ultra
+  clear → tinted). Reduce Transparency / Increase Contrast / Reduce Motion
+  are honoured. System fonts only — no third-party requests.
 - **Anonymous comments.** Comment on any story, like/dislike others — no
   signup. Names ("Amber Falcon") and avatars are derived server-side from an
   opaque random id your browser generates once; the id itself is never shown

@@ -10,7 +10,7 @@ test('t resolves keys, interpolates and falls back to the key', () => {
 test('setLocale speaks a language only when a table exists', () => {
   setLocale('ru');
   assert.equal(hasLocale('ru'), false);
-  assert.equal(t('cat.all'), 'ALL');
+  assert.equal(t('cat.all'), 'All');
   setLocale('en');
 });
 
@@ -26,7 +26,7 @@ test('applyI18n fills data-i18n, -label and -placeholder', () => {
   const a = mk({ i18n: 'cat.world' }); const b = mk({ i18nLabel: 'search.open' }); const c = mk({ i18nPlaceholder: 'search.placeholder' });
   const root = { querySelectorAll: (sel) => (sel === '[data-i18n]' ? [a] : sel === '[data-i18n-label]' ? [b] : [c]) };
   applyI18n(root);
-  assert.equal(a.textContent, 'WORLD');
+  assert.equal(a.textContent, 'World');
   assert.equal(b.attrs['aria-label'], 'Search');
   assert.equal(c.attrs.placeholder, 'Search stories');
   assert.equal(catLabel('unknowncat'), 'UNKNOWNCAT');

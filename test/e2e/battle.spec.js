@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { gotoFeed, isReduced } from './_helpers.js';
+import { gotoFeed, isReduced, navTo } from './_helpers.js';
 
 test('Bubble Battle clusters the fixture stories across leans', async ({ page }, testInfo) => {
   await gotoFeed(page);
-  await page.locator('#tabs [data-cat="battle"]').click();
+  await navTo(page, 'battle');
   const battle = page.getByTestId('battle');
   await expect(battle).toBeVisible();
   await expect(page.locator('body')).toHaveClass(/battle-mode/);
@@ -17,7 +17,7 @@ test('Bubble Battle clusters the fixture stories across leans', async ({ page },
 
   if (isReduced(testInfo)) {
     await expect(battle).toHaveClass(/battle--static/);
-    await expect(page).toHaveScreenshot('battle-static.png', { fullPage: false, mask: [page.getByTestId('wire')] });
+    await expect(page).toHaveScreenshot('battle-static.png', { fullPage: false, mask: [page.getByTestId('wire'), page.getByTestId('feed-date')] });
   } else {
     await expect(battle).not.toHaveClass(/battle--static/);
     // a drag moves a bubble (physics); a click opens its story
@@ -38,7 +38,7 @@ test('Bubble Battle clusters the fixture stories across leans', async ({ page },
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('preview')).toBeHidden();
 
-  await page.locator('#tabs [data-cat="all"]').click();
+  await navTo(page, 'all');
   await expect(battle).toBeHidden();
   await expect(page.getByTestId('grid')).toBeVisible();
 });

@@ -30,7 +30,7 @@ test('settings sheet: trap, sources filter, language mirror, close paths', async
   await expect(sheet).toBeHidden();
   await expect(page.getByTestId('settings-toggle')).toBeFocused();
   await openSettings(page);
-  await page.mouse.click(20, 400); // the scrim
+  await page.locator('#drawerScrim').click({ position: { x: 10, y: 10 } }); // the scrim, above the sheet on phones
   await expect(sheet).toBeHidden();
 });
 
@@ -38,5 +38,5 @@ test('looks right', async ({ page }) => {
   await gotoFeed(page);
   await openSettings(page);
   await page.waitForTimeout(400);
-  await expect(page).toHaveScreenshot('settings.png', { mask: [page.getByTestId('wire')] });
+  await expect(page).toHaveScreenshot('settings.png', { mask: [page.getByTestId('wire'), page.getByTestId('feed-date')] });
 });

@@ -24,7 +24,7 @@ the frontend (`public/**`). Both sides must conform to it exactly.
 ┌──────────────▼─────────────────────────────────────────┐
 │  public/ (vanilla ES modules, no build step)           │
 │  index.html · css/styles.css · js/{app, api, prefs,    │
-│  ai, i18n, cards, modal, time, plasma, timescale,      │
+│  ai, i18n, cards, modal, time, chrome, timescale,      │
 │  motion, toast, dom, boot}.js · vendor/motion.js       │
 └────────────────────────────────────────────────────────┘
 ```
@@ -108,7 +108,7 @@ Response `200`:
   "latestId": "a1b2c3…",         // id of the newest article (for new-items polling)
   "timeline": [0, 3, …]          // only with histogram=1: 24 hourly counts,
                                  // oldest hour first (index 23 = now) —
-                                 // drives the plasma-timeline visualization
+                                 // drives the time rail's density gradient
 }
 ```
 
@@ -339,10 +339,22 @@ Used as the Railway healthcheck path.
 - **Rate limiting.** Simple in-memory limiter on `/api/summarize`,
   `/api/translate`, `/api/article`: 30 requests/min per IP → `429`.
 - **Security headers.** `X-Content-Type-Options: nosniff`,
-  `Referrer-Policy: no-referrer`, and a CSP that allows self + Google Fonts
-  (`fonts.googleapis.com`, `fonts.gstatic.com`) + `img-src https: data:`
-  (article images come from many hosts). No inline event handlers.
+  `Referrer-Policy: no-referrer`, and a CSP that allows self only (system
+  fonts, no third-party scripts or styles) + `img-src https: data:` (article
+  images come from many hosts). No inline event handlers.
 - **PORT** from `process.env.PORT` (Railway sets it).
+- **Glass chrome contract** (`public/js/chrome.js`, `css/styles.css`). The
+  top cluster is `position: fixed`; `chrome.js` measures its bottom edge into
+  `--sticky-top` (the "in view" line for the time rail, sticky rows and
+  `scroll-padding-top`), writes `html[data-scrolled]` (frost band + category
+  pill) and `html[data-scroll=down]` (the tab bar minimises). Breakpoints:
+  compact < 700px (tab bar + search island, chips in the content, bottom
+  sheets), regular ≥ 860px (category segment in the cluster, the story opens
+  as a right pane beside the live feed — `body.story-open`), rail ≥ 1000px.
+  A short, wide compact screen (iPhone Duo closed, `min-aspect-ratio: 3/5`)
+  moves the tab bar to the side. `dom.js` `lockScroll()/unlockScroll()` set
+  `body.style.overflow` (the app-wide "modal open" signal) + `html.is-locked`.
+  Icons come from the inline sprite in `index.html` via `<use>`.
 - **Entry page + crawler files** (`lib/page.js`). `GET /` and `/index.html`
   are served by the server, not `express.static`: the template
   `public/index.html` gets `__PUBLIC_URL__` (from `PUBLIC_URL`, else

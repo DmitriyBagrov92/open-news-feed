@@ -1,11 +1,11 @@
 // Meridian app shell: feed, tabs, search, settings, polling, auto-translate.
 
-import { el, clear } from './dom.js';
+import { el, clear, lockScroll, unlockScroll } from './dom.js';
 import { t, catLabel, setLocale, applyI18n, LANGUAGES, isLanguage } from './i18n.js';
 import { prefs, setPref, savePrefs, isSaved, toggleSaved, ensureAuthorId } from './prefs.js';
 import { api } from './api.js';
 import { initWireClocks, refreshTimes } from './time.js';
-import { initPlasma } from './plasma.js';
+import { initChrome } from './chrome.js';
 import { initTimescale } from './timescale.js';
 import { animateIn, animatePop, animateRelayout } from './motion.js';
 import { toast } from './toast.js';
@@ -58,24 +58,35 @@ function markTranslateBroken() {
     if (prefs.autoTranslate && (prefs.targetLang || 'en') !== 'en') reobserveCards();
   }, 75_000);
 }
-let plasma = { setHistogram() {}, pulse() {} };  // replaced in boot()
-let timescale = { refresh() {}, hide() {}, setFuture() {} }; // replaced in boot()
+let timescale = { refresh() {}, hide() {}, setFuture() {}, setSource() {}, pulse() {} }; // replaced in boot()
 let forecast = null; // AI forecast module, loaded in boot() where supported
 
-/* ── Theme ──────────────────────────────────────────────────────────────── */
+/* ── Theme + glass ──────────────────────────────────────────────────────── */
 
+const darkMedia = matchMedia('(prefers-color-scheme: dark)');
+
+// "auto" follows the system (no attribute); light/dark are explicit choices
 function applyTheme() {
   const rootEl = document.documentElement;
-  if (prefs.theme === 'light' || prefs.theme === 'dark') {
-    rootEl.setAttribute('data-theme', prefs.theme);
-  } else {
-    rootEl.removeAttribute('data-theme');
+  if (prefs.theme === 'light' || prefs.theme === 'dark') rootEl.setAttribute('data-theme', prefs.theme);
+  else rootEl.removeAttribute('data-theme');
+  for (const opt of document.querySelectorAll('[data-theme-choice]')) {
+    opt.setAttribute('aria-checked', String(opt.dataset.themeChoice === (prefs.theme || 'auto')));
   }
 }
 
+// the theme in effect right now
 function effectiveTheme() {
-  // solar cosmic is the design default; daylight is an explicit choice
-  return prefs.theme === 'light' ? 'light' : 'dark';
+  if (prefs.theme === 'light' || prefs.theme === 'dark') return prefs.theme;
+  return darkMedia.matches ? 'dark' : 'light';
+}
+
+// Liquid Glass tint: 0 ultra clear … 1 tinted (boot.js applies it pre-paint)
+function applyGlass() {
+  const level = Number.isFinite(prefs.glass) ? prefs.glass : 0.5;
+  document.documentElement.style.setProperty('--glass', String(level));
+  const range = $('#glassRange');
+  if (range) range.value = String(Math.round(level * 100));
 }
 
 /* ── Feed query ─────────────────────────────────────────────────────────── */
@@ -534,6 +545,7 @@ function initFeedSubtabs() {
     const sub = e.target.closest('.subtab')?.dataset.sub;
     if (sub && sub !== prefs.feedSub) {
       setPref('feedSub', sub);
+      syncNav(state.category);
       renderYourFeed();
     }
   });
@@ -584,7 +596,7 @@ async function pollNew() {
     if (!fresh.length) return;
     // newest first; merge ahead of anything already buffered
     state.pending = [...fresh, ...state.pending];
-    plasma.pulse(); // flare the NOW edge of the timescale
+    timescale.pulse(); // one ring from the NOW edge of the rail
     const n = state.pending.length;
     const label = n === 1 ? t('feed.newStory') : t('feed.newStories', { n });
     newPill.textContent = label + ' — ' + t('feed.load');
@@ -786,9 +798,20 @@ function revertAllCards() {
 
 function initTheme() {
   applyTheme();
-  $('#themeToggle').addEventListener('click', () => {
+  applyGlass();
+  $('#themeToggle')?.addEventListener('click', () => {
     setPref('theme', effectiveTheme() === 'dark' ? 'light' : 'dark');
     applyTheme();
+  });
+  for (const opt of document.querySelectorAll('[data-theme-choice]')) {
+    opt.addEventListener('click', () => {
+      setPref('theme', opt.dataset.themeChoice);
+      applyTheme();
+    });
+  }
+  $('#glassRange')?.addEventListener('input', (e) => {
+    setPref('glass', Math.max(0, Math.min(1, Number(e.target.value) / 100)));
+    applyGlass();
   });
 }
 
@@ -797,17 +820,6 @@ function initSearch() {
   const input = $('#searchInput');
   const toggle = $('#searchToggle');
   let timer = null;
-
-  toggle.addEventListener('click', () => {
-    const open = wrap.classList.toggle('open');
-    toggle.setAttribute('aria-expanded', String(open));
-    toggle.setAttribute('aria-label', t(open ? 'search.close' : 'search.open'));
-    if (open) input.focus();
-    else if (input.value) {
-      input.value = '';
-      applySearch('');
-    }
-  });
 
   const applySearch = (raw) => {
     const q = raw.trim();
@@ -820,13 +832,31 @@ function initSearch() {
     else loadFeed({ reset: true });
   };
 
+  const isOpen = () => wrap.classList.contains('open');
+  const setOpen = (open) => {
+    wrap.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', t(open ? 'search.close' : 'search.open'));
+    if (open) input.focus();
+    else if (input.value) {
+      input.value = '';
+      applySearch('');
+    }
+  };
+
+  // the circle in the cluster (wide) and the island by the tab bar (phones)
+  toggle.addEventListener('click', () => setOpen(!isOpen()));
+  $('#tabbarSearch')?.addEventListener('click', () => setOpen(!isOpen()));
+
   input.addEventListener('input', () => {
     clearTimeout(timer);
     timer = setTimeout(() => applySearch(input.value), 300);
   });
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') toggle.click();
+    if (e.key === 'Escape') setOpen(false);
   });
+
+  return { open: () => setOpen(true), close: () => setOpen(false), toggle: () => setOpen(!isOpen()) };
 }
 
 /* ── Language: one preference, every control mirrors it ─────────────────── */
@@ -919,20 +949,43 @@ function initLangControl() {
   });
 }
 
-/* ── Tabs ───────────────────────────────────────────────────────────────── */
+/* ── Navigation: category lenses + the tab bar ──────────────────────────── */
+
+// every [data-cat] control — the chips in the content/cluster and the tab
+// bar items on phones — is one navigation; the tab bar's Your Feed / Saved
+// items also pick the sub-tab
+const navControls = () => document.querySelectorAll('#tabs [data-cat], #tabbar [data-cat]');
+
+function titleFor(cat) {
+  if (cat === 'all') return t('nav.today');
+  if (cat === 'saved') return t('cat.saved');
+  if (cat === 'battle') return t('cat.battle');
+  return catLabel(cat);
+}
+
+function syncNav(cat) {
+  for (const ctl of navControls()) {
+    const inBar = ctl.closest('#tabbar') !== null;
+    const current = ctl.dataset.cat === cat && (!ctl.dataset.sub || ctl.dataset.sub === prefs.feedSub);
+    if (current) ctl.setAttribute('aria-current', 'true');
+    else ctl.removeAttribute('aria-current');
+    // the Today item stays lit for every category view
+    ctl.classList.toggle('is-on', inBar && ctl.dataset.cat === 'all' && cat !== 'saved' && cat !== 'battle');
+  }
+  const title = titleFor(cat);
+  const titleEl = $('#feedTitle');
+  const pillText = $('#catPillText');
+  if (titleEl) titleEl.textContent = title;
+  if (pillText) pillText.textContent = title;
+}
 
 function initTabs() {
-  const track = $('#tabs');
   const activate = (cat, { load = true } = {}) => {
     const wasBattle = state.category === 'battle';
     state.category = cat;
     setPref('category', cat);
     if (cat !== 'battle') clearPending();
-    for (const tab of track.querySelectorAll('.tab')) {
-      const current = tab.dataset.cat === cat;
-      if (current) tab.setAttribute('aria-current', 'true');
-      else tab.removeAttribute('aria-current');
-    }
+    syncNav(cat);
     // your-feed chrome (subtabs + onboarding) never leaks to other views
     if (cat !== 'saved') {
       $('#feedTabs').hidden = true;
@@ -947,10 +1000,20 @@ function initTabs() {
     if (cat === 'saved') renderYourFeed();
     else loadFeed({ reset: true });
   };
-  track.addEventListener('click', (e) => {
-    const tab = e.target.closest('.tab');
-    if (tab && tab.dataset.cat !== state.category) activate(tab.dataset.cat);
-  });
+  const toTop = () =>
+    window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  const onClick = (e) => {
+    const ctl = e.target.closest('[data-cat]');
+    if (!ctl) return;
+    const cat = ctl.dataset.cat;
+    const subChanged = ctl.dataset.sub && ctl.dataset.sub !== prefs.feedSub;
+    if (subChanged) setPref('feedSub', ctl.dataset.sub);
+    if (cat !== state.category || subChanged) activate(cat);
+    else toTop(); // the current tab again: back to the top
+  };
+  $('#tabs').addEventListener('click', onClick);
+  $('#tabbar')?.addEventListener('click', onClick);
+  $('#catPill')?.addEventListener('click', toTop);
   activate(state.category, { load: false });
 }
 
@@ -1133,15 +1196,19 @@ const GRID_SIZE_MIN = -2;
 const GRID_SIZE_MAX = 2;
 
 function initGridSize() {
-  const slider = $('#sizeSlider');
+  const sliders = [...document.querySelectorAll('[data-size-slider]')];
+  if (!sliders.length) return;
   const clampLevel = (n) => Math.max(GRID_SIZE_MIN, Math.min(GRID_SIZE_MAX, Math.round(n)));
   const pctOf = (level) => ((level - GRID_SIZE_MIN) / (GRID_SIZE_MAX - GRID_SIZE_MIN)) * 100;
 
-  const paint = (level, exactPct = null) => {
-    const pct = exactPct ?? pctOf(level);
-    slider.style.setProperty('--pos', pct + '%');
-    slider.setAttribute('aria-valuenow', String(level - GRID_SIZE_MIN + 1));
-    slider.setAttribute('aria-valuetext', `${level - GRID_SIZE_MIN + 1} / 5`);
+  // every control mirrors the level; the one being dragged tracks the pointer
+  const paint = (level, { exactPct = null, from = null } = {}) => {
+    for (const slider of sliders) {
+      const pct = exactPct !== null && slider === from ? exactPct : pctOf(level);
+      slider.style.setProperty('--pos', pct + '%');
+      slider.setAttribute('aria-valuenow', String(level - GRID_SIZE_MIN + 1));
+      slider.setAttribute('aria-valuetext', `${level - GRID_SIZE_MIN + 1} / 5`);
+    }
   };
 
   const applyLevel = (level) => {
@@ -1149,8 +1216,8 @@ function initGridSize() {
     else delete document.documentElement.dataset.gridSize;
   };
 
-  const setLevel = (next, { exactPct = null } = {}) => {
-    paint(next, exactPct);
+  const setLevel = (next, opts = {}) => {
+    paint(next, opts);
     if (next === prefs.gridSize) return;
     setPref('gridSize', next);
     // FLIP only the cards near the viewport — the far tail just snaps
@@ -1164,45 +1231,42 @@ function initGridSize() {
     document.dispatchEvent(new CustomEvent('meridian:gridsize', { detail: { level: next } }));
   };
 
-  const levelFromEvent = (e) => {
-    const rect = slider.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    return { level: clampLevel(GRID_SIZE_MIN + ratio * (GRID_SIZE_MAX - GRID_SIZE_MIN)), pct: ratio * 100 };
-  };
-
-  // drag: the thumb tracks the pointer 1:1 (transition off), the grid
-  // re-FLIPs whenever the nearest stop changes, and on release the thumb
-  // springs onto its stop
-  slider.addEventListener('pointerdown', (e) => {
-    slider.setPointerCapture(e.pointerId);
-    slider.classList.add('is-dragging');
-    const { level, pct } = levelFromEvent(e);
-    setLevel(level, { exactPct: pct });
-  });
-  slider.addEventListener('pointermove', (e) => {
-    if (!slider.classList.contains('is-dragging')) return;
-    const { level, pct } = levelFromEvent(e);
-    setLevel(level, { exactPct: pct });
-  });
-  const release = () => {
-    if (!slider.classList.contains('is-dragging')) return;
-    slider.classList.remove('is-dragging');
-    paint(prefs.gridSize || 0); // spring onto the snapped stop
-  };
-  slider.addEventListener('pointerup', release);
-  slider.addEventListener('pointercancel', release);
-
-  slider.addEventListener('keydown', (e) => {
-    const level = prefs.gridSize || 0;
-    let next = null;
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = clampLevel(level - 1);
-    else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = clampLevel(level + 1);
-    else if (e.key === 'Home') next = GRID_SIZE_MIN;
-    else if (e.key === 'End') next = GRID_SIZE_MAX;
-    if (next === null) return;
-    e.preventDefault();
-    setLevel(next);
-  });
+  for (const slider of sliders) {
+    const levelFromEvent = (e) => {
+      const rect = slider.getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      return { level: clampLevel(GRID_SIZE_MIN + ratio * (GRID_SIZE_MAX - GRID_SIZE_MIN)), pct: ratio * 100 };
+    };
+    slider.addEventListener('pointerdown', (e) => {
+      slider.setPointerCapture(e.pointerId);
+      slider.classList.add('is-dragging');
+      const { level, pct } = levelFromEvent(e);
+      setLevel(level, { exactPct: pct, from: slider });
+    });
+    slider.addEventListener('pointermove', (e) => {
+      if (!slider.classList.contains('is-dragging')) return;
+      const { level, pct } = levelFromEvent(e);
+      setLevel(level, { exactPct: pct, from: slider });
+    });
+    const release = () => {
+      if (!slider.classList.contains('is-dragging')) return;
+      slider.classList.remove('is-dragging');
+      paint(prefs.gridSize || 0); // spring onto the snapped stop
+    };
+    slider.addEventListener('pointerup', release);
+    slider.addEventListener('pointercancel', release);
+    slider.addEventListener('keydown', (e) => {
+      const level = prefs.gridSize || 0;
+      let next = null;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = clampLevel(level - 1);
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = clampLevel(level + 1);
+      else if (e.key === 'Home') next = GRID_SIZE_MIN;
+      else if (e.key === 'End') next = GRID_SIZE_MAX;
+      if (next === null) return;
+      e.preventDefault();
+      setLevel(next);
+    });
+  }
 
   applyLevel(prefs.gridSize || 0);
   paint(prefs.gridSize || 0);
@@ -1218,9 +1282,11 @@ function initDrawer() {
   const toggle = $('#settingsToggle');
   const closeBtn = $('#drawerClose');
   let closeTimer = null;
+  let opener = null; // focus goes back to whatever opened the sheet
 
-  const open = () => {
+  const open = (from = toggle) => {
     clearTimeout(closeTimer);
+    opener = from;
     if (!sourcesData) loadSources(); // retry a failed boot-time load
     drawer.hidden = false;
     scrim.hidden = false;
@@ -1231,22 +1297,22 @@ function initDrawer() {
       })
     );
     toggle.setAttribute('aria-expanded', 'true');
-    document.body.style.overflow = 'hidden';
+    lockScroll();
     closeBtn.focus();
   };
   const close = () => {
     drawer.classList.remove('open');
     scrim.classList.remove('open');
     toggle.setAttribute('aria-expanded', 'false');
-    document.body.style.overflow = '';
+    unlockScroll();
     closeTimer = setTimeout(() => {
       drawer.hidden = true;
       scrim.hidden = true;
     }, 300);
-    toggle.focus();
+    (opener || toggle).focus();
   };
 
-  toggle.addEventListener('click', () => (drawer.hidden ? open() : close()));
+  toggle.addEventListener('click', () => (drawer.hidden ? open(toggle) : close()));
   closeBtn.addEventListener('click', close);
   scrim.addEventListener('click', close);
   document.addEventListener('keydown', (e) => {
@@ -1271,6 +1337,7 @@ function initDrawer() {
     }
   });
 
+  return { open, close, toggle: () => (drawer.hidden ? open() : close()) };
 }
 
 // The AI forecast row exists only where the Prompt API does: the module
@@ -1317,12 +1384,12 @@ function renderSourcesList() {
         else loadFeed({ reset: true });
       });
       row.append(
-        checkbox,
         el('span', { class: 'source-name', text: source.name }),
         el('span', {
           class: 'source-tag',
           text: source.enabled ? source.type : t('settings.requiresKey'),
-        })
+        }),
+        checkbox
       );
       wrap.append(row);
     }
@@ -1366,33 +1433,22 @@ function boot() {
   setLocale(prefs.targetLang); // the interface speaks the one language where it can
   applyI18n();
   initTheme();
+  initChrome({ cluster: $('#chromeTop') });
   initWireClocks(document.querySelector('.wire'));
-  const rail = initPlasma(document.getElementById('plasma'), { vertical: true });
-  // the living sun is heavy machinery (three.js) — load it dynamically so
-  // a missing vendor file or WebGL failure never breaks the app
-  let sun = null;
-  if (matchMedia('(min-width: 900px)').matches) {
-    import('./sun3d.js')
-      .then((m) => {
-        sun = m.initSun(document.getElementById('sunScene'));
-      })
-      .catch(() => {});
+  const dateEl = $('#feedDate');
+  if (dateEl) {
+    dateEl.textContent = new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
   }
-  plasma = {
-    setHistogram: (h) => rail.setHistogram(h),
-    pulse: () => {
-      rail.pulse();
-      sun?.pulse();
-    },
-  };
   timescale = initTimescale({
     container: $('#timescale'),
+    densityEl: $('#timescaleDensity'),
     ticksEl: $('#timescaleTicks'),
     cursorEl: $('#timescaleCursor'),
     labelEl: $('#timescaleLabel'),
+    chipEl: $('#timeChip'),
+    chipTextEl: $('#timeChipText'),
     grid,
     articleById,
-    plasma,
     // seeking past the loaded range: pull more pages, then retry once
     onSeekBeyond: async (retry) => {
       if (!state.hasMore || state.loading) return;

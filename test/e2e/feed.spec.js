@@ -30,6 +30,6 @@ test.describe('feed grid', () => {
   test('looks right above the fold', async ({ page }) => {
     await gotoFeed(page);
     await expect(page.getByTestId('brief-body').locator('.bullets li').first()).toBeVisible({ timeout: 20_000 });
-    await expect(page).toHaveScreenshot('feed-top.png', { mask: [page.getByTestId('wire')] });
+    await expect(page).toHaveScreenshot('feed-top.png', { mask: [page.getByTestId('wire'), page.getByTestId('feed-date')] });
   });
 });

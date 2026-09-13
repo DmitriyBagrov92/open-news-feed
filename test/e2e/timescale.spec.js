@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { gotoFeed, isMobile, pullForecast, clickUncovered } from './_helpers.js';
 
 test('the time rail maps scroll to story time and seeks on click', async ({ page }, testInfo) => {
-  test.skip(isMobile(testInfo), 'the rail is a wide-screen element');
+  test.skip(isMobile(testInfo), 'the rail is a wide-screen element — phones get the time chip (below)');
   await gotoFeed(page);
   const rail = page.getByTestId('timescale');
   await expect(rail).not.toHaveClass(/is-empty/);
@@ -28,4 +28,17 @@ test('the time rail maps scroll to story time and seeks on click', async ({ page
   await expect(page.getByTestId('timescale-future')).toBeVisible();
   await clickUncovered(page.getByTestId('forecast-close'));
   await expect(rail).not.toHaveClass(/has-future/);
+});
+
+test('phones get a floating time chip while scrolling, and it can seek', async ({ page }, testInfo) => {
+  test.skip(!isMobile(testInfo), 'the chip replaces the rail on phones');
+  await gotoFeed(page);
+  const chip = page.getByTestId('time-chip');
+  await expect(chip).not.toHaveClass(/is-on/);
+  await page.evaluate(() => window.scrollTo(0, 1600));
+  await page.waitForTimeout(150);
+  await page.evaluate(() => window.scrollTo(0, 1700));
+  await expect(chip).toHaveClass(/is-on/);
+  await expect(chip).not.toHaveText('NOW');
+  await expect(page.getByTestId('timescale')).toBeHidden(); // the rail never shows on phones
 });

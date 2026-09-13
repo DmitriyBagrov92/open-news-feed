@@ -29,13 +29,17 @@ test('hover tooltip shows the full story on fine pointers only', async ({ page }
     await expect(page.getByTestId('tooltip')).toHaveCount(0);
     return;
   }
-  // a scroll cancels the pending tooltip, so settle the viewport first
-  await card.scrollIntoViewIfNeeded();
+  // a scroll cancels the pending tooltip, so settle the viewport first;
+  // under parallel load the 550 ms hold can be interrupted — hover again
+  await card.evaluate((el) => el.scrollIntoView({ block: 'center' })); // clear of the floating cluster
   await page.waitForTimeout(300);
-  await card.locator('.card-title').hover();
-  await page.waitForTimeout(900);
   const tip = page.getByTestId('tooltip');
-  await expect(tip).toHaveClass(/is-on/);
+  await expect(async () => {
+    await page.mouse.move(5, 5);
+    await card.locator('.card-title').hover();
+    await page.waitForTimeout(800);
+    await expect(tip).toHaveClass(/is-on/);
+  }).toPass({ timeout: 12_000 });
   await expect(tip).toContainText(await card.locator('.card-title').textContent());
   await page.mouse.move(5, 5);
   await expect(tip).not.toHaveClass(/is-on/);

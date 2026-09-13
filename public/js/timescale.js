@@ -1,23 +1,36 @@
-// The right-rail plasma timescale. The vertical line maps the loaded feed's
-// time range (NOW at the top). The cursor mirrors the scroll position and
-// shows the time of the stories currently in view; clicking or dragging the
-// rail seeks the feed to that moment.
+// Time as a control. On wide screens the rail is a glass scrubber at the
+// right edge: it maps the loaded feed's time range (NOW at the top), shows
+// where stories cluster (a density gradient), mirrors the scroll position
+// with a cursor and seeks the feed when clicked or dragged. On phones the
+// same model drives a floating time chip that appears while scrolling and
+// can be dragged to seek.
 
 import { relTime } from './time.js';
 import { t } from './i18n.js';
 
-const HEADER_OFFSET = 150; // sticky band + masthead ≈ where "in view" starts
 // Band reserved ABOVE NOW while the AI forecast section is on screen: the
-// feed range keeps the rest of the rail, the future gets a dashed ghost.
+// feed range keeps the rest of the rail, the future gets a hatched ghost.
 const FUTURE_H = 40;
+const CHIP_IDLE_MS = 1400;
 
 function fmtClock(iso) {
   const d = new Date(iso);
   return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 }
 
-export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, articleById, plasma, onSeekBeyond }) {
-  if (!container) return { refresh() {}, hide() {}, setSource() {}, setFuture() {} };
+// where "in view" starts: just under the floating cluster (chrome.js
+// writes --sticky-top); 150 when nothing has measured yet
+function headerOffset() {
+  const raw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sticky-top'));
+  return Number.isFinite(raw) && raw > 0 ? raw + 12 : 150;
+}
+
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+export function initTimescale({
+  container, densityEl, ticksEl, cursorEl, labelEl, chipEl, chipTextEl, grid, articleById, onSeekBeyond,
+}) {
+  if (!container) return { refresh() {}, hide() {}, setSource() {}, setFuture() {}, pulse() {} };
 
   let newestT = 0;
   let oldestT = 0;
@@ -44,8 +57,8 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
     items() {
       const out = [];
       for (const card of grid.querySelectorAll('.card:not(.card--skeleton)')) {
-        const t = articleTime(card);
-        if (!Number.isNaN(t)) out.push({ t, el: card });
+        const time = articleTime(card);
+        if (!Number.isNaN(time)) out.push({ t: time, el: card });
       }
       return out;
     },
@@ -58,7 +71,24 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
     refresh();
   }
 
-  // ── range / ticks / density ───────────────────────────────────────────────
+  // ── density: where the stories cluster along the range ──────────────────
+
+  function setDensity(buckets) {
+    if (!densityEl) return;
+    const max = Math.max(1, ...buckets);
+    const stops = [];
+    const n = buckets.length;
+    // bucket n-1 is NOW (top of the rail) — draw from the top down
+    for (let i = n - 1; i >= 0; i -= 1) {
+      const a = (0.08 + (buckets[i] / max) * 0.55).toFixed(3);
+      const from = (((n - 1 - i) / n) * 100).toFixed(2);
+      const to = (((n - i) / n) * 100).toFixed(2);
+      stops.push(`color-mix(in srgb, var(--label) ${Math.round(a * 100)}%, transparent) ${from}% ${to}%`);
+    }
+    densityEl.style.background = `linear-gradient(180deg, ${stops.join(', ')})`;
+  }
+
+  // ── range / ticks ────────────────────────────────────────────────────────
 
   function refresh() {
     const items = source.items();
@@ -71,52 +101,58 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
     let newest = -Infinity;
     let oldest = Infinity;
     const times = [];
-    for (const { t } of items) {
-      times.push(t);
-      if (t > newest) newest = t;
-      if (t < oldest) oldest = t;
+    for (const { t: time } of items) {
+      times.push(time);
+      if (time > newest) newest = time;
+      if (time < oldest) oldest = time;
     }
     if (!times.length || newest === oldest) return;
     newestT = newest;
     oldestT = oldest;
 
-    // density over the range feeds the plasma (bucket 23 = NOW end = top)
     const buckets = new Array(24).fill(0);
-    for (const t of times) {
-      const pos = (t - oldest) / (newest - oldest);
+    for (const time of times) {
+      const pos = (time - oldest) / (newest - oldest);
       buckets[Math.min(23, Math.floor(pos * 24))] += 1;
     }
-    plasma.setHistogram(buckets);
+    setDensity(buckets);
 
     // ticks: quarter marks with the actual story time at that depth
     ticksEl.textContent = '';
     for (const frac of [0.25, 0.5, 0.75]) {
-      const t = newest - (newest - oldest) * frac;
+      const time = newest - (newest - oldest) * frac;
       const tick = document.createElement('span');
       tick.className = 'timescale-tick mono';
       tick.style.top = railTop(frac);
-      tick.textContent = relTime(new Date(t).toISOString());
+      tick.textContent = relTime(new Date(time).toISOString());
       ticksEl.append(tick);
     }
     syncCursor();
   }
 
-  // ── scroll → cursor ───────────────────────────────────────────────────────
+  // ── scroll → cursor + chip ───────────────────────────────────────────────
 
   function topVisibleItem() {
+    const offset = headerOffset();
     for (const item of source.items()) {
-      if (item.el.getBoundingClientRect().bottom > HEADER_OFFSET) return item;
+      if (item.el.getBoundingClientRect().bottom > offset) return item;
     }
     return null;
+  }
+
+  function labelFor(frac, iso) {
+    return frac <= 0.005 ? 'NOW' : relTime(iso) + ' · ' + fmtClock(iso);
   }
 
   function placeCursor(frac, iso) {
     const f = Math.max(0, Math.min(1, frac));
     cursorEl.style.top = railTop(f);
     // near the rail's top the centered label would collide with the
-    // masthead controls — hang it below the cursor line instead
+    // cluster — hang it below the cursor line instead
     cursorEl.classList.toggle('is-top', f < 0.09);
-    labelEl.textContent = frac <= 0.005 ? 'NOW' : relTime(iso) + ' · ' + fmtClock(iso);
+    const label = labelFor(frac, iso);
+    labelEl.textContent = label;
+    if (chipTextEl) chipTextEl.textContent = label;
   }
 
   // the reader is looking at the forecast: park the cursor in the future band
@@ -124,17 +160,29 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
     cursorEl.style.top = FUTURE_H / 2 + 'px';
     cursorEl.classList.add('is-top');
     labelEl.textContent = t('forecast.railLabel');
+    if (chipTextEl) chipTextEl.textContent = t('forecast.railLabel');
   }
 
   function syncCursor() {
     if (dragging || newestT === oldestT) return;
-    if (futureFor && !futureFor.hidden && futureFor.getBoundingClientRect().bottom > HEADER_OFFSET) {
+    if (futureFor && !futureFor.hidden && futureFor.getBoundingClientRect().bottom > headerOffset()) {
       parkFuture();
       return;
     }
     const item = topVisibleItem();
     if (!item) return;
     placeCursor((newestT - item.t) / (newestT - oldestT), new Date(item.t).toISOString());
+  }
+
+  // the phone chip shows while the page moves and fades after a pause
+  let chipTimer = null;
+  function showChip() {
+    if (!chipEl || container.classList.contains('is-empty')) return;
+    chipEl.classList.add('is-on');
+    clearTimeout(chipTimer);
+    chipTimer = setTimeout(() => {
+      if (!dragging) chipEl.classList.remove('is-on');
+    }, CHIP_IDLE_MS);
   }
 
   let raf = 0;
@@ -145,16 +193,17 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
       raf = requestAnimationFrame(() => {
         raf = 0;
         syncCursor();
+        if (window.scrollY > 200) showChip();
       });
     },
     { passive: true }
   );
   window.addEventListener('resize', () => refresh());
 
-  // ── scrub → scroll ────────────────────────────────────────────────────────
+  // ── scrub → scroll ───────────────────────────────────────────────────────
 
-  function fracFromEvent(e) {
-    const rect = container.getBoundingClientRect();
+  function fracFromEvent(e, box) {
+    const rect = box.getBoundingClientRect();
     const fh = futureFor ? FUTURE_H : 0;
     return Math.max(0, Math.min(1, (e.clientY - rect.top - fh) / Math.max(1, rect.height - fh)));
   }
@@ -187,57 +236,96 @@ export function initTimescale({ container, ticksEl, cursorEl, labelEl, grid, art
       onSeekBeyond?.(() => seek(frac));
       return;
     }
-    const y = dest.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET + 10;
-    window.scrollTo({
-      top: y,
-      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    const y = dest.getBoundingClientRect().top + window.scrollY - headerOffset() + 10;
+    window.scrollTo({ top: y, behavior: reducedMotion() ? 'auto' : 'smooth' });
+  }
+
+  function wireScrub(box, { onDrag } = {}) {
+    box.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.timescale-future')) return; // the ghost is a plain button
+      dragging = true;
+      box.setPointerCapture(e.pointerId);
+      const frac = fracFromEvent(e, box);
+      const time = newestT - frac * (newestT - oldestT);
+      placeCursor(frac, new Date(time).toISOString());
+      onDrag?.();
+    });
+    box.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const frac = fracFromEvent(e, box);
+      const time = newestT - frac * (newestT - oldestT);
+      placeCursor(frac, new Date(time).toISOString());
+      onDrag?.();
+    });
+    box.addEventListener('pointerup', (e) => {
+      if (!dragging) return;
+      dragging = false;
+      seek(fracFromEvent(e, box));
+      onDrag?.();
+    });
+    box.addEventListener('pointercancel', () => {
+      dragging = false;
+      syncCursor();
+    });
+  }
+  wireScrub(container);
+  // the chip scrubs against the viewport: drag it up = newer, down = older
+  if (chipEl) {
+    const viewportBox = { getBoundingClientRect: () => ({ top: headerOffset(), height: innerHeight - headerOffset() - 60 }) };
+    chipEl.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      chipEl.setPointerCapture(e.pointerId);
+      showChip();
+    });
+    chipEl.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const frac = fracFromEvent(e, viewportBox);
+      const time = newestT - frac * (newestT - oldestT);
+      placeCursor(frac, new Date(time).toISOString());
+      chipEl.style.top = Math.max(120, Math.min(innerHeight - 100, e.clientY)) + 'px';
+      showChip();
+    });
+    const release = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      chipEl.style.top = '';
+      seek(fracFromEvent(e, viewportBox));
+      showChip();
+    };
+    chipEl.addEventListener('pointerup', release);
+    chipEl.addEventListener('pointercancel', () => {
+      dragging = false;
+      chipEl.style.top = '';
+      syncCursor();
     });
   }
 
-  container.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.timescale-future')) return; // the ghost is a plain button
-    dragging = true;
-    container.setPointerCapture(e.pointerId);
-    const frac = fracFromEvent(e);
-    const t = newestT - frac * (newestT - oldestT);
-    placeCursor(frac, new Date(t).toISOString());
-  });
-  container.addEventListener('pointermove', (e) => {
-    if (!dragging) return;
-    const frac = fracFromEvent(e);
-    const t = newestT - frac * (newestT - oldestT);
-    placeCursor(frac, new Date(t).toISOString());
-  });
-  container.addEventListener('pointerup', (e) => {
-    if (!dragging) return;
-    dragging = false;
-    seek(fracFromEvent(e));
-  });
-  container.addEventListener('pointercancel', () => {
-    dragging = false;
-    syncCursor();
-  });
-
   // The forecast section is on screen: reserve the future band above NOW.
   // Pass null when it goes away.
-  function setFuture(el) {
-    futureFor = el || null;
+  function setFuture(node) {
+    futureFor = node || null;
     container.classList.toggle('has-future', Boolean(futureFor));
     container.style.setProperty('--future-h', futureFor ? FUTURE_H + 'px' : '0px');
     if (futureEl) futureEl.hidden = !futureFor;
     refresh();
   }
   futureEl?.addEventListener('click', () => {
-    window.scrollTo({
-      top: 0,
-      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-    });
+    window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
   });
+
+  // one ring from the NOW edge when fresh stories arrive
+  function pulse() {
+    container.classList.remove('is-pulse');
+    void container.offsetWidth;
+    container.classList.add('is-pulse');
+    setTimeout(() => container.classList.remove('is-pulse'), 1000);
+  }
 
   return {
     refresh,
     setSource,
     setFuture,
+    pulse,
     hide() {
       container.classList.add('is-empty');
     },
