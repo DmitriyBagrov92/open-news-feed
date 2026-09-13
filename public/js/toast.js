@@ -9,7 +9,7 @@ export function toast(message, duration = 3500) {
     region = el('div', { class: 'toasts', role: 'status', 'aria-live': 'polite' });
     document.body.append(region);
   }
-  const item = el('div', { class: 'toast', text: message });
+  const item = el('div', { class: 'toast', 'data-testid': 'toast', text: message });
   region.append(item);
   requestAnimationFrame(() => item.classList.add('toast--in'));
   setTimeout(() => {

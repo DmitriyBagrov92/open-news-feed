@@ -97,30 +97,30 @@
   </noscript>
 
   <!-- 1 · Wire strip: live world clocks -->
-  <div class="wire" aria-hidden="true">
+  <div class="wire" data-testid="wire" aria-hidden="true">
     <div class="wire-track">
-      <span class="wire-clock wire-clock--utc">
+      <span data-testid="wire-clock" class="wire-clock wire-clock--utc">
         <span class="wire-dot"></span>
         <span class="wire-label">UTC</span>
         <span class="wire-time" data-tz="UTC" data-seconds>--:--:--</span>
       </span>
-      <span class="wire-clock" data-priority>
+      <span data-testid="wire-clock" class="wire-clock" data-priority>
         <span class="wire-label">Tokyo</span>
         <span class="wire-time" data-tz="Asia/Tokyo">--:--</span>
       </span>
-      <span class="wire-clock">
+      <span data-testid="wire-clock" class="wire-clock">
         <span class="wire-label">Delhi</span>
         <span class="wire-time" data-tz="Asia/Kolkata">--:--</span>
       </span>
-      <span class="wire-clock">
+      <span data-testid="wire-clock" class="wire-clock">
         <span class="wire-label">London</span>
         <span class="wire-time" data-tz="Europe/London">--:--</span>
       </span>
-      <span class="wire-clock" data-priority>
+      <span data-testid="wire-clock" class="wire-clock" data-priority>
         <span class="wire-label">New York</span>
         <span class="wire-time" data-tz="America/New_York">--:--</span>
       </span>
-      <span class="wire-clock">
+      <span data-testid="wire-clock" class="wire-clock">
         <span class="wire-label">Los Angeles</span>
         <span class="wire-time" data-tz="America/Los_Angeles">--:--</span>
       </span>
@@ -133,32 +133,32 @@
        and converges on the right-rail timescale -->
   <canvas class="sun-scene" id="sunScene" aria-hidden="true"></canvas>
 
-  <header class="masthead">
-    <a class="wordmark" href="/" aria-label="Meridian — home">MER<span class="bh" aria-hidden="true">I</span><span class="sr-only">I</span>DIAN</a>
+  <header class="masthead" data-testid="topbar">
+    <a class="wordmark" data-testid="wordmark" href="/" aria-label="Meridian — home">MER<span class="bh" aria-hidden="true">I</span><span class="sr-only">I</span>DIAN</a>
     <div class="masthead-controls">
       <div class="search" id="search">
-        <input class="search-input" id="searchInput" type="search"
+        <input class="search-input" id="searchInput" data-testid="search-input" type="search"
                placeholder="Search stories" aria-label="Search stories"
                data-i18n-placeholder="search.placeholder" data-i18n-label="search.placeholder"
                autocomplete="off" spellcheck="false">
-        <button class="icon-btn" id="searchToggle" aria-label="Search"
+        <button class="icon-btn" id="searchToggle" data-testid="search-toggle" aria-label="Search"
                 aria-expanded="false" data-i18n-label="search.open">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
         </button>
       </div>
 
       <div class="lang" id="lang">
-        <button class="icon-btn" id="langToggle" aria-label="Translation"
+        <button class="icon-btn" id="langToggle" data-testid="lang-toggle" aria-label="Translation"
                 aria-expanded="false" aria-haspopup="true" data-i18n-label="lang.title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18Z"/></svg>
         </button>
-        <div class="popover" id="langPopover" hidden>
+        <div class="popover" id="langPopover" data-testid="lang-popover" hidden>
           <label class="popover-label mono" for="langSelect" data-i18n="lang.target">Language</label>
           <!-- options come from LANGUAGES in i18n.js — the same list fills the
                Settings drawer; both controls bind to prefs.targetLang -->
-          <select class="select" id="langSelect" data-lang-select></select>
+          <select class="select" id="langSelect" data-testid="lang-select" data-lang-select></select>
           <label class="check">
-            <input type="checkbox" id="autoTranslate" data-auto-translate>
+            <input type="checkbox" id="autoTranslate" data-testid="auto-translate" data-auto-translate>
             <span data-i18n="lang.auto">Auto-translate the feed</span>
           </label>
           <p class="popover-hint" data-i18n="lang.hint">Runs on your device when the browser supports it; otherwise a free server fallback.</p>
@@ -167,7 +167,7 @@
 
       <div class="size-ctl">
         <svg class="size-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7.5" height="7.5" rx="1"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1"/></svg>
-        <div class="size-slider" id="sizeSlider" role="slider" tabindex="0"
+        <div class="size-slider" id="sizeSlider" data-testid="size-slider" role="slider" tabindex="0"
              aria-label="Card size" data-i18n-label="grid.size"
              aria-valuemin="1" aria-valuemax="5" aria-valuenow="3">
           <span class="size-track" aria-hidden="true"></span>
@@ -182,12 +182,12 @@
         <svg class="size-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/></svg>
       </div>
 
-      <button class="icon-btn" id="themeToggle" aria-label="Toggle light or dark theme" data-i18n-label="theme.toggle">
+      <button class="icon-btn" id="themeToggle" data-testid="theme-toggle" aria-label="Toggle light or dark theme" data-i18n-label="theme.toggle">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
       </button>
 
-      <button class="icon-btn" id="settingsToggle" aria-label="Settings"
+      <button class="icon-btn" id="settingsToggle" data-testid="settings-toggle" aria-label="Settings"
               aria-expanded="false" data-i18n-label="settings.open">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.08a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
@@ -196,7 +196,7 @@
 
   <!-- 3 · Category tabs -->
   <nav class="tabs" aria-label="Categories">
-    <div class="tabs-track" id="tabs">
+    <div class="tabs-track" id="tabs" data-testid="tabs">
       <button class="tab mono" data-cat="all" aria-current="true" data-i18n="cat.all">All</button>
       <button class="tab mono" data-cat="world" data-i18n="cat.world">World</button>
       <button class="tab mono" data-cat="business" data-i18n="cat.business">Business</button>
@@ -216,12 +216,12 @@
   <!-- 3b · AI forecast — the future sits above the present. Revealed by
        pulling past the top of the feed; exists only where the browser has
        the built-in Prompt API (the module unhides the hint after probing) -->
-  <button class="forecast-hint mono" id="forecastHint" type="button" hidden>
+  <button class="forecast-hint mono" id="forecastHint" data-testid="forecast-hint" type="button" hidden>
     <span class="forecast-hint-arrow" aria-hidden="true">↓</span>
     <span class="forecast-hint-text" data-i18n="forecast.hint">Pull down for an AI forecast</span>
     <span class="forecast-hint-bar" aria-hidden="true"></span>
   </button>
-  <section class="forecast" id="forecast" hidden aria-label="AI forecast" data-i18n-label="forecast.aria">
+  <section class="forecast" id="forecast" data-testid="forecast" hidden aria-label="AI forecast" data-i18n-label="forecast.aria">
     <div class="forecast-card">
       <div class="forecast-head">
         <span class="ai-orb" aria-hidden="true">
@@ -239,28 +239,28 @@
           </svg>
         </span>
         <span class="forecast-label mono" data-i18n="forecast.label">AI forecast · next 7 days</span>
-        <span class="forecast-status mono" id="forecastStatus" aria-live="polite"></span>
-        <span class="badge mono" id="forecastBadge" hidden></span>
-        <button class="icon-btn forecast-regen" id="forecastRegen" type="button"
+        <span class="forecast-status mono" id="forecastStatus" data-testid="forecast-status" aria-live="polite"></span>
+        <span class="badge mono" id="forecastBadge" data-testid="forecast-badge" hidden></span>
+        <button class="icon-btn forecast-regen" id="forecastRegen" data-testid="forecast-regen" type="button"
           data-i18n-label="forecast.regenerate" aria-label="Regenerate the forecast">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/>
           </svg>
         </button>
-        <button class="icon-btn forecast-close" id="forecastClose" type="button"
+        <button class="icon-btn forecast-close" id="forecastClose" data-testid="forecast-close" type="button"
           data-i18n-label="forecast.close" aria-label="Close the forecast">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
         </button>
       </div>
       <p class="forecast-disclaimer"><span class="forecast-spec mono" data-i18n="forecast.specTag">Speculative</span><span data-i18n="forecast.disclaimer">Possible events an AI model on this device extrapolated from the stories in view — not news, not reporting, not verified. Read them as things to watch, nothing more.</span></p>
-      <div class="forecast-grid" id="forecastGrid"></div>
+      <div class="forecast-grid" id="forecastGrid" data-testid="forecast-grid"></div>
     </div>
   </section>
 
   <!-- 4 · Daily brief — auto-runs on load and on fresh news; fixed height
        so the grid below never moves -->
-  <section class="brief" aria-label="Daily brief">
+  <section class="brief" data-testid="brief" aria-label="Daily brief">
     <div class="brief-card">
       <div class="brief-head">
         <span class="ai-orb" aria-hidden="true">
@@ -279,8 +279,8 @@
         </span>
         <span class="brief-label mono" data-i18n="brief.label">Brief</span>
         <span class="brief-status mono" id="briefStatus"></span>
-        <span class="badge mono" id="briefBadge" hidden></span>
-        <button class="icon-btn brief-refresh" id="briefRefresh" type="button"
+        <span class="badge mono" id="briefBadge" data-testid="brief-badge" hidden></span>
+        <button class="icon-btn brief-refresh" id="briefRefresh" data-testid="brief-refresh" type="button"
           data-i18n-label="brief.rerun" aria-label="Refresh the brief">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -288,18 +288,18 @@
           </svg>
         </button>
       </div>
-      <div class="brief-body" id="briefBody" aria-live="polite"></div>
+      <div class="brief-body" id="briefBody" data-testid="brief-body" aria-live="polite"></div>
     </div>
   </section>
 
-  <div class="banner mono" id="offlineBanner" hidden data-i18n="feed.offline">You’re offline — showing stories already loaded.</div>
+  <div class="banner mono" id="offlineBanner" data-testid="offline-banner" hidden data-i18n="feed.offline">You’re offline — showing stories already loaded.</div>
 
-  <button class="pill mono" id="newPill" role="status" aria-live="polite" hidden></button>
+  <button class="pill mono" id="newPill" data-testid="new-pill" role="status" aria-live="polite" hidden></button>
 
   <!-- 5 · Feed -->
   <!-- Right-rail plasma timescale: scroll position ↔ story time -->
-  <aside class="timescale is-empty" id="timescale" aria-hidden="true">
-    <span class="timescale-future mono" id="timescaleFuture" hidden>
+  <aside class="timescale is-empty" id="timescale" data-testid="timescale" aria-hidden="true">
+    <span class="timescale-future mono" id="timescaleFuture" data-testid="timescale-future" hidden>
       <span class="timescale-future-label" data-i18n="forecast.railFuture">+7D</span>
     </span>
     <canvas class="timescale-canvas" id="plasma"></canvas>
@@ -316,33 +316,33 @@
     <!-- Server-rendered latest headlines: what search engines, AI assistants
          and readers without JavaScript see. The app hides it (html.js) and
          removes it once it boots; the live grid takes over. -->
-    <section class="ssr" id="ssrFeed" aria-label="Latest headlines">__SSR_HEADLINES__
+    <section class="ssr" id="ssrFeed" data-testid="ssr" aria-label="Latest headlines">__SSR_HEADLINES__
     </section>
 
     <!-- Your Feed sub-tabs (visible on the saved/your-feed view only) -->
-    <div class="feed-subtabs" id="feedTabs" hidden>
+    <div class="feed-subtabs" id="feedTabs" data-testid="feed-subtabs" hidden>
       <button class="subtab mono" data-sub="recommended" data-i18n="feed.subRecommended">Recommended to you</button>
       <button class="subtab mono" data-sub="saved" data-i18n="feed.subSaved">Your saved news</button>
-      <button class="btn mono feed-tune" id="tuneMore" hidden data-i18n="feed.tune">Tune more</button>
+      <button class="btn mono feed-tune" id="tuneMore" data-testid="tune-more" hidden data-i18n="feed.tune">Tune more</button>
     </div>
 
     <!-- Tinder-style taste onboarding -->
-    <section class="onboard" id="onboard" hidden aria-label="Taste onboarding">
+    <section class="onboard" id="onboard" data-testid="onboard" hidden aria-label="Taste onboarding">
       <p class="onboard-title" data-i18n="onboard.title">Teach Meridian your taste</p>
       <p class="onboard-hint" data-i18n="onboard.hint">Like or skip a few stories. Your preferences stay on this device.</p>
       <div class="onboard-progress" id="onboardProgress" aria-live="polite"></div>
       <div class="onboard-stage" id="onboardCard"></div>
       <div class="onboard-actions">
-        <button class="onboard-btn onboard-btn--skip" id="onboardSkip" data-i18n-label="onboard.skip" aria-label="Skip">
+        <button class="onboard-btn onboard-btn--skip" id="onboardSkip" data-testid="onboard-skip" data-i18n-label="onboard.skip" aria-label="Skip">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
         </button>
-        <button class="onboard-btn onboard-btn--like" id="onboardLike" data-i18n-label="onboard.like" aria-label="Like">
+        <button class="onboard-btn onboard-btn--like" id="onboardLike" data-testid="onboard-like" data-i18n-label="onboard.like" aria-label="Like">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5C5.5 15.6 2.5 12.2 2.5 8.7 2.5 6 4.6 4 7.2 4c1.7 0 3.3.9 4.8 2.7C13.5 4.9 15.1 4 16.8 4c2.6 0 4.7 2 4.7 4.7 0 3.5-3 6.9-9.5 11.8Z"/></svg>
         </button>
       </div>
     </section>
 
-    <div class="grid" id="grid">
+    <div class="grid" id="grid" data-testid="grid">
       <div class="card card--skeleton" aria-hidden="true"><div class="skel skel-media"></div><div class="card-body"><div class="skel skel-line skel-line--meta"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line skel-line--short"></div></div></div>
       <div class="card card--skeleton" aria-hidden="true"><div class="skel skel-media"></div><div class="card-body"><div class="skel skel-line skel-line--meta"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line skel-line--short"></div></div></div>
       <div class="card card--skeleton" aria-hidden="true"><div class="skel skel-media"></div><div class="card-body"><div class="skel skel-line skel-line--meta"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line skel-line--short"></div></div></div>
@@ -350,15 +350,15 @@
       <div class="card card--skeleton" aria-hidden="true"><div class="skel skel-media"></div><div class="card-body"><div class="skel skel-line skel-line--meta"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line skel-line--short"></div></div></div>
       <div class="card card--skeleton" aria-hidden="true"><div class="skel skel-media"></div><div class="card-body"><div class="skel skel-line skel-line--meta"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line skel-line--short"></div></div></div>
     </div>
-    <div class="empty" id="empty" hidden>
+    <div class="empty" id="empty" data-testid="empty" hidden>
       <p class="empty-title" id="emptyTitle"></p>
       <p class="empty-hint" id="emptyHint"></p>
-      <button class="btn" id="emptyRetry" hidden data-i18n="feed.retry">Retry</button>
+      <button class="btn" id="emptyRetry" data-testid="empty-retry" hidden data-i18n="feed.retry">Retry</button>
     </div>
     <div class="sentinel" id="sentinel" aria-hidden="true"></div>
 
     <!-- Bubble Battle: viewpoint clusters as physics bubbles -->
-    <section class="battle" id="battle" hidden aria-label="Bubble Battle">
+    <section class="battle" id="battle" data-testid="battle" hidden aria-label="Bubble Battle">
       <div class="battle-legend mono">
         <span class="legend-chip" data-lean="left" data-i18n="battle.left">Left</span>
         <span class="legend-chip" data-lean="center" data-i18n="battle.center">Center</span>
@@ -367,7 +367,7 @@
         <span class="battle-status" id="battleStatus"></span>
       </div>
       <canvas class="battle-links" id="battleLinks" aria-hidden="true"></canvas>
-      <div class="battle-space" id="battleSpace"></div>
+      <div class="battle-space" id="battleSpace" data-testid="battle-space"></div>
     </section>
   </main>
 
@@ -376,26 +376,26 @@
   <footer class="site-foot mono">
     <span data-i18n="foot.tagline">Meridian — open source · no ads · no tracking</span>
     <span class="site-foot-sep" aria-hidden="true">·</span>
-    <span id="sourceCount">— sources</span>
+    <span id="sourceCount" data-testid="source-count">— sources</span>
     <span class="site-foot-sep" aria-hidden="true">·</span>
     <a href="https://github.com/DmitriyBagrov92/open-news-feed" target="_blank" rel="noopener" data-i18n="foot.github">GitHub</a>
   </footer>
 
   <!-- Settings drawer -->
   <div class="scrim" id="drawerScrim" hidden></div>
-  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" hidden>
+  <aside class="drawer" id="drawer" data-testid="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" hidden>
     <div class="drawer-head">
       <h2 class="drawer-title" id="drawerTitle" data-i18n="settings.title">Settings</h2>
-      <button class="icon-btn" id="drawerClose" aria-label="Close settings" data-i18n-label="settings.close">
+      <button class="icon-btn" id="drawerClose" data-testid="settings-close" aria-label="Close settings" data-i18n-label="settings.close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
     </div>
     <div class="drawer-body">
       <section class="drawer-section">
         <h3 class="drawer-label mono" data-i18n="settings.language">Language</h3>
-        <select class="select" id="langSelectDrawer" aria-label="Language" data-i18n-label="settings.language" data-lang-select></select>
+        <select class="select" id="langSelectDrawer" data-testid="lang-select-drawer" aria-label="Language" data-i18n-label="settings.language" data-lang-select></select>
         <label class="check">
-          <input type="checkbox" id="autoTranslateDrawer" data-auto-translate>
+          <input type="checkbox" id="autoTranslateDrawer" data-testid="auto-translate-drawer" data-auto-translate>
           <span data-i18n="lang.auto">Auto-translate the feed</span>
         </label>
         <p class="drawer-hint" data-i18n="settings.languageHint">One setting for everything: stories are translated into it (on your device when the browser can, otherwise a free server fallback), the AI brief and forecast answer in it, and the interface follows wherever a translation of the interface exists — English only so far.</p>
@@ -403,12 +403,12 @@
       <section class="drawer-section">
         <h3 class="drawer-label mono" data-i18n="settings.sources">Sources</h3>
         <p class="drawer-hint" data-i18n="settings.sourcesHint">Uncheck a source to hide its stories from the feed.</p>
-        <div id="sourcesList"><p class="drawer-hint" data-i18n="settings.sourcesLoading">Loading sources…</p></div>
+        <div id="sourcesList" data-testid="sources-list"><p class="drawer-hint" data-i18n="settings.sourcesLoading">Loading sources…</p></div>
       </section>
-      <section class="drawer-section" id="forecastSetting" hidden>
+      <section class="drawer-section" id="forecastSetting" data-testid="forecast-setting" hidden>
         <h3 class="drawer-label mono" data-i18n="settings.forecast">AI forecast</h3>
         <label class="check">
-          <input type="checkbox" id="forecastToggle">
+          <input type="checkbox" id="forecastToggle" data-testid="forecast-toggle">
           <span data-i18n="settings.forecastToggle">Pull down at the top of the feed for an AI forecast</span>
         </label>
         <p class="drawer-hint" data-i18n="settings.forecastHint">Runs entirely on this device with Chrome’s built-in model. Shown only where the browser supports it.</p>

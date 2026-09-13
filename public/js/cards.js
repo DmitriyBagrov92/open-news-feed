@@ -64,6 +64,7 @@ export function buildCard(article, { variant = 'std', saved = false, onOpen, onT
     // Conveys to AT that Enter/Space opens the preview (wired below).
     role: 'button',
     'data-id': article.id,
+    'data-testid': 'card',
     'aria-label': t('card.preview', { title: article.title }),
   });
 
@@ -91,12 +92,14 @@ export function buildCard(article, { variant = 'std', saved = false, onOpen, onT
   const actions = el('div', { class: 'card-actions' });
 
   const translateBtn = iconButton('globe', t('card.translate'));
+  translateBtn.dataset.testid = 'card-translate';
   translateBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     onTranslate?.(article, card);
   });
 
   const saveBtn = iconButton('bookmark', saved ? t('card.unsave') : t('card.save'));
+  saveBtn.dataset.testid = 'card-save';
   if (saved) saveBtn.classList.add('is-saved');
   saveBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -105,6 +108,7 @@ export function buildCard(article, { variant = 'std', saved = false, onOpen, onT
 
   const openLink = el('a', {
     class: 'icon-btn',
+    'data-testid': 'card-open',
     href: article.url,
     target: '_blank',
     rel: 'noopener',
@@ -120,6 +124,7 @@ export function buildCard(article, { variant = 'std', saved = false, onOpen, onT
   // hidden until the article actually has comments
   const cmtChip = el('button', {
     class: 'card-cmt mono',
+    'data-testid': 'card-comments',
     type: 'button',
     'aria-label': t('card.comments', { n: article.commentCount || 0 }),
     hidden: !(article.commentCount > 0),
@@ -139,6 +144,7 @@ export function buildCard(article, { variant = 'std', saved = false, onOpen, onT
     // would take .mono's own font-size and outgrow the comment chip
     const btn = el('button', {
       class: 'card-vote mono card-vote--' + kind,
+      'data-testid': 'card-vote-' + kind,
       type: 'button',
       'aria-label': t(kind === 'up' ? 'card.like' : 'card.dislike'),
       'aria-pressed': String(article.myVote === val),

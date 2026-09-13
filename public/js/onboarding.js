@@ -41,7 +41,7 @@ export function initOnboarding({ section, onRate, onDone, translateArticle }) {
   }
 
   function buildStoryCard(article) {
-    const card = el('article', { class: 'onboard-card' });
+    const card = el('article', { class: 'onboard-card', 'data-testid': 'onboard-card' });
     card._article = article; // buttons/keys rate the story on stage
     card.append(buildMedia(article, 'onb-media'));
     const body = el('div', { class: 'onboard-body' });

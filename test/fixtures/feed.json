@@ -1,0 +1,722 @@
+[
+  {
+    "source": "bbc-world",
+    "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+    "description": "Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast.",
+    "url": "https://www.bbc.com/fixture/story-a",
+    "image": "https://images.example.net/fixture/1.jpg",
+    "ageMin": 4
+  },
+  {
+    "source": "guardian-world",
+    "title": "Supreme Court to hear challenge to sweeping import tariffs",
+    "description": "The justices agreed to take the case on an expedited schedule, with arguments set for next month.",
+    "url": "https://www.theguardian.com/fixture/story-b",
+    "image": "https://images.example.net/fixture/2.jpg",
+    "ageMin": 9
+  },
+  {
+    "source": "aljazeera",
+    "title": "Ceasefire talks resume in Cairo after week-long pause",
+    "description": "Mediators say a framework for a phased truce is on the table for the first time since spring.",
+    "url": "https://www.aljazeera.com/fixture/story-3",
+    "image": "https://images.example.net/fixture/3.jpg",
+    "ageMin": 15
+  },
+  {
+    "source": "npr-world",
+    "title": "Federal Reserve expected to hold rates as inflation cools",
+    "description": "Markets price a pause at Wednesday’s meeting, with the statement wording in focus.",
+    "url": "https://www.npr.org/fixture/story-4",
+    "image": null,
+    "ageMin": 22
+  },
+  {
+    "source": "sky-world",
+    "title": "Rail strike enters third day as talks collapse again",
+    "description": "Unions and the operator traded blame after an overnight session ended without agreement.",
+    "url": "https://news.sky.com/fixture/story-c",
+    "image": "https://images.example.net/fixture/5.jpg",
+    "ageMin": 31
+  },
+  {
+    "source": "dw-world",
+    "title": "Berlin coalition agrees on 2027 budget after marathon session",
+    "description": "The compromise trims defence growth and keeps the debt brake intact.",
+    "url": "https://www.dw.com/fixture/story-6",
+    "image": "https://images.example.net/fixture/6.jpg",
+    "ageMin": 47
+  },
+  {
+    "source": "france24",
+    "title": "Paris unveils plan to pedestrianise the Seine embankments",
+    "description": "The scheme would close two kilometres of quayside road to cars by 2028.",
+    "url": "https://www.france24.com/fixture/story-7",
+    "image": "https://images.example.net/fixture/7.jpg",
+    "ageMin": 58
+  },
+  {
+    "source": "abc-au",
+    "title": "Great Barrier Reef survey finds partial recovery after bleaching",
+    "description": "Scientists caution that the gains are fragile going into a warm summer.",
+    "url": "https://www.abc.net.au/fixture/story-8",
+    "image": null,
+    "ageMin": 75
+  },
+  {
+    "source": "euronews",
+    "title": "EU ministers back new rules on AI in hiring",
+    "description": "The regulation would require human review of automated rejections.",
+    "url": "https://www.euronews.com/fixture/story-9",
+    "image": "https://images.example.net/fixture/9.jpg",
+    "ageMin": 92
+  },
+  {
+    "source": "tass",
+    "title": "Northern Sea Route shipping season extended by six weeks",
+    "description": "Ice conditions allowed convoys to run into November for the first time.",
+    "url": "https://tass.com/fixture/story-10",
+    "image": "https://images.example.net/fixture/10.jpg",
+    "ageMin": 130
+  },
+  {
+    "source": "scmp",
+    "title": "Hong Kong pilots four-day week for civil servants",
+    "description": "The trial covers 3,000 staff across two departments for six months.",
+    "url": "https://www.scmp.com/fixture/story-11",
+    "image": "https://images.example.net/fixture/11.jpg",
+    "ageMin": 160
+  },
+  {
+    "source": "japantimes",
+    "title": "Tokyo commuters face first fare rise in a decade",
+    "description": "The operator cites energy costs and a shrinking ridership base.",
+    "url": "https://www.japantimes.co.jp/fixture/story-12",
+    "image": null,
+    "ageMin": 200
+  },
+  {
+    "source": "straitstimes",
+    "title": "Singapore tightens rules on e-scooter batteries after fires",
+    "description": "Only certified packs may be sold from January.",
+    "url": "https://www.straitstimes.com/fixture/story-13",
+    "image": "https://images.example.net/fixture/13.jpg",
+    "ageMin": 240
+  },
+  {
+    "source": "mee",
+    "title": "Ceasefire talks in Cairo: what each side wants",
+    "description": "A guide to the sticking points as mediators push for a phased truce.",
+    "url": "https://www.middleeasteye.net/fixture/story-14",
+    "image": "https://images.example.net/fixture/14.jpg",
+    "ageMin": 260
+  },
+  {
+    "source": "timesofisrael",
+    "title": "Knesset committee advances judicial appointments bill",
+    "description": "The vote sends the measure to a first reading next week.",
+    "url": "https://www.timesofisrael.com/fixture/story-15",
+    "image": "https://images.example.net/fixture/15.jpg",
+    "ageMin": 300
+  },
+  {
+    "source": "jpost",
+    "title": "Ceasefire talks resume in Cairo, officials cautiously optimistic",
+    "description": "Israeli officials said the Cairo framework is closer than previous rounds.",
+    "url": "https://www.jpost.com/fixture/story-16",
+    "image": "https://images.example.net/fixture/16.jpg",
+    "ageMin": 320
+  },
+  {
+    "source": "toi-world",
+    "title": "Monsoon withdrawal delayed by a week, IMD says",
+    "description": "Farmers in the north are advised to hold sowing until the rains clear.",
+    "url": "https://timesofindia.indiatimes.com/fixture/story-17",
+    "image": "https://images.example.net/fixture/17.jpg",
+    "ageMin": 400
+  },
+  {
+    "source": "allafrica",
+    "title": "Kenya launches continent’s largest solar-storage plant",
+    "description": "The 300 MW site near Nairobi will power 600,000 homes.",
+    "url": "https://allafrica.com/fixture/story-18",
+    "image": null,
+    "ageMin": 520
+  },
+  {
+    "source": "mercopress",
+    "title": "Falklands fishing licences hit record value",
+    "description": "Squid catches drove the season to a new high.",
+    "url": "https://en.mercopress.com/fixture/story-19",
+    "image": "https://images.example.net/fixture/19.jpg",
+    "ageMin": 700
+  },
+  {
+    "source": "bbc-business",
+    "title": "Federal Reserve holds rates steady, signals patience",
+    "description": "The central bank kept its benchmark unchanged and said it wants more evidence on inflation.",
+    "url": "https://www.bbc.com/fixture/story-20",
+    "image": "https://images.example.net/fixture/20.jpg",
+    "ageMin": 12
+  },
+  {
+    "source": "guardian-business",
+    "title": "Supermarket price war deepens as Tesco cuts 1,000 lines",
+    "description": "Rivals are expected to respond within days.",
+    "url": "https://www.theguardian.com/fixture/story-21",
+    "image": "https://images.example.net/fixture/21.jpg",
+    "ageMin": 34
+  },
+  {
+    "source": "cnbc",
+    "title": "Chipmaker Vela posts record quarter on data-centre demand",
+    "description": "Shares rose 8% after hours on guidance above estimates.",
+    "url": "https://www.cnbc.com/fixture/story-22",
+    "image": null,
+    "ageMin": 66
+  },
+  {
+    "source": "yahoo-finance",
+    "title": "Oil slips below $70 as inventories build",
+    "description": "Analysts see a soft floor unless OPEC+ trims output.",
+    "url": "https://finance.yahoo.com/fixture/story-23",
+    "image": "https://images.example.net/fixture/23.jpg",
+    "ageMin": 110
+  },
+  {
+    "source": "fortune",
+    "title": "The four-day week is spreading to factories",
+    "description": "Manufacturers report lower turnover after pilots in three states.",
+    "url": "https://fortune.com/fixture/story-24",
+    "image": "https://images.example.net/fixture/24.jpg",
+    "ageMin": 190
+  },
+  {
+    "source": "ft",
+    "title": "Bond markets brace for heavy autumn issuance",
+    "description": "Treasuries face a record refunding calendar.",
+    "url": "https://www.ft.com/fixture/story-25",
+    "image": null,
+    "ageMin": 310
+  },
+  {
+    "source": "verge",
+    "title": "Chrome ships on-device AI to every desktop user",
+    "description": "The Prompt API leaves its origin trial with a smaller model download.",
+    "url": "https://www.theverge.com/fixture/story-26",
+    "image": "https://images.example.net/fixture/26.jpg",
+    "ageMin": 7
+  },
+  {
+    "source": "techcrunch",
+    "title": "Startup Orbis raises $120M to map the ocean floor",
+    "description": "The round values the company at $1.1B.",
+    "url": "https://techcrunch.com/fixture/story-27",
+    "image": "https://images.example.net/fixture/27.jpg",
+    "ageMin": 40
+  },
+  {
+    "source": "ars",
+    "title": "Linux 7.2 lands with a rewritten scheduler",
+    "description": "Benchmarks show gains on hybrid CPUs.",
+    "url": "https://arstechnica.com/fixture/story-28",
+    "image": null,
+    "ageMin": 85
+  },
+  {
+    "source": "wired",
+    "title": "The quiet return of the small web",
+    "description": "Personal sites are growing again, and the tools are better than ever.",
+    "url": "https://www.wired.com/fixture/story-29",
+    "image": "https://images.example.net/fixture/29.jpg",
+    "ageMin": 150
+  },
+  {
+    "source": "engadget",
+    "title": "Review: the first foldable that survives a pocket",
+    "description": "Durability finally matches the price.",
+    "url": "https://www.engadget.com/fixture/story-30",
+    "image": "https://images.example.net/fixture/30.jpg",
+    "ageMin": 230
+  },
+  {
+    "source": "bbc-tech",
+    "title": "Regulator opens probe into app store fees",
+    "description": "Developers welcomed the inquiry; the platform said it would cooperate.",
+    "url": "https://www.bbc.com/fixture/story-31",
+    "image": "https://images.example.net/fixture/31.jpg",
+    "ageMin": 280
+  },
+  {
+    "source": "hackernews",
+    "title": "Show HN: a news reader that runs its AI on your device",
+    "description": "Open source, no accounts, no tracking.",
+    "url": "https://news.ycombinator.com/fixture/story-32",
+    "image": null,
+    "ageMin": 330
+  },
+  {
+    "source": "sciencedaily",
+    "title": "Bacteria found thriving in concrete could cut cement emissions",
+    "description": "The strain self-heals cracks in lab tests.",
+    "url": "https://www.sciencedaily.com/fixture/story-33",
+    "image": "https://images.example.net/fixture/33.jpg",
+    "ageMin": 18
+  },
+  {
+    "source": "nature",
+    "title": "Fusion experiment sustains plasma for a record 22 minutes",
+    "description": "The result edges toward continuous operation.",
+    "url": "https://www.nature.com/fixture/story-34",
+    "image": "https://images.example.net/fixture/34.jpg",
+    "ageMin": 95
+  },
+  {
+    "source": "nasa",
+    "title": "Artemis crew completes final dress rehearsal",
+    "description": "Launch remains targeted for the spring window.",
+    "url": "https://www.nasa.gov/fixture/story-35",
+    "image": "https://images.example.net/fixture/35.jpg",
+    "ageMin": 170
+  },
+  {
+    "source": "phys-org",
+    "title": "Ancient ice core reveals 1.2 million years of climate",
+    "description": "The Antarctic record is the oldest continuous one recovered.",
+    "url": "https://phys.org/fixture/story-36",
+    "image": null,
+    "ageMin": 260
+  },
+  {
+    "source": "bbc-science",
+    "title": "Rare comet visible to the naked eye this weekend",
+    "description": "Look west after sunset for a faint tail.",
+    "url": "https://www.bbc.com/fixture/story-37",
+    "image": "https://images.example.net/fixture/37.jpg",
+    "ageMin": 350
+  },
+  {
+    "source": "newscientist",
+    "title": "Why sleep before a test beats cramming",
+    "description": "A new study measures memory consolidation directly.",
+    "url": "https://www.newscientist.com/fixture/story-38",
+    "image": "https://images.example.net/fixture/38.jpg",
+    "ageMin": 480
+  },
+  {
+    "source": "espn",
+    "title": "Shelton sets up US Open final against Alcaraz",
+    "description": "The American won a five-set thriller to reach his first Grand Slam final on Sunday.",
+    "url": "https://www.espn.com/fixture/story-39",
+    "image": "https://images.example.net/fixture/39.jpg",
+    "ageMin": 5
+  },
+  {
+    "source": "bbc-sport",
+    "title": "Europe lead 7-5 going into Solheim Cup singles",
+    "description": "Sunday’s twelve matches decide the trophy.",
+    "url": "https://www.bbc.com/fixture/story-40",
+    "image": "https://images.example.net/fixture/40.jpg",
+    "ageMin": 50
+  },
+  {
+    "source": "guardian-sport",
+    "title": "Wrexham suffer heaviest loss under Reynolds in 6-0 rout",
+    "description": "West Ham ran riot on Friday night.",
+    "url": "https://www.theguardian.com/fixture/story-41",
+    "image": null,
+    "ageMin": 120
+  },
+  {
+    "source": "variety",
+    "title": "Box office: “Ignition” opens to $48M",
+    "description": "The thriller beat projections in its first weekend.",
+    "url": "https://variety.com/fixture/story-42",
+    "image": "https://images.example.net/fixture/42.jpg",
+    "ageMin": 28
+  },
+  {
+    "source": "thr",
+    "title": "Emmys move to a single-night ceremony",
+    "description": "The academy says the shorter show will air live in every time zone.",
+    "url": "https://www.hollywoodreporter.com/fixture/story-43",
+    "image": "https://images.example.net/fixture/43.jpg",
+    "ageMin": 140
+  },
+  {
+    "source": "rollingstone",
+    "title": "The 50 best albums of the year so far",
+    "description": "From bedroom pop to big-tent country.",
+    "url": "https://www.rollingstone.com/fixture/story-44",
+    "image": null,
+    "ageMin": 210
+  },
+  {
+    "source": "bbc-culture",
+    "title": "Turner Prize shortlist announced",
+    "description": "Four artists compete for the £25,000 award.",
+    "url": "https://www.bbc.com/fixture/story-45",
+    "image": "https://images.example.net/fixture/45.jpg",
+    "ageMin": 290
+  },
+  {
+    "source": "guardian-culture",
+    "title": "Review: a Hamlet that runs on batteries",
+    "description": "Two hours of electric theatre.",
+    "url": "https://www.theguardian.com/fixture/story-46",
+    "image": "https://images.example.net/fixture/46.jpg",
+    "ageMin": 360
+  },
+  {
+    "source": "bbc-health",
+    "title": "NHS to offer weight-loss jab through GPs from January",
+    "description": "Eligibility starts with the highest-risk patients.",
+    "url": "https://www.bbc.com/fixture/story-47",
+    "image": "https://images.example.net/fixture/47.jpg",
+    "ageMin": 36
+  },
+  {
+    "source": "statnews",
+    "title": "FDA panel backs first oral treatment for migraine prevention",
+    "description": "A decision is due within weeks.",
+    "url": "https://www.statnews.com/fixture/story-48",
+    "image": null,
+    "ageMin": 180
+  },
+  {
+    "source": "who",
+    "title": "WHO declares end of mpox emergency",
+    "description": "Cases have fallen for six consecutive months.",
+    "url": "https://www.who.int/fixture/story-49",
+    "image": "https://images.example.net/fixture/49.jpg",
+    "ageMin": 420
+  },
+  {
+    "source": "bbc-world",
+    "title": "Archive 1: an earlier world story from bbc-world",
+    "description": "Background reading number 1 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-50",
+    "image": null,
+    "ageMin": 900
+  },
+  {
+    "source": "guardian-world",
+    "title": "Archive 2: an earlier world story from guardian-world",
+    "description": "Background reading number 2 — kept so the feed has a second page.",
+    "url": "https://www.theguardian.com/fixture/story-51",
+    "image": "https://images.example.net/fixture/51.jpg",
+    "ageMin": 1140
+  },
+  {
+    "source": "npr-world",
+    "title": "Archive 3: an earlier world story from npr-world",
+    "description": "Background reading number 3 — kept so the feed has a second page.",
+    "url": "https://www.npr.org/fixture/story-52",
+    "image": "https://images.example.net/fixture/52.jpg",
+    "ageMin": 1380
+  },
+  {
+    "source": "bbc-business",
+    "title": "Archive 4: an earlier business story from bbc-business",
+    "description": "Background reading number 4 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-53",
+    "image": null,
+    "ageMin": 1620
+  },
+  {
+    "source": "cnbc",
+    "title": "Archive 5: an earlier business story from cnbc",
+    "description": "Background reading number 5 — kept so the feed has a second page.",
+    "url": "https://www.cnbc.com/fixture/story-54",
+    "image": "https://images.example.net/fixture/54.jpg",
+    "ageMin": 1860
+  },
+  {
+    "source": "verge",
+    "title": "Archive 6: an earlier technology story from verge",
+    "description": "Background reading number 6 — kept so the feed has a second page.",
+    "url": "https://www.theverge.com/fixture/story-55",
+    "image": "https://images.example.net/fixture/55.jpg",
+    "ageMin": 2100
+  },
+  {
+    "source": "ars",
+    "title": "Archive 7: an earlier technology story from ars",
+    "description": "Background reading number 7 — kept so the feed has a second page.",
+    "url": "https://arstechnica.com/fixture/story-56",
+    "image": null,
+    "ageMin": 2340
+  },
+  {
+    "source": "nature",
+    "title": "Archive 8: an earlier science story from nature",
+    "description": "Background reading number 8 — kept so the feed has a second page.",
+    "url": "https://www.nature.com/fixture/story-57",
+    "image": "https://images.example.net/fixture/57.jpg",
+    "ageMin": 2580
+  },
+  {
+    "source": "espn",
+    "title": "Archive 9: an earlier sports story from espn",
+    "description": "Background reading number 9 — kept so the feed has a second page.",
+    "url": "https://www.espn.com/fixture/story-58",
+    "image": "https://images.example.net/fixture/58.jpg",
+    "ageMin": 2820
+  },
+  {
+    "source": "variety",
+    "title": "Archive 10: an earlier culture story from variety",
+    "description": "Background reading number 10 — kept so the feed has a second page.",
+    "url": "https://variety.com/fixture/story-59",
+    "image": null,
+    "ageMin": 3060
+  },
+  {
+    "source": "bbc-health",
+    "title": "Archive 11: an earlier health story from bbc-health",
+    "description": "Background reading number 11 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-60",
+    "image": "https://images.example.net/fixture/60.jpg",
+    "ageMin": 3300
+  },
+  {
+    "source": "euronews",
+    "title": "Archive 12: an earlier world story from euronews",
+    "description": "Background reading number 12 — kept so the feed has a second page.",
+    "url": "https://www.euronews.com/fixture/story-61",
+    "image": "https://images.example.net/fixture/61.jpg",
+    "ageMin": 3540
+  },
+  {
+    "source": "bbc-world",
+    "title": "Archive 13: an earlier world story from bbc-world",
+    "description": "Background reading number 13 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-62",
+    "image": null,
+    "ageMin": 3780
+  },
+  {
+    "source": "guardian-world",
+    "title": "Archive 14: an earlier world story from guardian-world",
+    "description": "Background reading number 14 — kept so the feed has a second page.",
+    "url": "https://www.theguardian.com/fixture/story-63",
+    "image": "https://images.example.net/fixture/63.jpg",
+    "ageMin": 4020
+  },
+  {
+    "source": "npr-world",
+    "title": "Archive 15: an earlier world story from npr-world",
+    "description": "Background reading number 15 — kept so the feed has a second page.",
+    "url": "https://www.npr.org/fixture/story-64",
+    "image": "https://images.example.net/fixture/64.jpg",
+    "ageMin": 4260
+  },
+  {
+    "source": "bbc-business",
+    "title": "Archive 16: an earlier business story from bbc-business",
+    "description": "Background reading number 16 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-65",
+    "image": null,
+    "ageMin": 4500
+  },
+  {
+    "source": "cnbc",
+    "title": "Archive 17: an earlier business story from cnbc",
+    "description": "Background reading number 17 — kept so the feed has a second page.",
+    "url": "https://www.cnbc.com/fixture/story-66",
+    "image": "https://images.example.net/fixture/66.jpg",
+    "ageMin": 4740
+  },
+  {
+    "source": "verge",
+    "title": "Archive 18: an earlier technology story from verge",
+    "description": "Background reading number 18 — kept so the feed has a second page.",
+    "url": "https://www.theverge.com/fixture/story-67",
+    "image": "https://images.example.net/fixture/67.jpg",
+    "ageMin": 4980
+  },
+  {
+    "source": "ars",
+    "title": "Archive 19: an earlier technology story from ars",
+    "description": "Background reading number 19 — kept so the feed has a second page.",
+    "url": "https://arstechnica.com/fixture/story-68",
+    "image": null,
+    "ageMin": 5220
+  },
+  {
+    "source": "nature",
+    "title": "Archive 20: an earlier science story from nature",
+    "description": "Background reading number 20 — kept so the feed has a second page.",
+    "url": "https://www.nature.com/fixture/story-69",
+    "image": "https://images.example.net/fixture/69.jpg",
+    "ageMin": 5460
+  },
+  {
+    "source": "espn",
+    "title": "Archive 21: an earlier sports story from espn",
+    "description": "Background reading number 21 — kept so the feed has a second page.",
+    "url": "https://www.espn.com/fixture/story-70",
+    "image": "https://images.example.net/fixture/70.jpg",
+    "ageMin": 5700
+  },
+  {
+    "source": "variety",
+    "title": "Archive 22: an earlier culture story from variety",
+    "description": "Background reading number 22 — kept so the feed has a second page.",
+    "url": "https://variety.com/fixture/story-71",
+    "image": null,
+    "ageMin": 5940
+  },
+  {
+    "source": "bbc-health",
+    "title": "Archive 23: an earlier health story from bbc-health",
+    "description": "Background reading number 23 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-72",
+    "image": "https://images.example.net/fixture/72.jpg",
+    "ageMin": 6180
+  },
+  {
+    "source": "euronews",
+    "title": "Archive 24: an earlier world story from euronews",
+    "description": "Background reading number 24 — kept so the feed has a second page.",
+    "url": "https://www.euronews.com/fixture/story-73",
+    "image": "https://images.example.net/fixture/73.jpg",
+    "ageMin": 6420
+  },
+  {
+    "source": "bbc-world",
+    "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+    "description": "Duplicate of the lead story with a different URL.",
+    "url": "https://www.bbc.com/fixture/story-74",
+    "image": "https://images.example.net/fixture/74.jpg",
+    "ageMin": 6
+  },
+  {
+    "source": "bbc-world",
+    "title": "Ancient history: a story from nine days ago",
+    "description": "Must never appear.",
+    "url": "https://www.bbc.com/fixture/story-75",
+    "image": "https://images.example.net/fixture/75.jpg",
+    "ageMin": 12960
+  },
+  {
+    "source": "tagesschau",
+    "title": "Bundestag beschließt Haushalt nach Marathonsitzung",
+    "description": "Der Kompromiss hält die Schuldenbremse ein.",
+    "url": "https://www.tagesschau.de/fixture/story-76",
+    "image": "https://images.example.net/fixture/76.jpg",
+    "ageMin": 20
+  },
+  {
+    "source": "spiegel",
+    "title": "Bahnstreik geht in den dritten Tag",
+    "description": "Die Gespräche wurden in der Nacht abgebrochen.",
+    "url": "https://www.spiegel.de/fixture/story-77",
+    "image": "https://images.example.net/fixture/77.jpg",
+    "ageMin": 45
+  },
+  {
+    "source": "zeit",
+    "title": "Warum die Vier-Tage-Woche in Fabriken ankommt",
+    "description": "Erste Pilotprojekte melden weniger Kündigungen.",
+    "url": "https://www.zeit.de/fixture/story-78",
+    "image": null,
+    "ageMin": 130
+  },
+  {
+    "source": "fox-news",
+    "title": "Supreme Court takes up Trump Tariffs case in win for White House",
+    "description": "Conservatives hailed the decision to fast-track the Tariffs appeal.",
+    "url": "https://www.foxnews.com/fixture/story-79",
+    "image": "https://images.example.net/fixture/79.jpg",
+    "ageMin": 30
+  },
+  {
+    "source": "nypost",
+    "title": "Supreme Court to rule on Trump Tariffs before Christmas",
+    "description": "The Tariffs fight heads to the justices on an expedited timeline.",
+    "url": "https://nypost.com/fixture/story-80",
+    "image": "https://images.example.net/fixture/80.jpg",
+    "ageMin": 70
+  },
+  {
+    "source": "thenation",
+    "title": "The Supreme Court Just Handed Trump Tariffs a Lifeline",
+    "description": "Progressives warn the Tariffs ruling could entrench executive power.",
+    "url": "https://www.thenation.com/fixture/story-81",
+    "image": "https://images.example.net/fixture/81.jpg",
+    "ageMin": 55
+  },
+  {
+    "source": "salon",
+    "title": "Why the Supreme Court Tariffs case is really about Trump",
+    "description": "A legal scholar on what the Tariffs argument reveals.",
+    "url": "https://www.salon.com/fixture/story-82",
+    "image": "https://images.example.net/fixture/82.jpg",
+    "ageMin": 110
+  },
+  {
+    "source": "thehill",
+    "title": "Supreme Court sets December arguments in Trump Tariffs dispute",
+    "description": "Both parties are preparing briefs for the Tariffs case.",
+    "url": "https://thehill.com/fixture/story-83",
+    "image": "https://images.example.net/fixture/83.jpg",
+    "ageMin": 40
+  },
+  {
+    "source": "fox-news",
+    "title": "Federal Reserve holds Rates as Powell resists pressure",
+    "description": "The Fed kept Rates unchanged despite calls for a cut.",
+    "url": "https://www.foxnews.com/fixture/story-84",
+    "image": "https://images.example.net/fixture/84.jpg",
+    "ageMin": 150
+  },
+  {
+    "source": "dailywire",
+    "title": "Federal Reserve keeps Rates high, Powell blames spending",
+    "description": "The Rates decision drew criticism from the White House.",
+    "url": "https://www.dailywire.com/fixture/story-85",
+    "image": "https://images.example.net/fixture/85.jpg",
+    "ageMin": 190
+  },
+  {
+    "source": "motherjones",
+    "title": "The Federal Reserve held Rates. Workers will pay.",
+    "description": "Economists say the Rates pause hits borrowers first.",
+    "url": "https://www.motherjones.com/fixture/story-86",
+    "image": "https://images.example.net/fixture/86.jpg",
+    "ageMin": 165
+  },
+  {
+    "source": "npr-politics",
+    "title": "Federal Reserve leaves Rates unchanged at 4.25%",
+    "description": "Powell said the Rates path depends on inflation data.",
+    "url": "https://www.npr.org/fixture/story-87",
+    "image": "https://images.example.net/fixture/87.jpg",
+    "ageMin": 175
+  },
+  {
+    "source": "washexaminer",
+    "title": "Ceasefire talks in Cairo stall as Hamas balks",
+    "description": "The Cairo round ended without a Ceasefire framework.",
+    "url": "https://www.washingtonexaminer.com/fixture/story-88",
+    "image": "https://images.example.net/fixture/88.jpg",
+    "ageMin": 240
+  },
+  {
+    "source": "dailykos",
+    "title": "Ceasefire talks: Cairo mediators say a deal is close",
+    "description": "Reports from Cairo point to progress on the Ceasefire.",
+    "url": "https://www.dailykos.com/fixture/story-89",
+    "image": "https://images.example.net/fixture/89.jpg",
+    "ageMin": 260
+  },
+  {
+    "source": "csmonitor",
+    "title": "In Cairo, Ceasefire talks turn to the day after",
+    "description": "Mediators in Cairo are drafting Ceasefire guarantees.",
+    "url": "https://www.csmonitor.com/fixture/story-90",
+    "image": "https://images.example.net/fixture/90.jpg",
+    "ageMin": 250
+  }
+]

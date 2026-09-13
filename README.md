@@ -152,6 +152,39 @@ Boot (`listening`), each refresh (`refreshed`, `enriched images`), storage
 mode (`comments storage ready`) and every failing feed (`source failed`) are
 logged the same way.
 
+## Testing
+
+Three layers, all offline and deterministic thanks to a fixture newsroom:
+
+```bash
+npm test              # unit → integration → end-to-end
+npm run test:unit     # node:test — lib/ and the pure client modules (≈65 checks, <2 s)
+npm run test:int      # node:test — every HTTP route against the in-process app
+npm run test:e2e      # Playwright — every feature in Chromium: desktop, iPhone viewport, reduced motion
+npm run test:e2e:update   # refresh the visual snapshots after an intended change
+```
+
+- **Fixture mode.** `FEED_FIXTURE=test/fixtures/feed.json` seeds the store
+  from a JSON file (ages are minutes-before-now, so nothing falls out of the
+  7-day window), disables the refresh loop and image enrichment, and swaps
+  the global `fetch` for a stub that serves `test/fixtures/pages/*.html` to
+  article extraction and answers the translation fallback with
+  `[<lang>] <text>`. Two routes exist only in this mode:
+  `POST /__fixture/advance` (three newer stories → the new-stories pill)
+  and `POST /__fixture/reset`. Regenerate the feed with
+  `node test/fixtures/build-feed.mjs` after editing the generator.
+- **Switches used by the suites:** `COMMENTS_DB=:memory:`, `LOG_SILENT=1`,
+  `RATE_LIMIT_DISABLED=1` (end-to-end server only), `USAGE_LOG_MINUTES=0`.
+  The integration suite keeps the limiters on and asserts them.
+- **Playwright** starts the server itself (`playwright.config.js`,
+  port 4173). Specs live in `test/e2e/*.spec.js`; stable hooks are
+  `data-testid` attributes, so restyling never breaks a test. Web fonts and
+  article images are blocked in tests. The forecast runs on its mock model
+  (`?forecast=mock`). A few `test.fixme` entries mark the mobile gaps the
+  redesign closes.
+- Railway installs production dependencies only (`nixpacks.toml`:
+  `npm ci --omit=dev`), so Playwright and its browser never enter the image.
+
 ## Discoverability & sharing
 
 Meridian is built to be found and recommended — by search engines, by AI

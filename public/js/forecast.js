@@ -455,6 +455,7 @@ export async function initForecast(deps) {
   function buildCard(f) {
     const card = el('article', {
       class: 'fcard',
+      'data-testid': 'fcard',
       tabindex: '0',
       role: 'button',
       'aria-expanded': 'false',

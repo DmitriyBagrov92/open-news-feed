@@ -113,6 +113,7 @@ function buildVotes(article) {
     const val = kind === 'up' ? 1 : -1;
     const btn = el('button', {
       class: 'modal-vote mono modal-vote--' + kind,
+      'data-testid': 'preview-vote-' + kind,
       type: 'button',
       'aria-label': t(kind === 'up' ? 'card.like' : 'card.dislike'),
       'aria-pressed': 'false',
@@ -177,10 +178,11 @@ function buildArticleView(article, { onCountChange } = {}) {
 
   const title = el('h2', { class: 'modal-title', text: article.title });
 
-  const translateBtn = el('button', { class: 'btn', type: 'button', text: t('modal.translate') });
-  const summarizeBtn = el('button', { class: 'btn', type: 'button', text: t('modal.summarize') });
+  const translateBtn = el('button', { class: 'btn', type: 'button', 'data-testid': 'preview-translate', text: t('modal.translate') });
+  const summarizeBtn = el('button', { class: 'btn', type: 'button', 'data-testid': 'preview-summarize', text: t('modal.summarize') });
   const sourceLink = el('a', {
     class: 'btn',
+    'data-testid': 'preview-source',
     href: article.url,
     target: '_blank',
     rel: 'noopener',
@@ -189,11 +191,11 @@ function buildArticleView(article, { onCountChange } = {}) {
   const actions = el('div', { class: 'modal-actions' });
   actions.append(translateBtn, summarizeBtn, sourceLink, buildVotes(article));
 
-  const chip = el('button', { class: 'chip', type: 'button', hidden: true });
-  const summaryBox = el('div', { class: 'modal-summary', hidden: true });
-  const note = el('p', { class: 'modal-note', hidden: true, text: t('modal.unavailable') });
+  const chip = el('button', { class: 'chip', type: 'button', 'data-testid': 'preview-chip', hidden: true });
+  const summaryBox = el('div', { class: 'modal-summary', 'data-testid': 'preview-summary', hidden: true });
+  const note = el('p', { class: 'modal-note', 'data-testid': 'preview-note', hidden: true, text: t('modal.unavailable') });
 
-  const textBox = el('div', { class: 'modal-text' });
+  const textBox = el('div', { class: 'modal-text', 'data-testid': 'preview-text' });
   for (let i = 0; i < 5; i += 1) textBox.append(el('div', { class: 'skel skel-text' }));
 
   const body = el('div', { class: 'modal-body' });
@@ -450,19 +452,23 @@ export function openPreview(article, options = {}) {
   // and must sit inside the dialog for AT and inside the focus trap
   const root = el('div', {
     class: 'modal',
+    'data-testid': 'preview',
     role: 'dialog',
     'aria-modal': 'true',
     'aria-label': article.title,
   });
   const scrim = el('div', { class: 'modal-scrim' });
-  const dialog = el('div', { class: 'modal-dialog has-comments' });
+  const dialog = el('div', { class: 'modal-dialog has-comments', 'data-testid': 'preview-dialog' });
 
   const prevBtn = iconButton('prev', t('modal.prev'), 'modal-nav modal-nav--prev');
   const nextBtn = iconButton('next', t('modal.next'), 'modal-nav modal-nav--next');
+  prevBtn.dataset.testid = 'preview-prev';
+  nextBtn.dataset.testid = 'preview-next';
 
   // shell-owned close button: pinned to the top-right corner of the whole
   // story block, surviving prev/next column swaps
   const closeBtn = iconButton('close', t('modal.close'), 'modal-close');
+  closeBtn.dataset.testid = 'preview-close';
   closeBtn.addEventListener('click', () => close());
 
   let view = buildArticleView(article, { onCountChange: options.onCountChange });

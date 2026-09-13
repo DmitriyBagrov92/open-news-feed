@@ -19,3 +19,9 @@ data/
 Thumbs.db
 .idea/
 .vscode/
+
+# Test runner output (snapshots under test/e2e/__snapshots__ ARE committed)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

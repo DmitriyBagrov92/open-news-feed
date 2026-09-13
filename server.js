@@ -1,7 +1,7 @@
 // Meridian backend: routes + static /public + limits. See docs/ARCHITECTURE.md.
 
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { getHeapStatistics } from 'node:v8';
 import express from 'express';
 import compression from 'compression';
@@ -278,6 +278,26 @@ app.get('/api/health', wrap((req, res) => {
 
 app.use('/api', (req, res, next) => next(httpError(404, 'not-found', 'Unknown API endpoint')));
 
+// ── fixture mode (tests only) ────────────────────────────────────────────────
+// FEED_FIXTURE=<json> makes the store deterministic and offline (lib/store.js
+// seedFixture, lib/testmode.js fetch stub). These two routes let the
+// end-to-end suite raise "new stories" and rewind; they do not exist in
+// production because the variable is never set there.
+const FIXTURE = process.env.FEED_FIXTURE || '';
+if (FIXTURE) {
+  const { installFetchStub } = await import('./lib/testmode.js');
+  installFetchStub({ pagesDir: path.join(path.dirname(path.resolve(FIXTURE)), 'pages') });
+  app.post('/__fixture/advance', wrap(async (req, res) => {
+    const fresh = path.join(path.dirname(path.resolve(FIXTURE)), 'feed.fresh.json');
+    const added = await store.seedFixture(fresh, { append: true });
+    res.json({ added, ...store.stats() });
+  }));
+  app.post('/__fixture/reset', wrap(async (req, res) => {
+    const seeded = await store.seedFixture(FIXTURE);
+    res.json({ seeded, ...store.stats() });
+  }));
+}
+
 // ── error handler ────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line no-unused-vars
@@ -300,6 +320,11 @@ app.use((err, req, res, next) => {
 });
 
 // ── boot ─────────────────────────────────────────────────────────────────────
+// The app is exported for tests (in-process, no port); boot() wires the
+// long-lived pieces and runs by itself only when this file is the entry
+// point (`node server.js`), never on import.
+
+export { app };
 
 const PORT = Number(process.env.PORT) || 3000;
 // Minutes between `usage` log lines (default 5; 0 disables).
@@ -309,55 +334,68 @@ const USAGE_LOG_MINUTES = usageRaw === undefined || usageRaw === '' ? 5 : Number
 const INDEXNOW_MINUTES = Math.max(5, Number(process.env.INDEXNOW_MINUTES) || 60);
 const INDEXNOW_ORIGIN = INDEXNOW_KEY ? configuredOrigin() : null;
 
-const server = app.listen(PORT, () => {
-  log.info('listening', {
-    port: PORT,
-    node: process.version,
-    refresh_minutes: Math.max(1, Number(process.env.REFRESH_MINUTES) || 5),
-    usage_log_minutes: USAGE_LOG_MINUTES,
-    heap_limit_mb: Math.round(v8HeapLimit() / 1048576),
-    indexnow: Boolean(INDEXNOW_KEY && INDEXNOW_ORIGIN),
-  });
-});
-
 // Railway retires a deployment with SIGTERM. Without a handler Node exits
 // 143, which Railway reports as a crash of the old deployment on every
 // redeploy. Finish in-flight responses, then exit 0; cap the wait so a
 // lingering keep-alive connection cannot hold the container open.
-function shutdown(signal) {
-  log.info('shutting down', { signal, uptime_s: Math.round(process.uptime()) });
-  server.close(() => process.exit(0));
-  setTimeout(() => {
-    server.closeAllConnections();
-    process.exit(0);
-  }, 5000).unref();
+function shutdownWith(server) {
+  return (signal) => {
+    log.info('shutting down', { signal, uptime_s: Math.round(process.uptime()) });
+    server.close(() => process.exit(0));
+    setTimeout(() => {
+      server.closeAllConnections();
+      process.exit(0);
+    }, 5000).unref();
+  };
 }
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
-initComments({ dbPath: process.env.COMMENTS_DB || './data/comments.db' }).catch((err) =>
-  log.warn('comments init failed', log.errorFields(err))
-);
-store.startRefreshLoop();
-if (INDEXNOW_KEY && INDEXNOW_ORIGIN) {
-  const indexNow = createIndexNow({
-    key: INDEXNOW_KEY,
-    origin: INDEXNOW_ORIGIN,
-    minIntervalMs: INDEXNOW_MINUTES * 60_000,
-  });
-  store.onRefresh(({ latestId }) => indexNow.notify(latestId));
-} else if (INDEXNOW_KEY) {
-  log.warn('indexnow disabled: no public origin — set PUBLIC_URL');
-}
-if (USAGE_LOG_MINUTES > 0) {
-  startUsageLog({
-    intervalMs: USAGE_LOG_MINUTES * 60_000,
-    extra: () => {
-      const s = store.stats();
-      return { articles: s.articles, sources_ok: s.sources.ok, sources_failing: s.sources.failing };
-    },
-  });
+
+export async function boot({ listen = true } = {}) {
+  let server = null;
+  if (listen) {
+    server = app.listen(PORT, () => {
+      log.info('listening', {
+        port: PORT,
+        node: process.version,
+        refresh_minutes: Math.max(1, Number(process.env.REFRESH_MINUTES) || 5),
+        usage_log_minutes: USAGE_LOG_MINUTES,
+        heap_limit_mb: Math.round(v8HeapLimit() / 1048576),
+        indexnow: Boolean(INDEXNOW_KEY && INDEXNOW_ORIGIN),
+        fixture: Boolean(FIXTURE),
+      });
+    });
+    const shutdown = shutdownWith(server);
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
+  }
+  await initComments({ dbPath: process.env.COMMENTS_DB || './data/comments.db' }).catch((err) =>
+    log.warn('comments init failed', log.errorFields(err))
+  );
+  store.startRefreshLoop();
+  if (INDEXNOW_KEY && INDEXNOW_ORIGIN) {
+    const indexNow = createIndexNow({
+      key: INDEXNOW_KEY,
+      origin: INDEXNOW_ORIGIN,
+      minIntervalMs: INDEXNOW_MINUTES * 60_000,
+    });
+    store.onRefresh(({ latestId }) => indexNow.notify(latestId));
+  } else if (INDEXNOW_KEY) {
+    log.warn('indexnow disabled: no public origin — set PUBLIC_URL');
+  }
+  if (USAGE_LOG_MINUTES > 0) {
+    startUsageLog({
+      intervalMs: USAGE_LOG_MINUTES * 60_000,
+      extra: () => {
+        const s = store.stats();
+        return { articles: s.articles, sources_ok: s.sources.ok, sources_failing: s.sources.failing };
+      },
+    });
+  }
+  return server;
 }
 
 function v8HeapLimit() {
   return getHeapStatistics().heap_size_limit;
 }
+
+const isMain = Boolean(process.argv[1]) && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) boot();

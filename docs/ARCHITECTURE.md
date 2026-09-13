@@ -362,6 +362,23 @@ Used as the Railway healthcheck path.
   last ping, at most once per `INDEXNOW_MINUTES` (default 60, floor 5).
   200/202 log `indexnow submitted`; 403/422/429 log `indexnow rejected` and
   back off a full interval.
+- **Test seams.** `server.js` exports `app` and `boot({ listen })`; the
+  process-level boot runs only when the file is the entry point.
+  `FEED_FIXTURE=<json>` (see `lib/store.js` `seedFixture`, `lib/testmode.js`)
+  seeds the store offline, makes `refreshAll()` a no-op, stubs `fetch`
+  (fixture pages for `/api/article`, echo translation for MyMemory, loopback
+  passthrough, everything else refused) and registers `POST
+  /__fixture/advance|reset`. `LOG_SILENT=1` mutes the logger,
+  `RATE_LIMIT_DISABLED=1` turns limiters into passes, `COMMENTS_DB=:memory:`
+  keeps SQLite in memory. Pure helpers exported for unit tests:
+  `extract.js` (`contentDocument, paragraphsOf, blocksOf, absHttp`),
+  `usage.js` (`featureOf`), `battles.js` (`compute`), `ai.js` (`chunkText`),
+  `fetchers/rss.js` (`parseFeedDate, itemImage`), `fetchers/apis.js`
+  (`mapCategory`), `page.js` (`escapeHtml, headlinesHtml`). Layout:
+  `test/unit/{lib,client}`, `test/integration`, `test/e2e` (Playwright,
+  `playwright.config.js`), `test/fixtures` (feed generator, pages),
+  `test/helpers`. `data-testid` attributes on the feature anchors are the
+  stable selector contract for end-to-end tests.
 - **Logging** (`lib/log.js`). One JSON object per line on stdout with
   `level` (`info|warn|error`), `message` and attribute fields — Railway's
   structured-log format (`@level:warn`, `@message:usage`, `@source:…`).

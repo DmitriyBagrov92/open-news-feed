@@ -1,0 +1,26 @@
+[
+  {
+    "source": "bbc-world",
+    "title": "Breaking: Storm Idris makes landfall near Portsmouth",
+    "description": "Gusts of 90 mph were recorded as the storm came ashore.",
+    "url": "https://www.bbc.com/fixture/fresh-1",
+    "image": "https://images.example.net/fixture/fresh.jpg",
+    "ageMin": 0
+  },
+  {
+    "source": "espn",
+    "title": "Breaking: Shelton wins the US Open in four sets",
+    "description": "The first American men’s champion since 2003.",
+    "url": "https://www.espn.com/fixture/fresh-2",
+    "image": null,
+    "ageMin": 0
+  },
+  {
+    "source": "cnbc",
+    "title": "Breaking: Vela shares jump 12% at the open",
+    "description": "Investors cheered the data-centre guidance.",
+    "url": "https://www.cnbc.com/fixture/fresh-3",
+    "image": null,
+    "ageMin": 0
+  }
+]

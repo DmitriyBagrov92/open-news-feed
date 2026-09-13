@@ -1303,7 +1303,7 @@ function renderSourcesList() {
     if (!members.length) continue;
     wrap.append(el('h4', { class: 'drawer-cat mono', text: catLabel(category) }));
     for (const source of members) {
-      const row = el('label', { class: 'source-row' + (source.enabled ? '' : ' off') });
+      const row = el('label', { class: 'source-row' + (source.enabled ? '' : ' off'), 'data-testid': 'source-row', 'data-source': source.id });
       const checkbox = el('input', { type: 'checkbox' });
       checkbox.checked = source.enabled && !prefs.hiddenSources.includes(source.id);
       checkbox.disabled = !source.enabled;

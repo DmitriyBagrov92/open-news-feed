@@ -50,8 +50,8 @@ export function buildCommentsPanel(article, { onCountChange } = {}) {
   /* ── header ────────────────────────────────────────────────────────────── */
   const title = el('span', { class: 'mono cmt-title', text: t('comments.title') });
   const count = el('span', { class: 'mono cmt-count', text: '' });
-  const sortNew = el('button', { class: 'cmt-sort mono is-active', type: 'button', text: t('comments.sortNew') });
-  const sortTop = el('button', { class: 'cmt-sort mono', type: 'button', text: t('comments.sortTop') });
+  const sortNew = el('button', { class: 'cmt-sort mono is-active', type: 'button', 'data-testid': 'comments-sort-new', text: t('comments.sortNew') });
+  const sortTop = el('button', { class: 'cmt-sort mono', type: 'button', 'data-testid': 'comments-sort-top', text: t('comments.sortTop') });
   const head = el('header', { class: 'cmt-head' });
   const sorts = el('div', { class: 'cmt-sorts' });
   sorts.append(sortNew, sortTop);
@@ -61,12 +61,13 @@ export function buildCommentsPanel(article, { onCountChange } = {}) {
   const meLine = el('div', { class: 'cmt-me mono' });
   const input = el('textarea', {
     class: 'cmt-input',
+    'data-testid': 'comments-input',
     rows: '3',
     maxlength: '1000',
     placeholder: t('comments.placeholder'),
     'aria-label': t('comments.placeholder'),
   });
-  const postBtn = el('button', { class: 'btn mono', type: 'button', text: t('comments.post') });
+  const postBtn = el('button', { class: 'btn mono', type: 'button', 'data-testid': 'comments-post', text: t('comments.post') });
   const composer = el('div', { class: 'cmt-composer' });
   const composerFoot = el('div', { class: 'cmt-composer-foot' });
   composerFoot.append(meLine, postBtn);
@@ -88,6 +89,7 @@ export function buildCommentsPanel(article, { onCountChange } = {}) {
   function voteButton(kind, comment, row) {
     const btn = el('button', {
       class: 'cmt-vote cmt-vote--' + kind,
+      'data-testid': 'comment-vote-' + kind,
       type: 'button',
       'aria-label': t(kind === 'up' ? 'comments.like' : 'comments.dislike'),
       'aria-pressed': String(comment.myVote === (kind === 'up' ? 1 : -1)),
@@ -116,7 +118,7 @@ export function buildCommentsPanel(article, { onCountChange } = {}) {
   }
 
   function commentRow(comment) {
-    const row = el('li', { class: 'cmt-item', 'data-id': comment.id });
+    const row = el('li', { class: 'cmt-item', 'data-id': comment.id, 'data-testid': 'comment' });
     const meta = el('div', { class: 'cmt-meta' });
     meta.append(
       avatarEl(comment.avatar, comment.name),

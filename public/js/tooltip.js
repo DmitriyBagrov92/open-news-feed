@@ -26,7 +26,7 @@ export function initCardTooltip({ grid, articleById, textFor }) {
 export function initHoverTip({ root, selector, articleFor, textFor, ignore = 'button, a' }) {
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
-  const tip = el('div', { class: 'card-tip', role: 'tooltip', hidden: true });
+  const tip = el('div', { class: 'card-tip', role: 'tooltip', 'data-testid': 'tooltip', hidden: true });
   document.body.append(tip);
 
   let timer = null;

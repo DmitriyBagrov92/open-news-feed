@@ -102,6 +102,7 @@ export function initBattle(options = {}) {
   function bubbleButton(article, r) {
     const btn = el('button', {
       class: 'bubble',
+      'data-testid': 'bubble',
       type: 'button',
       'data-lean': article.lean,
       'aria-label': `${article.source?.name} — ${article.title}`,

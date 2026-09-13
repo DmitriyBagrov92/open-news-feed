@@ -1,0 +1,10 @@
+# Railway builds install production dependencies only. Nixpacks' Node
+# provider sets NPM_CONFIG_PRODUCTION=false ("ensure dev deps are always
+# installed"), which would pull @playwright/test — and its browser
+# download — into every deploy. The app has no build step, so dev
+# dependencies are never needed in the image.
+[phases.install]
+cmds = ["npm ci --omit=dev"]
+
+[variables]
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"

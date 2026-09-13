@@ -7,6 +7,12 @@
   "scripts": {
     "start": "node --max-old-space-size=160 --max-semi-space-size=8 --disable-warning=ExperimentalWarning server.js",
     "dev": "node --watch server.js",
+    "test": "npm run test:unit && npm run test:int && npm run test:e2e",
+    "test:unit": "LOG_SILENT=1 node --test --disable-warning=ExperimentalWarning 'test/unit/**/*.test.js'",
+    "test:int": "LOG_SILENT=1 node --test --disable-warning=ExperimentalWarning 'test/integration/**/*.test.js'",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "test:e2e:ui": "playwright test --ui",
     "verify:feeds": "node scripts/verify-feeds.mjs"
   },
   "engines": {
@@ -36,5 +42,8 @@
     "motion": "^12.42.2",
     "rss-parser": "^3.13.0",
     "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
   }
 }
