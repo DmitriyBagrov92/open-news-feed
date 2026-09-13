@@ -861,7 +861,6 @@
       display: flex;
       justify-content: center;
     }
-    .tabs { translate: none; } /* fixed in the cluster: never follows the pull */
     .tabs-track { max-width: 100%; }
     .tab { font-size: 13px; padding: 0 12px; }
     .tab--saved span, .tab--battle span { display: none; }
@@ -893,18 +892,43 @@
     font-weight: 600;
     letter-spacing: 0.02em;
     text-transform: none;
-    transform: translateY(calc(var(--pull, 0) * 26px));
     transition: color var(--dur-1), border-color var(--dur-1);
   }
   .forecast-hint .icon { width: 16px; height: 16px; color: var(--indigo); }
-  .forecast-hint.is-armed { scale: 1.03; }
-  /* the whole column follows the pull with rubber resistance and springs back */
+  /* the whole column follows the pull with rubber resistance and springs back;
+     the indicator rises in the gap that opens under the cluster */
+  .pull-indicator {
+    position: fixed;
+    z-index: 59;
+    top: calc(var(--sticky-top) + 14px);
+    left: 50%;
+    translate: -50% 0;
+    height: 40px;
+    padding: 0 16px 0 12px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--label);
+    white-space: nowrap;
+    opacity: 0;
+    scale: 0.8;
+    pointer-events: none;
+    transition: opacity var(--dur-1), scale var(--dur-2) var(--ease-spring), color var(--dur-1);
+  }
+  .pull-indicator .icon { width: 16px; height: 16px; color: var(--indigo); rotate: var(--pull-deg, 0deg); transition: rotate var(--dur-1); }
+  html.is-pulling .pull-indicator { opacity: 1; scale: 1; }
+  .pull-indicator.is-armed { color: var(--indigo); scale: 1.06; }
   main.feed > :not(.ssr) { translate: 0 var(--pull-px, 0px); }
   html.is-pull-settling main.feed > :not(.ssr) { transition: translate 0.52s var(--ease-spring); }
+  /* fixed in the cluster on wide screens: the segment never follows the pull */
+  @media (min-width: 860px) { main.feed > .tabs { translate: none; transition: none; } }
   .forecast-hint-arrow { display: none; }
   .forecast-hint-bar { display: none; }
   .forecast-hint.is-armed { color: var(--indigo); border-color: var(--indigo); }
-  .forecast-hint--download { border-style: solid; border-color: rgb(var(--indigo-rgb) / 0.5); color: var(--indigo); transform: none; }
+  .forecast-hint--download { border-style: solid; border-color: rgb(var(--indigo-rgb) / 0.5); color: var(--indigo); }
   .forecast-hint.is-nudge { animation: forecast-nudge 0.6s var(--ease-out); }
 
   .forecast { margin: 0 0 14px; }
@@ -1976,7 +2000,7 @@
   .glist > * { padding: 6px 16px; min-height: 46px; display: flex; align-items: center; gap: 12px; font-size: 16px; }
   .glist > * + * { border-top: 0.5px solid var(--sep); }
   .glist > .drawer-hint { display: block; min-height: 0; padding: 10px 16px 12px; }
-  .glist .select { background-color: transparent; padding-left: 0; }
+  .glist .select { background-color: transparent; padding-left: 16px; }
   .glist .check { flex: 1; }
   .grow-label { flex: none; }
   .drawer-hint { font-size: 13px; line-height: 1.45; color: var(--label-2); }

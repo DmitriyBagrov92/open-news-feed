@@ -466,9 +466,9 @@ Used as the Railway healthcheck path.
   meridian:forecastMock` = `1` / `download`) drive a canned provider for UI
   work on any machine.
 - i18n: `public/js/i18n.js` exports `t(key)` with an `en` table, plus the
-  `LANGUAGES` list every language control is built from (masthead popover and
-  Settings drawer are two views of `prefs.targetLang`, synced by
-  `setLanguage()` in app.js). `setLocale(lang)` speaks `lang` when a table
+  `LANGUAGES` list the language control is built from (the globe popover in
+  the cluster is the one view of `prefs.targetLang`; `setLanguage()` in
+  app.js still syncs every `[data-lang-select]` should another appear). `setLocale(lang)` speaks `lang` when a table
   exists and English otherwise. Adding a language = adding one table +
   (optionally) sources for that language in `config/sources.js`.
 

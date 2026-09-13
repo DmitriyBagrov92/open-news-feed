@@ -124,6 +124,8 @@
 
   <!-- the iOS 27 "uniform toolbar": a frost band once content scrolls under the cluster -->
   <div class="frost" aria-hidden="true"></div>
+  <!-- the pull indicator: sits in the gap the feed opens while it is pulled down -->
+  <div class="pull-indicator glass capsule" id="pullIndicator" data-testid="pull-indicator" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg><span id="pullIndicatorText"></span></div>
 
   <!-- 1 · Floating top cluster -->
   <header class="chrome-top" id="chromeTop" data-testid="topbar">
@@ -148,8 +150,8 @@
         </button>
         <div class="popover glass" id="langPopover" data-testid="lang-popover" hidden>
           <label class="popover-label mono" for="langSelect" data-i18n="lang.target">Language</label>
-          <!-- options come from LANGUAGES in i18n.js — the same list fills the
-               Settings sheet; both controls bind to prefs.targetLang -->
+          <!-- options come from LANGUAGES in i18n.js; this popover is the one
+               language control on the site and binds to prefs.targetLang -->
           <select class="select" id="langSelect" data-testid="lang-select" data-lang-select></select>
           <label class="check">
             <span data-i18n="lang.auto">Auto-translate the feed</span>
@@ -412,17 +414,6 @@
             </div>
           </div>
         </div>
-      </section>
-      <section class="drawer-section">
-        <h3 class="drawer-label mono" data-i18n="settings.language">Language</h3>
-        <div class="glist">
-          <select class="select" id="langSelectDrawer" data-testid="lang-select-drawer" aria-label="Language" data-i18n-label="settings.language" data-lang-select></select>
-          <label class="check">
-            <span data-i18n="lang.auto">Auto-translate the feed</span>
-            <input type="checkbox" id="autoTranslateDrawer" data-testid="auto-translate-drawer" data-auto-translate>
-          </label>
-        </div>
-        <p class="drawer-hint drawer-hint--out" data-i18n="settings.languageHint">One setting for everything: stories are translated into it (on your device when the browser can, otherwise a free server fallback), the AI brief and forecast answer in it, and the interface follows wherever a translation of the interface exists — English only so far.</p>
       </section>
       <section class="drawer-section" id="forecastSetting" data-testid="forecast-setting" hidden>
         <h3 class="drawer-label mono" data-i18n="settings.forecast">Ahead · AI forecast</h3>

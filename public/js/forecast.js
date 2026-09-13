@@ -81,6 +81,8 @@ export async function initForecast(deps) {
   const regenBtn = section.querySelector('#forecastRegen');
   const closeBtn = section.querySelector('#forecastClose');
   const hintText = hint.querySelector('.forecast-hint-text');
+  const indicator = document.getElementById('pullIndicator');
+  const indicatorText = document.getElementById('pullIndicatorText');
 
   let enabled = prefs.forecast !== false;
   let needsDownload = availability !== 'available';
@@ -119,10 +121,16 @@ export async function initForecast(deps) {
     hint.style.setProperty('--pull', Math.min(1, pull / THRESHOLD).toFixed(3));
     hint.classList.toggle('is-pulling', pull > 4);
     hint.classList.toggle('is-armed', pull >= THRESHOLD);
-    // the feed itself follows the pull (CSS translates the columns)
+    // the feed itself follows the pull (CSS translates the columns) and the
+    // indicator in the gap turns its sparkle as the pull arms
     const root = document.documentElement;
     root.style.setProperty('--pull-px', pull.toFixed(1) + 'px');
     root.classList.toggle('is-pulling', pull > 0);
+    if (indicator) {
+      indicator.style.setProperty('--pull-deg', Math.round(Math.min(1, pull / THRESHOLD) * 180) + 'deg');
+      indicator.classList.toggle('is-armed', pull >= THRESHOLD);
+      if (indicatorText) indicatorText.textContent = pull >= THRESHOLD ? t('forecast.hintArmed') : t('forecast.hint');
+    }
     syncHint();
   }
 

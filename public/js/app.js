@@ -883,9 +883,10 @@ function initSearch() {
 
 /* ── Language: one preference, every control mirrors it ─────────────────── */
 
-// prefs.targetLang is the app's only language setting. Two controls expose
-// it — the masthead globe popover and the Settings drawer — both built from
-// LANGUAGES and both kept in step here, so there is nothing to reconcile.
+// prefs.targetLang is the app's only language setting, and the globe popover
+// in the cluster is its one control. The wiring still binds every
+// [data-lang-select] / [data-auto-translate] so a second view could never
+// drift from the first.
 const langSelects = () => document.querySelectorAll('select[data-lang-select]');
 const autoChecks = () => document.querySelectorAll('input[data-auto-translate]');
 

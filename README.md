@@ -47,11 +47,12 @@ tracking — your preferences never leave your browser.
   dependencies.
 - **No auth, no tracking.** Preferences (theme, language, hidden sources,
   saved articles) live in `localStorage` only.
-- **One language setting.** The globe in the masthead and the Language row
-  in Settings are the same preference: stories are translated into it, the
-  AI brief and forecast answer in it, and the interface follows wherever a
-  translation of the interface exists (English only so far — add a locale
-  table to `public/js/i18n.js` and the interface switches with it).
+- **One language setting.** The globe in the top cluster is the single
+  language control on the site: stories are translated into the chosen
+  language, the AI brief and forecast answer in it, and the interface
+  follows wherever a translation of the interface exists (English only so
+  far — add a locale table to `public/js/i18n.js` and the interface switches
+  with it).
 
 ## Quickstart
 

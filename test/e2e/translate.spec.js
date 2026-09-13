@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gotoFeed, cards, openSettings } from './_helpers.js';
+import { gotoFeed, cards } from './_helpers.js';
 
 test('one language setting: both controls mirror it and the feed auto-translates', async ({ page }) => {
   await gotoFeed(page);
@@ -7,8 +7,6 @@ test('one language setting: both controls mirror it and the feed auto-translates
   await expect(page.getByTestId('lang-popover')).toBeVisible();
   await page.getByTestId('lang-select').selectOption('de');
   await expect(page.getByTestId('auto-translate')).toBeChecked();
-  await expect(page.getByTestId('lang-select-drawer')).toHaveValue('de');
-  await expect(page.getByTestId('auto-translate-drawer')).toBeChecked();
   // visible cards pick up the (stubbed) server translation
   await expect(cards(page).first()).toHaveAttribute('data-translated', 'de', { timeout: 15_000 });
   await expect(cards(page).first().locator('.card-title')).toHaveText(/^\[de\] /);
@@ -18,14 +16,12 @@ test('one language setting: both controls mirror it and the feed auto-translates
   expect(prefs.autoTranslate).toBe(true);
   expect(prefs.uiLocale).toBeUndefined();
 
-  // switching auto-translate off from the settings sheet reverts and mirrors
-  await page.keyboard.press('Escape');
-  await openSettings(page);
-  await page.getByTestId('auto-translate-drawer').uncheck();
-  await expect(page.getByTestId('auto-translate')).not.toBeChecked();
+  // switching auto-translate off in the same popover reverts every card
+  await page.getByTestId('auto-translate').uncheck();
   await expect(cards(page).first()).not.toHaveAttribute('data-translated', /.+/);
   await expect(cards(page).first().locator('.card-title')).not.toHaveText(/^\[de\] /);
-  await page.getByTestId('settings-close').click();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('lang-popover')).toBeHidden();
 
   // the card button translates one story on demand, and toggles back
   const card = cards(page).nth(1);

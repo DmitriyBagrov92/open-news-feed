@@ -22,9 +22,9 @@ test('settings sheet: trap, sources filter, language mirror, close paths', async
   expect(await page.evaluate(() => [...document.querySelectorAll('#grid .card .card-src')].some((s) => s.textContent === 'ESPN'))).toBe(false);
   await espn.check();
 
-  await page.getByTestId('lang-select-drawer').selectOption('fr');
-  await expect(page.getByTestId('lang-select')).toHaveValue('fr');
-  await page.getByTestId('lang-select-drawer').selectOption('en');
+  // language lives in one place — the globe in the cluster — never here
+  await expect(page.getByTestId('lang-select-drawer')).toHaveCount(0);
+  await expect(page.getByTestId('auto-translate-drawer')).toHaveCount(0);
 
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
