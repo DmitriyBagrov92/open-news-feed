@@ -102,7 +102,14 @@ test.describe('story preview', () => {
     await page.keyboard.press('ArrowLeft');
     await expect(dialog.locator('.modal-title')).toHaveText(titles[0]);
     if (isMobile(testInfo)) {
-      test.fixme(true, 'swipe navigation arrives with the sheet redesign (phase 3)');
+      // phones: a swipe on the hero walks the feed (see gestures.spec for the full grammar)
+      const hero = dialog.locator('.modal-media');
+      const box = await hero.boundingBox();
+      await page.mouse.move(box.x + box.width - 40, box.y + box.height / 2);
+      await page.mouse.down();
+      for (let i = 1; i <= 8; i += 1) await page.mouse.move(box.x + box.width - 40 - i * 30, box.y + box.height / 2);
+      await page.mouse.up();
+      await expect(dialog.locator('.modal-title')).toHaveText(titles[1]);
     } else {
       await page.getByTestId('preview-next').click();
       await expect(dialog.locator('.modal-title')).toHaveText(titles[1]);

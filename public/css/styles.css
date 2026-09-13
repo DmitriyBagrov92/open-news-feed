@@ -537,6 +537,37 @@
     color: rgb(255 255 255 / 0.85);
   }
 
+  /* context menu (long-press / right-click on a story) */
+  .ctxmenu {
+    position: fixed;
+    z-index: 110;
+    min-width: 230px;
+    padding: 6px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: scale(0.94);
+    transform-origin: top center;
+    transition: opacity var(--dur-1), transform var(--dur-2) var(--ease-spring);
+  }
+  .ctxmenu.is-on { opacity: 1; transform: none; }
+  .ctxmenu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--label);
+    text-align: left;
+  }
+  .ctxmenu-item .icon { width: 20px; height: 20px; color: var(--label-2); }
+  .ctxmenu-item:hover, .ctxmenu-item:focus-visible { background: rgb(var(--g-rgb) / 0.4); outline: none; }
+  .ctxmenu-item.is-danger { color: var(--danger); }
+
   /* toasts */
   .toasts {
     position: fixed;
@@ -972,7 +1003,6 @@
   /* when a hero poster leads the grid the brief overlaps its top edge */
   @media (max-width: 699px) {
     main.feed:has(> #grid > .card--hero:first-child):not(:has(> #feedTabs:not([hidden]))):not(:has(> #onboard:not([hidden]))) .brief { margin-bottom: -40px; }
-    main.feed:has(> #grid > .card--hero:first-child):not(:has(> #feedTabs:not([hidden]))):not(:has(> #onboard:not([hidden]))) #grid > .card--hero:first-child { padding-top: 40px; }
   }
 
   /* ── banner · pill ────────────────────────────────────────────────── */
@@ -1053,18 +1083,45 @@
   .card-actions .icon-btn .icon { width: 15px; height: 15px; }
   .card-actions .icon-btn:hover { color: var(--label); background: var(--fill-2); }
 
-  /* rows */
-  .card--std, .card--text {
+  /* rows: the inner wrapper is the grid and slides over the swipe actions */
+  .card--std, .card--text { position: relative; border-bottom: 0.5px solid var(--sep); touch-action: pan-y; }
+  .card--std > .card-in, .card--text > .card-in {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: minmax(0, 1fr) var(--thumb);
     grid-template-rows: auto auto 1fr auto;
     column-gap: 14px;
     row-gap: 4px;
     padding: 14px 0;
-    border-bottom: 0.5px solid var(--sep);
+    background: var(--bg);
+    transform: translateX(var(--swipe-x, 0px));
+    transition: transform var(--dur-3) var(--ease-out);
   }
-  .card--text { grid-template-columns: minmax(0, 1fr); }
+  .card--text > .card-in { grid-template-columns: minmax(0, 1fr); }
+  .card.is-swiping > .card-in { transition: none; }
+  .card--std::before, .card--text::before, .card--std::after, .card--text::after {
+    content: "";
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    width: 104px;
+    border-radius: var(--r-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+  }
+  .card--std::before, .card--text::before { left: 0; background: var(--success); content: attr(data-swipe-save); }
+  .card--std::after, .card--text::after { right: 0; background: var(--tint); content: attr(data-swipe-translate); }
+  .card.is-swipe-save::before, .card.is-swipe-translate::after { opacity: 1; }
+  body.battle-mode .card--std > .card-in, body.battle-mode .card--text > .card-in { background: #000; }
   .card--std .card-body, .card--text .card-body { display: contents; }
+  .card--hero > .card-in, .card--wide > .card-in { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; }
   .card--std .card-media {
     grid-column: 2;
     grid-row: 1 / 4;
@@ -1120,7 +1177,8 @@
   .card--hero .card-foot, .card--wide .card-foot { margin-top: 6px; }
   .card--hero .card-vote, .card--hero .card-cmt, .card--wide .card-vote, .card--wide .card-cmt { color: var(--on-photo-2); }
   .card--hero .card-vote[aria-pressed="true"], .card--wide .card-vote[aria-pressed="true"] { color: #fff; }
-  .card--hero .card-actions .icon-btn, .card--wide .card-actions .icon-btn { width: 36px; height: 36px; background: rgb(255 255 255 / 0.2); color: #fff; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5); }
+  /* translucent, not blurred: every backdrop-filter is a compositor layer and posters are many */
+  .card--hero .card-actions .icon-btn, .card--wide .card-actions .icon-btn { width: 36px; height: 36px; background: rgb(255 255 255 / 0.22); color: #fff; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 2px 8px rgb(0 0 0 / 0.2); }
   .card--hero .card-actions .icon-btn .icon, .card--wide .card-actions .icon-btn .icon { width: 17px; height: 17px; }
   .card--hero .card-actions .icon-btn.is-saved, .card--wide .card-actions .icon-btn.is-saved { color: #fff; background: rgb(255 255 255 / 0.4); }
   .card--hero .tile-letter, .card--wide .tile-letter { transform: translateY(-80%); opacity: 0.45; }
@@ -1739,7 +1797,14 @@
     overscroll-behavior: contain;
     scrollbar-width: none;
   }
-  .modal-comments::before { content: ""; display: block; width: 36px; height: 5px; border-radius: 3px; background: var(--fill-2); margin: 8px auto 0; }
+  .sheet-grab { position: sticky; top: 0; z-index: 2; height: 28px; display: flex; align-items: center; justify-content: center; touch-action: none; cursor: grab; background: var(--bg); }
+  .sheet-grab::before { content: ""; width: 36px; height: 5px; border-radius: 3px; background: var(--fill-2); }
+  .modal-dialog.is-dragging .modal-comments { transition: none; }
+  .modal-dialog[data-detent="full"] .modal-comments { height: 92%; }
+  .modal-dialog { touch-action: pan-y; }
+  .modal-media { touch-action: none; }
+  .modal-dialog.is-dragging { transition: none; }
+  .modal-dialog.is-dragging .modal-article { transition: none; }
   .modal-dialog[data-pane="comments"] .modal-comments { transform: none; }
   .modal-dialog[data-pane="comments"]::after { content: ""; position: fixed; inset: 0; z-index: 5; background: var(--scrim); }
   .cmt-panel { display: flex; flex-direction: column; gap: 12px; padding: 8px 20px calc(var(--safe-b) + 24px); }
@@ -1833,7 +1898,8 @@
     transition: transform 0.28s var(--ease-out);
   }
   .drawer.open { transform: none; }
-  .drawer::before { content: ""; display: block; width: 36px; height: 5px; border-radius: 3px; background: var(--fill-2); margin: 8px auto 0; flex: none; }
+  .drawer > .sheet-grab { flex: none; background: transparent; }
+  .drawer.is-dragging { transition: none; }
   .drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px 6px; flex: none; }
   .drawer-title { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; }
   .drawer-head .icon-btn { width: 36px; height: 36px; background: var(--fill); }
@@ -1887,7 +1953,7 @@
 
   @media (min-width: 700px) {
     .drawer { left: auto; top: 0; height: auto; width: min(420px, 92vw); border-radius: 28px 0 0 28px; transform: translateX(calc(100% + 40px)); }
-    .drawer::before { display: none; }
+    .drawer > .sheet-grab { display: none; }
     .drawer-head { padding-top: 22px; }
   }
 }
@@ -1921,6 +1987,15 @@
     to { opacity: 1; scale: 1; }
   }
   @keyframes brief-spin { to { transform: rotate(360deg); } }
+
+  /* entrances: elements that appear from display:none ease in from a
+     starting style — no JS, no animation left running afterwards */
+  .popover { transition: opacity var(--dur-1), transform var(--dur-2) var(--ease-spring); }
+  @starting-style { .popover { opacity: 0; transform: translateY(-6px) scale(0.96); } }
+  .forecast { transition: opacity var(--dur-2); }
+  @starting-style { .forecast { opacity: 0; } }
+  .banner { transition: opacity var(--dur-2), transform var(--dur-2) var(--ease-out); }
+  @starting-style { .banner { opacity: 0; transform: translateY(-8px); } }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }

@@ -3,6 +3,12 @@
 import { el, icon, iconButton } from './dom.js';
 import { t, catLabel } from './i18n.js';
 import { relTime, freshness } from './time.js';
+import { showMenu } from './menu.js';
+
+const SWIPE_COMMIT = 72; // px of travel that commits a swipe action
+const SWIPE_MAX = 112;
+const PRESS_MS = 480;
+const coarse = () => matchMedia('(pointer: coarse)').matches;
 
 // Stable hue from a source id, constrained to the solar ember→gold range
 // (12°–48°) so every fallback tile belongs to the cosmic palette.
@@ -168,12 +174,104 @@ export function buildCard(article, { variant = 'std', saved = false, onOpen, onT
 
   const body = el('div', { class: 'card-body' });
   body.append(meta, title, desc, foot);
-  card.append(body);
+  // the inner wrapper is what slides during a swipe; media + body live in it
+  const inner = el('div', { class: 'card-in' });
+  const mediaEl = card.querySelector('.card-media');
+  if (mediaEl) inner.append(mediaEl);
+  inner.append(body);
+  card.append(inner);
 
+  let swallowClick = false; // a swipe or a long-press must not also open the story
   card.addEventListener('click', (e) => {
+    if (swallowClick) {
+      swallowClick = false;
+      e.stopPropagation();
+      return;
+    }
     if (e.target.closest('button, a, input, select')) return;
     onOpen?.(article);
   });
+
+  /* ── gestures: swipe right = save, swipe left = translate; hold = menu ── */
+
+  const menuItems = () => [
+    { icon: 'bookmark', label: saveBtn.classList.contains('is-saved') ? t('card.unsave') : t('card.save'), onSelect: () => onToggleSave?.(article, saveBtn) },
+    { icon: 'globe', label: t('card.translate'), onSelect: () => onTranslate?.(article, card) },
+    { icon: 'external', label: t('card.open'), onSelect: () => window.open(article.url, '_blank', 'noopener') },
+    ...(navigator.share ? [{ icon: 'share', label: t('card.share'), onSelect: () => navigator.share({ title: article.title, url: article.url }).catch(() => {}) }] : []),
+  ];
+  const openMenu = (x, y) => {
+    swallowClick = true;
+    showMenu({ x, y, items: menuItems(), label: article.title, returnFocus: card });
+  };
+  card.addEventListener('contextmenu', (e) => {
+    if (e.target.closest('a, button')) return;
+    e.preventDefault();
+    openMenu(e.clientX, e.clientY);
+  });
+
+  const row = variant === 'std' || variant === 'text'; // posters only take the long press
+  if (row) {
+    card.dataset.swipeSave = t('card.save');
+    card.dataset.swipeTranslate = t('modal.translate');
+  }
+  {
+    let drag = null;
+    let pressTimer = null;
+    const setX = (x) => card.style.setProperty('--swipe-x', x.toFixed(1) + 'px');
+    const settle = (commit) => {
+      card.classList.remove('is-swiping');
+      card.classList.toggle('is-swipe-save', false);
+      card.classList.toggle('is-swipe-translate', false);
+      setX(0);
+      if (commit === 'save') onToggleSave?.(article, saveBtn);
+      if (commit === 'translate') onTranslate?.(article, card);
+    };
+    card.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || e.target.closest('a, button')) return;
+      drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, axis: null, type: e.pointerType };
+      clearTimeout(pressTimer);
+      if (coarse() || e.pointerType === 'touch') {
+        pressTimer = setTimeout(() => {
+          if (drag && !drag.axis) {
+            drag = null;
+            openMenu(e.clientX, e.clientY);
+          }
+        }, PRESS_MS);
+      }
+    });
+    card.addEventListener('pointermove', (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.x0;
+      const dy = e.clientY - drag.y0;
+      if (!drag.axis) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        drag.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+        clearTimeout(pressTimer);
+        if (drag.axis === 'y' || !row) {
+          drag = null; // the page scrolls (posters never slide)
+          return;
+        }
+        card.setPointerCapture(e.pointerId);
+        card.classList.add('is-swiping');
+      }
+      drag.dx = Math.max(-SWIPE_MAX, Math.min(SWIPE_MAX, dx));
+      setX(drag.dx);
+      card.classList.toggle('is-swipe-save', drag.dx >= SWIPE_COMMIT);
+      card.classList.toggle('is-swipe-translate', drag.dx <= -SWIPE_COMMIT);
+    });
+    const release = (e) => {
+      clearTimeout(pressTimer);
+      if (!drag || (e && e.pointerId !== drag.id)) return;
+      const { dx, axis } = drag;
+      drag = null;
+      if (axis !== 'x') return;
+      swallowClick = true;
+      settle(dx >= SWIPE_COMMIT ? 'save' : dx <= -SWIPE_COMMIT ? 'translate' : null);
+    };
+    card.addEventListener('pointerup', release);
+    card.addEventListener('pointercancel', release);
+  }
   card.addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && e.target === card) {
       e.preventDefault();

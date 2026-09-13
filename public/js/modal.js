@@ -248,6 +248,7 @@ function buildArticleView(article, { onCountChange } = {}) {
   articleCol.append(buildMedia(article, 'modal-media'), body);
   const commentsCol = el('aside', { class: 'modal-comments' });
   commentsCol.append(
+    el('div', { class: 'sheet-grab', 'data-testid': 'comments-grab', 'aria-hidden': 'true' }),
     buildCommentsPanel(article, {
       onCountChange: (n) => onCountChange?.(article, n),
     })
@@ -485,6 +486,85 @@ function buildArticleView(article, { onCountChange } = {}) {
   return { articleCol, commentsCol };
 }
 
+// Touch grammar of the story layer (compact screens): a horizontal swipe
+// walks to the previous/next story, a downward drag on the hero dismisses,
+// and the comments sheet is dragged by its grabber between the half detent,
+// the full detent and closed. Mouse drags follow the same rules.
+function attachGestures({ dialog, getView, navigate, close, lowerSheet }) {
+  let g = null;
+  const compact = () => !isRegular();
+  const SWIPE = 80;
+  const DISMISS = 120;
+
+  dialog.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    const grab = e.target.closest('.sheet-grab');
+    if (grab) {
+      g = { id: e.pointerId, mode: 'sheet', y0: e.clientY, dy: 0, t0: performance.now() };
+      dialog.setPointerCapture(e.pointerId);
+      dialog.classList.add('is-dragging');
+      return;
+    }
+    if (!compact()) return;
+    if (e.target.closest('.modal-actions, .modal-comments, .modal-close, .modal-nav, a, button, input, textarea, select')) return;
+    g = { id: e.pointerId, mode: null, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0, t0: performance.now(), onHero: !!e.target.closest('.modal-media') };
+  });
+  dialog.addEventListener('pointermove', (e) => {
+    if (!g || e.pointerId !== g.id) return;
+    const dx = (e.clientX ?? 0) - (g.x0 ?? 0);
+    const dy = e.clientY - g.y0;
+    if (g.mode === 'sheet') {
+      g.dy = dy;
+      getView().commentsCol.style.transform = `translateY(${dy}px)`;
+      return;
+    }
+    if (!g.mode) {
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      if (Math.abs(dx) > Math.abs(dy)) g.mode = 'swipe';
+      else if (dy > 0 && g.onHero && dialog.scrollTop <= 0) g.mode = 'dismiss';
+      else {
+        g = null; // the story scrolls
+        return;
+      }
+      dialog.setPointerCapture(e.pointerId);
+      dialog.classList.add('is-dragging');
+    }
+    g.dx = dx;
+    g.dy = dy;
+    const col = getView().articleCol;
+    if (g.mode === 'swipe') {
+      col.style.transform = `translateX(${dx}px)`;
+      col.style.opacity = String(Math.max(0.35, 1 - Math.abs(dx) / 520));
+    } else {
+      dialog.style.transform = `translateY(${Math.max(0, dy)}px)`;
+      dialog.style.borderRadius = Math.min(28, dy / 4) + 'px';
+    }
+  });
+  const end = (e) => {
+    if (!g || (e && e.pointerId !== g.id)) return;
+    const { mode, dx, dy, t0 } = g;
+    g = null;
+    dialog.classList.remove('is-dragging');
+    const dt = Math.max(1, performance.now() - t0);
+    const view = getView();
+    if (mode === 'sheet') {
+      view.commentsCol.style.transform = '';
+      if (dy > DISMISS || dy / dt > 0.8) lowerSheet();
+      else if (dy < -60) dialog.dataset.detent = 'full';
+      else if (dy > 60) delete dialog.dataset.detent;
+      return;
+    }
+    view.articleCol.style.transform = '';
+    view.articleCol.style.opacity = '';
+    dialog.style.transform = '';
+    dialog.style.borderRadius = '';
+    if (mode === 'swipe' && (Math.abs(dx) > SWIPE || Math.abs(dx) / dt > 0.7)) navigate(dx < 0 ? 1 : -1);
+    if (mode === 'dismiss' && (dy > DISMISS || dy / dt > 0.8)) close();
+  };
+  dialog.addEventListener('pointerup', end);
+  dialog.addEventListener('pointercancel', end);
+}
+
 export function openPreview(article, options = {}) {
   teardown();
 
@@ -553,6 +633,11 @@ export function openPreview(article, options = {}) {
 
   prevBtn.addEventListener('click', () => navigate(-1));
   nextBtn.addEventListener('click', () => navigate(1));
+  attachGestures({ dialog, getView: () => view, navigate, close: () => close(), lowerSheet: () => {
+    delete dialog.dataset.pane;
+    delete dialog.dataset.detent;
+    dialog.querySelector('[data-testid="preview-comments"]')?.setAttribute('aria-expanded', 'false');
+  } });
 
   root.addEventListener('mousedown', (e) => {
     if (e.target === root) close();

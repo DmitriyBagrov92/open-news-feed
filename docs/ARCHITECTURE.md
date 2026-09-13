@@ -354,7 +354,14 @@ Used as the Railway healthcheck path.
   A short, wide compact screen (iPhone Duo closed, `min-aspect-ratio: 3/5`)
   moves the tab bar to the side. `dom.js` `lockScroll()/unlockScroll()` set
   `body.style.overflow` (the app-wide "modal open" signal) + `html.is-locked`.
-  Icons come from the inline sprite in `index.html` via `<use>`.
+  Icons come from the inline sprite in `index.html` via `<use>`. Touch
+  grammar: rows slide (`.card-in` over `::before/::after` action blocks —
+  swipe right saves, left translates), a long press or right-click opens
+  the glass menu (`js/menu.js`); in the story a horizontal swipe on the hero
+  walks prev/next, a downward drag on the hero dismisses, the comments sheet
+  is dragged by `.sheet-grab` between the half and full detents
+  (`dialog[data-pane]`, `dialog[data-detent]`); the settings sheet drags
+  away by its grabber.
 - **Entry page + crawler files** (`lib/page.js`). `GET /` and `/index.html`
   are served by the server, not `express.static`: the template
   `public/index.html` gets `__PUBLIC_URL__` (from `PUBLIC_URL`, else

@@ -12,32 +12,42 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$OUT/icons"
 
-# Solar mark: void tile, amber solar disc, the meridian line through it.
-# $1 = disc radius (smaller for the maskable variant's 80% safe zone), $2 = corner radius
+# The mark: a meridian line through a ring — the wordmark pill's glyph.
+# White tile, system blue. $1 = ring radius (smaller for the maskable
+# variant's 80% safe zone), $2 = corner radius
 mark() {
 cat <<EOF
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <rect width="1024" height="1024" rx="$2" fill="#0A0B12"/>
-  <circle cx="512" cy="512" r="$1" fill="#F5A83C"/>
-  <circle cx="512" cy="512" r="$1" fill="none" stroke="#FFC46B" stroke-width="18" opacity="0.9"/>
-  <line x1="512" y1="$(( 512 - $1 - 70 ))" x2="512" y2="$(( 512 + $1 + 70 ))" stroke="#F2EFE9" stroke-width="44" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EEF0F4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="$2" fill="url(#bg)"/>
+  <circle cx="512" cy="512" r="$1" fill="none" stroke="#007AFF" stroke-width="72"/>
+  <line x1="512" y1="$(( 512 - $1 - 96 ))" x2="512" y2="$(( 512 + $1 + 96 ))" stroke="#007AFF" stroke-width="72" stroke-linecap="round"/>
 </svg>
 EOF
 }
-mark 300 180 > "$TMP/icon.svg"
-mark 230 0   > "$TMP/icon-maskable.svg"
+mark 260 180 > "$TMP/icon.svg"
+mark 200 0   > "$TMP/icon-maskable.svg"
 
 cat > "$TMP/og.svg" <<'EOF'
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
-  <rect width="1200" height="1200" fill="#0A0B12"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E9ECF2"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/>
   <!-- 1200×630 band: y 285..915 -->
-  <circle cx="600" cy="560" r="520" fill="#F5A83C" opacity="0.06"/>
-  <circle cx="600" cy="560" r="150" fill="#F5A83C"/>
-  <circle cx="600" cy="560" r="150" fill="none" stroke="#FFC46B" stroke-width="10" opacity="0.9"/>
-  <text x="600" y="612" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="150" font-weight="700" fill="#F2EFE9" text-anchor="middle" letter-spacing="10">MERIDIAN</text>
-  <text x="600" y="720" font-family="Georgia, Times New Roman, serif" font-size="46" font-style="italic" fill="#F2EFE9" text-anchor="middle">The world, as it happens</text>
-  <text x="600" y="800" font-family="Menlo, SF Mono, monospace" font-size="27" fill="#A29DAD" text-anchor="middle" letter-spacing="3">83 SOURCES · 8 LANGUAGES · AI ON YOUR DEVICE · NO ADS</text>
-  <text x="600" y="878" font-family="Menlo, SF Mono, monospace" font-size="24" fill="#F5A83C" text-anchor="middle" letter-spacing="3">meridi.info</text>
+  <circle cx="600" cy="520" r="130" fill="none" stroke="#007AFF" stroke-width="34"/>
+  <line x1="600" y1="342" x2="600" y2="698" stroke="#007AFF" stroke-width="34" stroke-linecap="round"/>
+  <text x="600" y="790" font-family="-apple-system, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="96" font-weight="800" letter-spacing="-4" fill="#111114" text-anchor="middle">Meridian</text>
+  <text x="600" y="850" font-family="-apple-system, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="34" font-weight="600" fill="#6E6E73" text-anchor="middle">The world, as it happens</text>
+  <text x="600" y="900" font-family="-apple-system, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="3" fill="#007AFF" text-anchor="middle">83 SOURCES · 8 LANGUAGES · AI ON YOUR DEVICE · NO ADS · MERIDI.INFO</text>
 </svg>
 EOF
 

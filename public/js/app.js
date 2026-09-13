@@ -1315,6 +1315,29 @@ function initDrawer() {
   toggle.addEventListener('click', () => (drawer.hidden ? open(toggle) : close()));
   closeBtn.addEventListener('click', close);
   scrim.addEventListener('click', close);
+  // phones: drag the grabber down to dismiss the sheet
+  const grab = $('#drawerGrab');
+  let drag = null;
+  grab?.addEventListener('pointerdown', (e) => {
+    drag = { id: e.pointerId, y0: e.clientY, t0: performance.now() };
+    grab.setPointerCapture(e.pointerId);
+    drawer.classList.add('is-dragging');
+  });
+  grab?.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    drawer.style.transform = `translateY(${Math.max(0, e.clientY - drag.y0)}px)`;
+  });
+  const endDrag = (e) => {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    const dy = e.clientY - drag.y0;
+    const dt = Math.max(1, performance.now() - drag.t0);
+    drag = null;
+    drawer.classList.remove('is-dragging');
+    drawer.style.transform = '';
+    if (dy > 120 || dy / dt > 0.8) close();
+  };
+  grab?.addEventListener('pointerup', endDrag);
+  grab?.addEventListener('pointercancel', endDrag);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !drawer.hidden) close();
   });

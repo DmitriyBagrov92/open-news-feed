@@ -183,7 +183,9 @@ npm run test:e2e:update   # refresh the visual snapshots after an intended chang
   `RATE_LIMIT_DISABLED=1` (end-to-end server only), `USAGE_LOG_MINUTES=0`.
   The integration suite keeps the limiters on and asserts them.
 - **Playwright** starts the server itself (`playwright.config.js`,
-  port 4173). Specs live in `test/e2e/*.spec.js`; stable hooks are
+  port 4173). Specs live in `test/e2e/*.spec.js` (feed, navigation,
+  `tabbar`, `gestures` — swipe / long-press / sheets, `perf` — glass
+  budget and no animations at rest, and one per feature); stable hooks are
   `data-testid` attributes, so restyling never breaks a test. Web fonts and
   article images are blocked in tests. The forecast runs on its mock model
   (`?forecast=mock`). A few `test.fixme` entries mark the mobile gaps the
