@@ -13,11 +13,9 @@ import { absTime } from './time.js';
 import { buildMedia, applyCardReactions } from './cards.js';
 import { summarize, translateTexts, splitSentences, providerLabel, toBullets } from './ai.js';
 import {
-  animateDialog,
   animateReveal,
-  animateZoomFrom,
-  animateZoomTo,
-  animateDialogOut,
+  animateStoryIn,
+  animateStoryOut,
   animateFadeIn,
   animateFadeOut,
   animateSwapIn,
@@ -47,10 +45,6 @@ function focusables(container) {
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function inViewport(rect) {
-  return rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth;
-}
-
 // Exit: the dialog zooms back into its grid card (or fades if the card is
 // gone/off-screen), then the modal is torn down. `instant` skips the
 // animation — used when a new preview opens over a closing one.
@@ -61,11 +55,7 @@ async function close({ instant = false } = {}) {
   // removing the listener now self-guards a second Escape mid-animation
   document.removeEventListener('keydown', onKeydown, true);
   if (!instant) {
-    // measure while body scroll is still locked — restoring it first could
-    // bring the scrollbar back and shift the grid under the animation
-    const card = cardFor?.();
-    const rect = card ? card.getBoundingClientRect() : null;
-    const out = rect && inViewport(rect) ? animateZoomTo(dialog, rect) : animateDialogOut(dialog);
+    const out = animateStoryOut(active.parts());
     await Promise.race([Promise.all([out, animateFadeOut(scrim)]), wait(500)]);
     if (active?.root !== root) return; // a newer preview already took over
   }
@@ -653,6 +643,16 @@ export function openPreview(article, options = {}) {
   };
   document.addEventListener('keydown', onKeydown, true);
 
+  // everything the entrance / exit choreography moves, read live because
+  // prev/next swaps the column
+  const storyParts = () => ({
+    dialog,
+    article: view.articleCol,
+    hero: view.articleCol.querySelector('.modal-media > *'),
+    parts: [...view.articleCol.querySelectorAll('.modal-body > :not(.modal-actions), .modal-comments')],
+    dock: view.articleCol.querySelector('.modal-actions'),
+    chrome: [closeBtn, prevBtn, nextBtn],
+  });
   active = {
     root,
     dialog,
@@ -660,14 +660,13 @@ export function openPreview(article, options = {}) {
     prevFocus: document.activeElement,
     onKeydown,
     cardFor: () => options.cardFor?.(current) ?? null,
+    parts: storyParts,
     closing: false,
   };
   document.body.append(root);
   updateArrows();
-  const origin = options.cardFor?.(article);
   animateFadeIn(scrim);
-  if (origin) animateZoomFrom(dialog, origin.getBoundingClientRect());
-  else animateDialog(dialog);
+  animateStoryIn(storyParts());
   lockStory();
   closeBtn.focus();
 }

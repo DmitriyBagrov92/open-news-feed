@@ -226,7 +226,7 @@ export function initBattle(options = {}) {
       const wrapEl = el('div', { class: 'battle-group-bubbles' });
       const cluster = { battle };
       for (const article of battle.articles) {
-        const r = Math.max(MIN_R, Math.round(radiusFor(article, innerWidth) * sizeFactor));
+        const r = Math.max(MIN_R, Math.round(radiusFor(article, document.documentElement.clientWidth) * sizeFactor));
         const btn = bubbleButton(article, r);
         btn.addEventListener('click', () => openBubble(cluster, article, btn));
         wrapEl.append(btn);
@@ -278,7 +278,7 @@ export function initBattle(options = {}) {
     battles.forEach((battle, i) => {
       const items = battle.articles.map((article) => ({
         article,
-        r: Math.max(MIN_R, Math.round(radiusFor(article, innerWidth) * sizeFactor)),
+        r: Math.max(MIN_R, Math.round(radiusFor(article, document.documentElement.clientWidth) * sizeFactor)),
       }));
       // the AI brief is a colliding tile at the heart of the group; the
       // layout reserves its EXPANDED size so growth never forces a reflow
@@ -442,8 +442,8 @@ export function initBattle(options = {}) {
 
   // mount/unmount clusters around the viewport to keep the live-body budget
   function updateMounts(force = false) {
-    const top = scrollY - innerHeight * 2;
-    const bottom = scrollY + innerHeight * 3;
+    const top = scrollY - document.documentElement.clientHeight * 2;
+    const bottom = scrollY + document.documentElement.clientHeight * 3;
     const spaceTop = space.getBoundingClientRect().top + scrollY;
     for (const cluster of clusters) {
       const y = spaceTop + cluster.anchor.y;
@@ -767,7 +767,7 @@ export function initBattle(options = {}) {
     // visible clusters translate immediately; the rest as they scroll in
     for (const cluster of clusters) {
       const rect = cluster.topicEl?.getBoundingClientRect();
-      if (rect && rect.top < innerHeight && rect.bottom > 0) translateCluster(cluster);
+      if (rect && rect.top < document.documentElement.clientHeight && rect.bottom > 0) translateCluster(cluster);
     }
   }
 
@@ -852,8 +852,8 @@ export function initBattle(options = {}) {
 
   function drawLinks() {
     const ctx = linksCanvas.getContext('2d');
-    const w = innerWidth;
-    const h = innerHeight;
+    const w = document.documentElement.clientWidth;
+    const h = document.documentElement.clientHeight;
     if (linksCanvas.width !== w) linksCanvas.width = w;
     if (linksCanvas.height !== h) linksCanvas.height = h;
     ctx.clearRect(0, 0, w, h);
@@ -897,7 +897,7 @@ export function initBattle(options = {}) {
       const visible = clusters.filter((c) => {
         if (!c.mounted) return false;
         const y = c.anchor.y + rect.top;
-        return y > -100 && y < innerHeight + 100;
+        return y > -100 && y < document.documentElement.clientHeight + 100;
       });
       if (!visible.length) return;
       const cluster = visible[Math.floor(Math.random() * visible.length)];

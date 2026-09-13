@@ -261,3 +261,61 @@ export function animateReveal(element) {
     ease: EASE_OUT,
   });
 }
+
+// The story layer arrives in steps: the surface fades in, the column rises,
+// the hero eases from a slight zoom, the body lines follow with a stagger,
+// the dock springs up from the floor and the chrome circles fade in last.
+// Independent transform properties (translate / scale) are used so nothing
+// fights the swipe gesture, which drives `transform`.
+export function animateStoryIn({ dialog, article, hero, parts = [], dock, chrome = [] }) {
+  const m = lib();
+  if (!m || !dialog) return;
+  const settle = (el, props) => new Promise((resolve) => {
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        for (const prop of props) el.style[prop] = '';
+        resolve();
+      })
+    );
+  });
+  m.animate(dialog, { opacity: [0, 1] }, { duration: 0.22, ease: 'linear' });
+  if (article) {
+    m.animate(article, { opacity: [0, 1], translate: ['0 28px', '0 0px'] }, { duration: 0.44, ease: EASE_OUT })
+      .finished.catch(() => {}).then(() => settle(article, ['opacity', 'translate']));
+  }
+  if (hero) {
+    m.animate(hero, { scale: [1.08, 1] }, { duration: 0.8, ease: EASE_OUT })
+      .finished.catch(() => {}).then(() => settle(hero, ['scale']));
+  }
+  const list = [...parts].filter(Boolean);
+  if (list.length) {
+    m.animate(
+      list,
+      { opacity: [0, 1], translate: ['0 14px', '0 0px'] },
+      { duration: 0.36, delay: m.stagger(0.045, { startDelay: 0.14 }), ease: EASE_OUT }
+    ).finished.catch(() => {}).then(() => list.forEach((el) => settle(el, ['opacity', 'translate'])));
+  }
+  if (dock) {
+    m.animate(
+      dock,
+      { opacity: [0, 1], translate: ['0 84px', '0 0px'] },
+      { delay: 0.18, type: 'spring', stiffness: 420, damping: 30 }
+    ).finished.catch(() => {}).then(() => settle(dock, ['opacity', 'translate']));
+  }
+  const circles = [...chrome].filter(Boolean);
+  if (circles.length) {
+    m.animate(circles, { opacity: [0, 1], scale: [0.8, 1] }, { duration: 0.3, delay: 0.22, ease: EASE_OUT })
+      .finished.catch(() => {}).then(() => circles.forEach((el) => settle(el, ['opacity', 'scale'])));
+  }
+}
+
+// The exit runs the entrance in reverse, faster: dock and circles first,
+// the column sinks and the surface fades. Resolves when the surface is gone.
+export function animateStoryOut({ dialog, article, dock, chrome = [] }) {
+  const m = lib();
+  if (!m || !dialog) return Promise.resolve();
+  if (dock) m.animate(dock, { opacity: 0, translate: '0 60px' }, { duration: 0.18, ease: 'easeIn' });
+  for (const el of chrome) if (el) m.animate(el, { opacity: 0, scale: 0.85 }, { duration: 0.16, ease: 'easeIn' });
+  if (article) m.animate(article, { opacity: 0, translate: '0 24px' }, { duration: 0.22, ease: 'easeIn' });
+  return m.animate(dialog, { opacity: 0 }, { duration: 0.24, delay: 0.06, ease: 'linear' }).finished.catch(() => {});
+}

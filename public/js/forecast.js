@@ -29,14 +29,25 @@ import {
   FORECAST_COUNT,
 } from './ai.js';
 
-// Gesture feel — tune by hand per device class.
-const THRESHOLD = 140;        // px of accumulated pull that fires
-const MAX_PULL = 196;
+// Gesture feel — an iOS pull-to-refresh: the content follows the finger
+// with rubber resistance (fast at first, then stiffening), the hint arms
+// past a threshold of *resisted* travel, and the pull fires on release —
+// a mouse wheel has no release, so it fires once the wheel rests while
+// armed. A stray flick never makes it.
+const THRESHOLD = 104;        // px of resisted travel that arms the pull
+const RAW_MAX = 900;          // raw travel beyond which the rubber is taut
 const WHEEL_GAIN = 0.6;
 const WHEEL_CAP = 60;         // per wheel event, tames inertial bursts
-const TOUCH_GAIN = 0.5;
-const DECAY = 0.85;           // per frame once the wheel goes quiet
-const WHEEL_QUIET_MS = 90;
+const DECAY = 0.86;           // per frame once the wheel goes quiet
+const WHEEL_QUIET_MS = 120;   // silence before an unarmed pull relaxes
+const WHEEL_HOLD_MS = 280;    // silence while armed before it fires
+const SETTLE_MS = 520;        // the spring back to rest
+
+// Apple's rubber band: x = (1 − 1 / (0.55·d / c + 1)) · c, c ≈ the view height
+function rubber(raw) {
+  const c = Math.max(480, window.innerHeight * 0.9);
+  return (1 - 1 / ((0.55 * raw) / c + 1)) * c;
+}
 const COOLDOWN_MS = 400;      // after fire/close: the same burst must not re-fire
 const NUDGE_MS = 700;
 const CACHE_TTL_MS = 30 * 60_000;
@@ -74,7 +85,9 @@ export async function initForecast(deps) {
   let enabled = prefs.forecast !== false;
   let needsDownload = availability !== 'available';
   let phase = 'idle'; // idle | pulling | thinking | shown | error
-  let pull = 0;
+  let pull = 0;      // resisted travel, the visual value
+  let rawPull = 0;   // raw finger / wheel travel
+  let settleTimer = null;
   let seq = 0;
   let ctrl = null;
   let cooldownUntil = 0;
@@ -106,7 +119,22 @@ export async function initForecast(deps) {
     hint.style.setProperty('--pull', Math.min(1, pull / THRESHOLD).toFixed(3));
     hint.classList.toggle('is-pulling', pull > 4);
     hint.classList.toggle('is-armed', pull >= THRESHOLD);
+    // the feed itself follows the pull (CSS translates the columns)
+    const root = document.documentElement;
+    root.style.setProperty('--pull-px', pull.toFixed(1) + 'px');
+    root.classList.toggle('is-pulling', pull > 0);
     syncHint();
+  }
+
+  // let go: the feed springs back to rest
+  function releasePull() {
+    pull = 0;
+    rawPull = 0;
+    const root = document.documentElement;
+    root.classList.add('is-pull-settling');
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => root.classList.remove('is-pull-settling'), SETTLE_MS);
+    renderPull();
   }
 
   // the model still needs a download (a user gesture): the pull only nods
@@ -119,9 +147,8 @@ export async function initForecast(deps) {
   }
 
   function settlePull() {
-    pull = 0;
     phase = 'idle';
-    renderPull();
+    releasePull();
     releaseForecastSession(SESSION_GRACE_MS);
   }
 
@@ -162,20 +189,26 @@ export async function initForecast(deps) {
       phase = 'pulling';
       warm();
     }
-    pull = Math.min(MAX_PULL, pull + delta);
+    rawPull = Math.min(RAW_MAX, rawPull + delta);
+    pull = rubber(rawPull);
     lastWheel = performance.now();
     renderPull();
-    if (pull >= THRESHOLD) {
-      trigger({ activation: false });
-      return;
-    }
     if (!raf) raf = requestAnimationFrame(tick);
   }
 
   function tick(now) {
     raf = 0;
     if (phase !== 'pulling') return;
-    if (now - lastWheel > WHEEL_QUIET_MS) pull *= DECAY;
+    const quiet = now - lastWheel;
+    // armed and the wheel has come to rest: that is the "release"
+    if (pull >= THRESHOLD && quiet > WHEEL_HOLD_MS) {
+      trigger({ activation: false });
+      return;
+    }
+    if (quiet > WHEEL_QUIET_MS && pull < THRESHOLD) {
+      rawPull *= DECAY;
+      pull = rubber(rawPull);
+    }
     if (pull < 1) {
       settlePull();
       return;
@@ -203,7 +236,8 @@ export async function initForecast(deps) {
       phase = 'pulling';
       warm();
     }
-    pull = Math.min(MAX_PULL, dy * TOUCH_GAIN);
+    rawPull = Math.min(RAW_MAX, dy);
+    pull = rubber(rawPull);
     renderPull();
   }
 
@@ -257,8 +291,7 @@ export async function initForecast(deps) {
       return;
     }
     const fromKeyboard = activation && document.activeElement === hint;
-    pull = 0;
-    renderPull();
+    releasePull();
     cooldownUntil = Date.now() + COOLDOWN_MS;
     const cached = validCache();
     if (cached) {

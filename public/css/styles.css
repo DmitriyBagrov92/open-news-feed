@@ -861,6 +861,7 @@
       display: flex;
       justify-content: center;
     }
+    .tabs { translate: none; } /* fixed in the cluster: never follows the pull */
     .tabs-track { max-width: 100%; }
     .tab { font-size: 13px; padding: 0 12px; }
     .tab--saved span, .tab--battle span { display: none; }
@@ -896,6 +897,10 @@
     transition: color var(--dur-1), border-color var(--dur-1);
   }
   .forecast-hint .icon { width: 16px; height: 16px; color: var(--indigo); }
+  .forecast-hint.is-armed { scale: 1.03; }
+  /* the whole column follows the pull with rubber resistance and springs back */
+  main.feed > :not(.ssr) { translate: 0 var(--pull-px, 0px); }
+  html.is-pull-settling main.feed > :not(.ssr) { transition: translate 0.52s var(--ease-spring); }
   .forecast-hint-arrow { display: none; }
   .forecast-hint-bar { display: none; }
   .forecast-hint.is-armed { color: var(--indigo); border-color: var(--indigo); }
@@ -1616,7 +1621,9 @@
   .legend-chip[data-lean="right"]::before { background: var(--danger); }
   .battle-hint { color: rgb(255 255 255 / 0.7); font-weight: 500; }
   .battle-status { color: rgb(255 255 255 / 0.55); font-weight: 500; }
-  .battle-links { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  /* the canvas is sized by CSS, never by its own width attribute — a canvas
+     wider than the viewport would widen the viewport, which widens the canvas… */
+  .battle-links { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
   .battle-space { position: relative; z-index: 1; overflow: clip; }
   .battle-topic { position: absolute; left: 0; right: 0; text-align: center; font-size: 11px; letter-spacing: 0.14em; color: rgb(255 255 255 / 0.55); pointer-events: none; }
   .bubble {
@@ -1770,10 +1777,23 @@
   .modal-media img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .modal-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(0 0 0 / 0.25), transparent 30%, transparent 45%, var(--bg) 100%); pointer-events: none; }
   .modal-media .tile-letter { transform: translateY(-30%); }
+  /* the story's bottom edge fades under the floating dock — text is never
+     simply cut by a bar */
+  .modal-dialog::after {
+    content: "";
+    position: fixed;
+    z-index: 4;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(var(--safe-b) + 130px);
+    pointer-events: none;
+    background: linear-gradient(to top, var(--bg) 30%, transparent);
+  }
   .modal-body {
     position: relative;
     margin-top: -64px;
-    padding: 0 20px 18px;
+    padding: 0 20px 40px;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -1912,6 +1932,8 @@
     .modal-body { margin-top: -56px; padding: 0 28px 18px; }
     .modal-title { font-size: 26px; }
     .modal-actions { position: absolute; bottom: 20px; }
+    .modal-dialog::after { position: absolute; height: 128px; }
+    .modal-body { padding-bottom: 36px; }
     .cmt-panel { padding: 16px 28px 120px; }
     body.story-open .feed-col { max-width: none; margin: 0; padding-right: calc(var(--pane-w) + 48px); }
     body.story-open .chrome-top { right: calc(var(--pane-w) + 24px); }
