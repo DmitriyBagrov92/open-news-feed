@@ -78,12 +78,12 @@ export function initTimescale({
     const max = Math.max(1, ...buckets);
     const stops = [];
     const n = buckets.length;
-    // bucket n-1 is NOW (top of the rail) — draw from the top down
+    // bucket n-1 is NOW (top of the rail) — one stop per bucket centre, so
+    // the browser blends them into a single band instead of hard blocks
     for (let i = n - 1; i >= 0; i -= 1) {
-      const a = (0.08 + (buckets[i] / max) * 0.55).toFixed(3);
-      const from = (((n - 1 - i) / n) * 100).toFixed(2);
-      const to = (((n - i) / n) * 100).toFixed(2);
-      stops.push(`color-mix(in srgb, var(--label) ${Math.round(a * 100)}%, transparent) ${from}% ${to}%`);
+      const a = Math.round((0.05 + (buckets[i] / max) * 0.45) * 100);
+      const pos = (((n - 1 - i + 0.5) / n) * 100).toFixed(1);
+      stops.push(`color-mix(in srgb, var(--label) ${a}%, transparent) ${pos}%`);
     }
     densityEl.style.background = `linear-gradient(180deg, ${stops.join(', ')})`;
   }

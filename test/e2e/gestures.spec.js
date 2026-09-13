@@ -83,25 +83,21 @@ test.describe('gestures on phones', () => {
     expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
   });
 
-  test('the comments sheet: half detent, dragged to full, dragged away', async ({ page }) => {
+  test('the comments live at the end of the story; the dock button scrolls to them', async ({ page }) => {
     await gotoFeed(page);
-    await cardByTitle(page, /Rail strike enters/).click();
-    const dialog = page.getByTestId('preview-dialog');
+    await cardByTitle(page, /Coastal towns brace/).click();
+    await expect(page.getByTestId('preview-text')).toContainText('Forecasters expect', { timeout: 15_000 });
+    const panel = page.getByTestId('preview-comments-panel');
+    await expect(panel).toBeAttached();
+    await expect(panel).not.toBeInViewport(); // below the article, nothing covering it
     await page.getByTestId('preview-comments').click();
-    await expect(dialog).toHaveAttribute('data-pane', 'comments');
-    await page.waitForTimeout(520); // the sheet's slide settles before the grabber is measured
-    const sheet = page.locator('.modal-comments');
-    const half = (await sheet.boundingBox()).height;
-    const grab = page.getByTestId('comments-grab');
-    let g = await grab.boundingBox();
-    await drag(page, { x: g.x + g.width / 2, y: g.y + g.height / 2 }, { x: g.x + g.width / 2, y: g.y - 160 });
-    await expect(dialog).toHaveAttribute('data-detent', 'full');
-    await expect.poll(async () => (await sheet.boundingBox()).height).toBeGreaterThan(half + 40);
-    g = await grab.boundingBox();
-    await drag(page, { x: g.x + g.width / 2, y: g.y + g.height / 2 }, { x: g.x + g.width / 2, y: g.y + 260 });
-    await expect(dialog).not.toHaveAttribute('data-pane', /.+/);
-    await expect(page.getByTestId('preview-comments')).toHaveAttribute('aria-expanded', 'false');
-    await expect(page.getByTestId('preview')).toBeVisible();
+    await expect(panel).toBeInViewport();
+    await expect(page.getByTestId('comments-input')).toBeVisible();
+    // and simply scrolling the story reaches them too — no control required
+    await page.keyboard.press('Escape');
+    await cardByTitle(page, /Coastal towns brace/).click();
+    await page.getByTestId('comments-input').scrollIntoViewIfNeeded();
+    await expect(page.getByTestId('comments-input')).toBeVisible();
   });
 
   test('the settings sheet drags away on phones', async ({ page }, testInfo) => {

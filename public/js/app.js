@@ -9,7 +9,7 @@ import { initChrome } from './chrome.js';
 import { initTimescale } from './timescale.js';
 import { animateIn, animatePop, animateRelayout } from './motion.js';
 import { toast } from './toast.js';
-import { buildCard, skeletonCard, applyCardText, setCardCommentCount, applyCardReactions } from './cards.js';
+import { buildCard, skeletonCard, applyCardText, setCardCommentCount, applyCardReactions, hashHue } from './cards.js';
 import { initCardTooltip } from './tooltip.js';
 import { openPreview } from './modal.js';
 import { summarize, translateTexts, warmTranslator, providerLabel, toBullets } from './ai.js';
@@ -87,6 +87,26 @@ function applyGlass() {
   document.documentElement.style.setProperty('--glass', String(level));
   const range = $('#glassRange');
   if (range) range.value = String(Math.round(level * 100));
+}
+
+/* ── Ambient ────────────────────────────────────────────────────────────── */
+
+// The page is never flat: three wide colour fields sit behind everything and
+// take their hue from the sources currently in the feed, so the background
+// shifts quietly as the reader moves between topics.
+function paintAmbient(list = state.articles) {
+  const hues = [];
+  for (const article of list.slice(0, 14)) {
+    const source = article?.source;
+    if (!source) continue;
+    const hue = hashHue(source.id || source.name || '?');
+    if (!hues.some((h) => Math.abs(h - hue) < 26 || Math.abs(h - hue) > 334)) hues.push(hue);
+    if (hues.length === 3) break;
+  }
+  if (!hues.length) return;
+  while (hues.length < 3) hues.push((hues[hues.length - 1] + 74) % 360);
+  const style = document.documentElement.style;
+  hues.forEach((hue, i) => style.setProperty('--amb-' + (i + 1), String(hue)));
 }
 
 /* ── Feed query ─────────────────────────────────────────────────────────── */
@@ -267,6 +287,7 @@ function appendArticles(list, withHero = false) {
   grid.append(frag);
   animateIn(added);
   timescale.refresh();
+  paintAmbient();
 }
 
 function prependArticles(list) {
@@ -296,6 +317,7 @@ function prependArticles(list) {
 
   animateIn(cards);
   timescale.refresh();
+  paintAmbient();
   state.newestAt = fresh[0].publishedAt;
   hideEmpty();
 }
@@ -1205,7 +1227,7 @@ function initGridSize() {
   const paint = (level, { exactPct = null, from = null } = {}) => {
     for (const slider of sliders) {
       const pct = exactPct !== null && slider === from ? exactPct : pctOf(level);
-      slider.style.setProperty('--pos', pct + '%');
+      slider.style.setProperty('--pos', (pct / 100).toFixed(4)); // 0…1 ratio
       slider.setAttribute('aria-valuenow', String(level - GRID_SIZE_MIN + 1));
       slider.setAttribute('aria-valuetext', `${level - GRID_SIZE_MIN + 1} / 5`);
     }

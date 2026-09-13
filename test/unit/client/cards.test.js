@@ -58,7 +58,8 @@ test('reaction, comment and text updates write into the right spans', () => {
   assert.ok(card.querySelector('.card-cmt').hasAttribute('hidden'));
   applyCardText(card, 'T', 'D');
   assert.equal(card.querySelector('.card-desc').textContent, 'D');
-  assert.ok(hashHue('bbc-world') >= 12 && hashHue('bbc-world') <= 48);
+  assert.ok(Number.isInteger(hashHue('bbc-world')) && hashHue('bbc-world') >= 0 && hashHue('bbc-world') < 360);
+  assert.equal(hashHue('bbc-world'), hashHue('bbc-world'), 'stable per source');
 });
 
 test('skeletonCard() matches the inline skeletons shipped in index.html', async () => {

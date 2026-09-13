@@ -10,12 +10,15 @@ const SWIPE_MAX = 112;
 const PRESS_MS = 480;
 const coarse = () => matchMedia('(pointer: coarse)').matches;
 
-// Stable hue from a source id, constrained to the solar ember→gold range
-// (12°–48°) so every fallback tile belongs to the cosmic palette.
+// Stable hue from a source id, drawn from a curated ring — blues, indigos,
+// violets, roses, ambers and teals. Muddy yellow-greens are left out, so a
+// wall of fallback tiles still looks composed. The same hues feed the
+// ambient background (app.js paintAmbient).
+const HUES = [212, 228, 248, 266, 286, 312, 334, 352, 16, 32, 168, 190];
 export function hashHue(str) {
   let h = 0;
-  for (let i = 0; i < str.length; i += 1) h = (h * 31 + str.charCodeAt(i)) % 360;
-  return 12 + (h % 37);
+  for (let i = 0; i < str.length; i += 1) h = (h * 31 + str.charCodeAt(i)) % 4096;
+  return HUES[h % HUES.length];
 }
 
 export function fallbackTile(source) {

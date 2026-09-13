@@ -63,10 +63,9 @@ test.describe('story preview', () => {
     const card = cardByTitle(page, /Rail strike enters/);
     await card.click();
     await expect(page.getByTestId('preview')).toBeVisible();
-    // comments rise as a sheet from the dock
-    await page.getByTestId('preview-comments').click();
-    await expect(page.getByTestId('preview-dialog')).toHaveAttribute('data-pane', 'comments');
+    // the conversation is part of the story: scroll down and it is there
     const input = page.getByTestId('comments-input');
+    await input.scrollIntoViewIfNeeded();
     await expect(input).toBeVisible();
     await input.fill('First take from the suite');
     await page.getByTestId('comments-post').click();
@@ -83,10 +82,6 @@ test.describe('story preview', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('preview')).toBeVisible();
     await expect(input).not.toBeFocused();
-    // the next Escape lowers the sheet, the one after closes the story
-    await page.keyboard.press('Escape');
-    await expect(page.getByTestId('preview-dialog')).not.toHaveAttribute('data-pane', /.+/);
-    await expect(page.getByTestId('preview')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('preview')).toBeHidden();
   });

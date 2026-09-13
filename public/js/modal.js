@@ -205,22 +205,20 @@ function buildArticleView(article, { onCountChange } = {}) {
   const translateBtn = dockButton('globe', t('modal.translate'), { class: 'btn', 'data-testid': 'preview-translate' });
   const summarizeBtn = dockButton('sparkle', t('modal.summarize'), { class: 'btn btn--prime', 'data-testid': 'preview-summarize' });
   // the comments sheet rises over the story (a column beside it on wide screens)
+  // the comments live at the end of the story; this is a shortcut to them
   const commentsBtn = el('button', {
-    class: 'btn btn--icon',
+    class: 'btn btn--count',
     type: 'button',
     'data-testid': 'preview-comments',
     'aria-label': t('comments.title'),
-    'aria-expanded': 'false',
   });
-  commentsBtn.append(icon('comment'));
+  commentsBtn.append(icon('comment'), el('span', { class: 'label', text: '' }));
   commentsBtn.addEventListener('click', () => {
-    const dialog = commentsBtn.closest('.modal-dialog');
-    if (!dialog) return;
-    const open = dialog.dataset.pane !== 'comments';
-    if (open) dialog.dataset.pane = 'comments';
-    else delete dialog.dataset.pane;
-    commentsBtn.setAttribute('aria-expanded', String(open));
-    if (open) dialog.querySelector('.cmt-input')?.focus({ preventScroll: true });
+    const panel = commentsBtn.closest('.modal-article')?.querySelector('.modal-comments');
+    panel?.scrollIntoView({
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'start',
+    });
   });
   const sourceLink = el('a', {
     class: 'btn',
@@ -246,13 +244,16 @@ function buildArticleView(article, { onCountChange } = {}) {
 
   const articleCol = el('div', { class: 'modal-article' });
   articleCol.append(buildMedia(article, 'modal-media'), body);
-  const commentsCol = el('aside', { class: 'modal-comments' });
+  const commentsCol = el('aside', { class: 'modal-comments', 'data-testid': 'preview-comments-panel' });
   commentsCol.append(
-    el('div', { class: 'sheet-grab', 'data-testid': 'comments-grab', 'aria-hidden': 'true' }),
     buildCommentsPanel(article, {
-      onCountChange: (n) => onCountChange?.(article, n),
+      onCountChange: (n) => {
+        setLabel(commentsBtn, n ? String(n) : '');
+        onCountChange?.(article, n);
+      },
     })
   );
+  articleCol.append(commentsCol);
 
   /* ── article text ─────────────────────────────────────────────────────── */
 
@@ -487,10 +488,9 @@ function buildArticleView(article, { onCountChange } = {}) {
 }
 
 // Touch grammar of the story layer (compact screens): a horizontal swipe
-// walks to the previous/next story, a downward drag on the hero dismisses,
-// and the comments sheet is dragged by its grabber between the half detent,
-// the full detent and closed. Mouse drags follow the same rules.
-function attachGestures({ dialog, getView, navigate, close, lowerSheet }) {
+// on the hero walks to the previous/next story, a downward drag on the hero
+// dismisses it. Mouse drags follow the same rules.
+function attachGestures({ dialog, getView, navigate, close }) {
   let g = null;
   const compact = () => !isRegular();
   const SWIPE = 80;
@@ -498,13 +498,6 @@ function attachGestures({ dialog, getView, navigate, close, lowerSheet }) {
 
   dialog.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
-    const grab = e.target.closest('.sheet-grab');
-    if (grab) {
-      g = { id: e.pointerId, mode: 'sheet', y0: e.clientY, dy: 0, t0: performance.now() };
-      dialog.setPointerCapture(e.pointerId);
-      dialog.classList.add('is-dragging');
-      return;
-    }
     if (!compact()) return;
     if (e.target.closest('.modal-actions, .modal-comments, .modal-close, .modal-nav, a, button, input, textarea, select')) return;
     g = { id: e.pointerId, mode: null, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0, t0: performance.now(), onHero: !!e.target.closest('.modal-media') };
@@ -513,11 +506,6 @@ function attachGestures({ dialog, getView, navigate, close, lowerSheet }) {
     if (!g || e.pointerId !== g.id) return;
     const dx = (e.clientX ?? 0) - (g.x0 ?? 0);
     const dy = e.clientY - g.y0;
-    if (g.mode === 'sheet') {
-      g.dy = dy;
-      getView().commentsCol.style.transform = `translateY(${dy}px)`;
-      return;
-    }
     if (!g.mode) {
       if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
       if (Math.abs(dx) > Math.abs(dy)) g.mode = 'swipe';
@@ -547,13 +535,6 @@ function attachGestures({ dialog, getView, navigate, close, lowerSheet }) {
     dialog.classList.remove('is-dragging');
     const dt = Math.max(1, performance.now() - t0);
     const view = getView();
-    if (mode === 'sheet') {
-      view.commentsCol.style.transform = '';
-      if (dy > DISMISS || dy / dt > 0.8) lowerSheet();
-      else if (dy < -60) dialog.dataset.detent = 'full';
-      else if (dy > 60) delete dialog.dataset.detent;
-      return;
-    }
     view.articleCol.style.transform = '';
     view.articleCol.style.opacity = '';
     dialog.style.transform = '';
@@ -598,7 +579,7 @@ export function openPreview(article, options = {}) {
   closeBtn.addEventListener('click', () => close());
 
   let view = buildArticleView(article, { onCountChange: options.onCountChange });
-  dialog.append(closeBtn, view.articleCol, view.commentsCol);
+  dialog.append(closeBtn, view.articleCol);
   root.append(scrim, prevBtn, dialog, nextBtn);
 
   function updateArrows() {
@@ -622,32 +603,20 @@ export function openPreview(article, options = {}) {
     const draft = drafts.get(next.id);
     if (draft) nextView.commentsCol.querySelector('.cmt-input').value = draft;
     view.articleCol.replaceWith(nextView.articleCol);
-    view.commentsCol.replaceWith(nextView.commentsCol);
     view = nextView;
     current = next;
     root.setAttribute('aria-label', current.title);
     dialog.scrollTop = 0; // <1000px the dialog itself is the scroll container
     updateArrows();
-    animateSwapIn([view.articleCol, view.commentsCol], dir);
+    animateSwapIn([view.articleCol], dir);
   }
 
   prevBtn.addEventListener('click', () => navigate(-1));
   nextBtn.addEventListener('click', () => navigate(1));
-  attachGestures({ dialog, getView: () => view, navigate, close: () => close(), lowerSheet: () => {
-    delete dialog.dataset.pane;
-    delete dialog.dataset.detent;
-    dialog.querySelector('[data-testid="preview-comments"]')?.setAttribute('aria-expanded', 'false');
-  } });
+  attachGestures({ dialog, getView: () => view, navigate, close: () => close() });
 
   root.addEventListener('mousedown', (e) => {
     if (e.target === root) close();
-  });
-  // a tap on the dimmed story behind the comments sheet lowers the sheet
-  dialog.addEventListener('click', (e) => {
-    if (e.target === dialog && dialog.dataset.pane === 'comments') {
-      delete dialog.dataset.pane;
-      dialog.querySelector('[data-testid="preview-comments"]')?.setAttribute('aria-expanded', 'false');
-    }
   });
 
   const onKeydown = (e) => {
@@ -657,11 +626,6 @@ export function openPreview(article, options = {}) {
       // a comment draft must survive a reflexive Escape: blur, don't close
       if (e.target?.classList?.contains('cmt-input') && e.target.value.trim()) {
         e.target.blur();
-        return;
-      }
-      if (dialog.dataset.pane === 'comments') {
-        delete dialog.dataset.pane; // Escape lowers the sheet first
-        dialog.querySelector('[data-testid="preview-comments"]')?.setAttribute('aria-expanded', 'false');
         return;
       }
       close();
