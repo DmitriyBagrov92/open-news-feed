@@ -1073,9 +1073,6 @@
   .brief-think-bar:nth-child(2), .fcard-think-bar:nth-child(2) { width: 76%; animation-delay: 0.18s; }
   .brief-think-bar:nth-child(3), .fcard-think-bar:nth-child(3) { width: 86%; animation-delay: 0.36s; }
   /* when a hero poster leads the grid the brief overlaps its top edge */
-  @media (max-width: 699px) {
-    main.feed:has(> #grid > .card--hero:first-child):not(:has(> #feedTabs:not([hidden]))):not(:has(> #onboard:not([hidden]))) .brief { margin-bottom: -40px; }
-  }
 
   /* ── banner · pill ────────────────────────────────────────────────── */
   .banner {
@@ -1761,15 +1758,36 @@
   /* the story layer: full-screen on compact, a right pane on regular */
   .modal { position: fixed; inset: 0; z-index: 100; }
   .modal-scrim { position: absolute; inset: 0; background: var(--scrim); pointer-events: none; }
+  /* the story scrolls in the area above the dock's own strip — text never
+     runs under the bar */
+  .modal { background: var(--bg); }
   .modal-dialog {
     position: absolute;
-    inset: 0;
+    inset: 0 0 calc(var(--safe-b) + 88px) 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     background: var(--bg);
     scrollbar-width: none;
   }
   .modal-dialog::-webkit-scrollbar { display: none; }
+  .modal::before {
+    content: "";
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--cluster-top) + 72px);
+    pointer-events: none;
+    opacity: 0;
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+    background: linear-gradient(rgb(var(--g-rgb) / 0.55), rgb(var(--g-rgb) / 0));
+    -webkit-mask-image: linear-gradient(#000 45%, transparent);
+    mask-image: linear-gradient(#000 45%, transparent);
+    transition: opacity var(--dur-2);
+  }
+  .modal.is-scrolled::before { opacity: 1; }
   .modal-close {
     position: fixed;
     z-index: 4;
@@ -1801,23 +1819,10 @@
   .modal-media img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .modal-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(0 0 0 / 0.25), transparent 30%, transparent 45%, var(--bg) 100%); pointer-events: none; }
   .modal-media .tile-letter { transform: translateY(-30%); }
-  /* the story's bottom edge fades under the floating dock — text is never
-     simply cut by a bar */
-  .modal-dialog::after {
-    content: "";
-    position: fixed;
-    z-index: 4;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: calc(var(--safe-b) + 130px);
-    pointer-events: none;
-    background: linear-gradient(to top, var(--bg) 30%, transparent);
-  }
   .modal-body {
     position: relative;
     margin-top: -64px;
-    padding: 0 20px 40px;
+    padding: 0 20px 24px;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -1850,7 +1855,6 @@
     .modal-vote { padding: 0 8px; }
   }
   .modal-actions .btn--count { padding: 0 12px; gap: 6px; }
-  .modal-dialog:has(.cmt-input:focus) .modal-actions { opacity: 0; pointer-events: none; transition: opacity var(--dur-1); }
   .modal-actions .btn .icon { width: 20px; height: 20px; }
   .modal-close .ic-close { display: none; }
   .modal-react { display: flex; gap: 0; }
@@ -1895,7 +1899,7 @@
   .modal-dialog { touch-action: pan-y; }
   .modal-media { touch-action: none; }
   .modal-dialog.is-dragging { transition: none; }
-  .cmt-panel { display: flex; flex-direction: column; gap: 12px; padding: 16px 20px calc(var(--safe-b) + 130px); }
+  .cmt-panel { display: flex; flex-direction: column; gap: 12px; padding: 16px 20px 28px; }
   .cmt-head { display: flex; align-items: center; gap: 8px; }
   .cmt-title { color: var(--label); font-size: 20px; font-weight: 800; letter-spacing: -0.02em; text-transform: none; }
   .cmt-count { color: var(--label-2); font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
@@ -1955,10 +1959,12 @@
     .modal-media { height: 300px; min-height: 0; }
     .modal-body { margin-top: -56px; padding: 0 28px 18px; }
     .modal-title { font-size: 26px; }
+    .modal { background: transparent; }
+    .modal::before { top: 0; height: 80px; border-radius: 28px 28px 0 0; left: 0; right: 0; }
+    .modal-dialog { inset: 0; padding-bottom: 92px; } /* the dock's strip inside the pane */
     .modal-actions { position: absolute; bottom: 20px; }
-    .modal-dialog::after { position: absolute; height: 128px; }
-    .modal-body { padding-bottom: 36px; }
-    .cmt-panel { padding: 16px 28px 120px; }
+    .modal-body { padding-bottom: 24px; }
+    .cmt-panel { padding: 16px 28px 28px; }
     body.story-open .feed-col { max-width: none; margin: 0; padding-right: calc(var(--pane-w) + 48px); }
     body.story-open .chrome-top { right: calc(var(--pane-w) + 24px); }
     body.story-open .tabs { display: none; }

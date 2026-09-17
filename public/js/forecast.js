@@ -42,6 +42,7 @@ const DECAY = 0.86;           // per frame once the wheel goes quiet
 const WHEEL_QUIET_MS = 120;   // silence before an unarmed pull relaxes
 const WHEEL_HOLD_MS = 280;    // silence while armed before it fires
 const SETTLE_MS = 520;        // the spring back to rest
+const REST_AT_TOP_MS = 450;   // the page must have rested at the top this long before a pull can begin
 
 // Apple's rubber band: x = (1 − 1 / (0.55·d / c + 1)) · c, c ≈ the view height
 function rubber(raw) {
@@ -89,6 +90,21 @@ export async function initForecast(deps) {
   let phase = 'idle'; // idle | pulling | thinking | shown | error
   let pull = 0;      // resisted travel, the visual value
   let rawPull = 0;   // raw finger / wheel travel
+  // when the page last arrived at the top — a scroll that merely ends at the
+  // top must not turn into a pull on the same motion
+  let atTopSince = window.scrollY < 2 ? performance.now() : Infinity;
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (window.scrollY < 2) {
+        if (atTopSince === Infinity) atTopSince = performance.now();
+      } else {
+        atTopSince = Infinity;
+        if (phase === 'pulling') settlePull();
+      }
+    },
+    { passive: true }
+  );
   let settleTimer = null;
   let seq = 0;
   let ctrl = null;
@@ -168,6 +184,7 @@ export async function initForecast(deps) {
       isFeedView() &&
       (phase === 'idle' || phase === 'pulling') &&
       window.scrollY < 2 &&
+      (phase === 'pulling' || performance.now() - atTopSince > REST_AT_TOP_MS) &&
       document.body.style.overflow !== 'hidden' && // modal / drawer open
       Date.now() > cooldownUntil
     );

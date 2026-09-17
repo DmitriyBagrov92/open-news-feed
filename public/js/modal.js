@@ -204,7 +204,7 @@ function buildArticleView(article, { onCountChange } = {}) {
   });
   commentsBtn.append(icon('comment'), el('span', { class: 'label', text: '' }));
   commentsBtn.addEventListener('click', () => {
-    const panel = commentsBtn.closest('.modal-article')?.querySelector('.modal-comments');
+    const panel = commentsBtn.closest('.modal-dialog')?.querySelector('.modal-comments');
     panel?.scrollIntoView({
       behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
       block: 'start',
@@ -230,7 +230,7 @@ function buildArticleView(article, { onCountChange } = {}) {
   for (let i = 0; i < 5; i += 1) textBox.append(el('div', { class: 'skel skel-text' }));
 
   const body = el('div', { class: 'modal-body' });
-  body.append(meta, title, actions, chip, summaryBox, note, textBox);
+  body.append(meta, title, chip, summaryBox, note, textBox);
 
   const articleCol = el('div', { class: 'modal-article' });
   articleCol.append(buildMedia(article, 'modal-media'), body);
@@ -474,7 +474,7 @@ function buildArticleView(article, { onCountChange } = {}) {
 
   translateBtn.addEventListener('click', () => doTranslate());
 
-  return { articleCol, commentsCol };
+  return { articleCol, commentsCol, actions };
 }
 
 // Touch grammar of the story layer (compact screens): a horizontal swipe
@@ -569,7 +569,7 @@ export function openPreview(article, options = {}) {
   closeBtn.addEventListener('click', () => close());
 
   let view = buildArticleView(article, { onCountChange: options.onCountChange });
-  dialog.append(closeBtn, view.articleCol);
+  dialog.append(closeBtn, view.articleCol, view.actions); // the dock sits in the dialog's own strip
   root.append(scrim, prevBtn, dialog, nextBtn);
 
   function updateArrows() {
@@ -593,6 +593,7 @@ export function openPreview(article, options = {}) {
     const draft = drafts.get(next.id);
     if (draft) nextView.commentsCol.querySelector('.cmt-input').value = draft;
     view.articleCol.replaceWith(nextView.articleCol);
+    view.actions.replaceWith(nextView.actions);
     view = nextView;
     current = next;
     root.setAttribute('aria-label', current.title);
@@ -604,6 +605,14 @@ export function openPreview(article, options = {}) {
   prevBtn.addEventListener('click', () => navigate(-1));
   nextBtn.addEventListener('click', () => navigate(1));
   attachGestures({ dialog, getView: () => view, navigate, close: () => close() });
+  // the frost band under the glass circles once text scrolls beneath them
+  // (the dialog scrolls on phones, the article column in the pane)
+  const onStoryScroll = () => {
+    const y = Math.max(dialog.scrollTop, view.articleCol.scrollTop);
+    root.classList.toggle('is-scrolled', y > 40);
+  };
+  dialog.addEventListener('scroll', onStoryScroll, { passive: true });
+  dialog.addEventListener('scroll', onStoryScroll, { passive: true, capture: true });
 
   root.addEventListener('mousedown', (e) => {
     if (e.target === root) close();
@@ -650,7 +659,7 @@ export function openPreview(article, options = {}) {
     article: view.articleCol,
     hero: view.articleCol.querySelector('.modal-media > *'),
     parts: [...view.articleCol.querySelectorAll('.modal-body > :not(.modal-actions), .modal-comments')],
-    dock: view.articleCol.querySelector('.modal-actions'),
+    dock: view.actions,
     chrome: [closeBtn, prevBtn, nextBtn],
   });
   active = {

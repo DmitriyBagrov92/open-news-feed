@@ -111,6 +111,7 @@ export const isReduced = (testInfo) => testInfo.project.name === 'reduced-motion
 // synthetic touch drag on the phone (page.touchscreen only taps).
 export async function pullForecast(page, testInfo) {
   await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(600); // a pull only starts from a page at rest at the top
   if (isMobile(testInfo)) {
     await page.evaluate(() => {
       const touch = (type, y) => {
