@@ -5,7 +5,8 @@
 // cells, in the story header, the tooltip, the onboarding card and Settings.
 //
 //   country === 'GB'       a flag + "United Kingdom"
-//   country === null       no single home (aggregators, pan-regional): a globe
+//   country === '002'      a UN M.49 region (pan-regional service): a globe + "Africa"
+//   country === null       no home at all (aggregators): a globe + "International"
 //   country === undefined  not known yet — a story saved before this field
 //                          existed; filled in once /api/sources has loaded
 
@@ -14,6 +15,8 @@ import { t, hasLocale } from './i18n.js';
 import { prefs } from './prefs.js';
 
 const CODE_RE = /^[A-Z]{2}$/; // the code becomes part of a URL: accept nothing else
+const REGION_RE = /^\d{3}$/; // UN M.49 region: named, never fetched
+const valid = (code) => (typeof code === 'string' && (CODE_RE.test(code) || REGION_RE.test(code)) ? code : null);
 const byId = new Map(); // source id → code | null, from /api/sources
 const displayNames = new Map(); // locale → Intl.DisplayNames | null
 
@@ -21,14 +24,14 @@ const displayNames = new Map(); // locale → Intl.DisplayNames | null
 export function registerSources(list) {
   byId.clear();
   for (const source of list || []) {
-    if (source?.id) byId.set(source.id, CODE_RE.test(source.country || '') ? source.country : null);
+    if (source?.id) byId.set(source.id, valid(source.country));
   }
 }
 
-// 'GB' | null (international) | undefined (unknown for now)
+// 'GB' | '002' | null (international) | undefined (unknown for now)
 export function countryOf(source) {
   if (!source) return undefined;
-  if ('country' in source) return CODE_RE.test(source.country || '') ? source.country : null;
+  if ('country' in source) return valid(source.country);
   return byId.has(source.id) ? byId.get(source.id) : undefined;
 }
 
@@ -37,6 +40,12 @@ const locale = () => (hasLocale(prefs.targetLang) ? prefs.targetLang : 'en');
 
 export function countryName(code) {
   if (!code) return t('country.international');
+  if (REGION_RE.test(code)) {
+    // engines disagree on naming UN regions (Chromium: '002' → '002'): own table
+    const key = 'region.' + code;
+    const name = t(key);
+    return name === key ? code : name;
+  }
   const loc = locale();
   if (!displayNames.has(loc)) {
     let names = null;
@@ -56,14 +65,15 @@ export function countryName(code) {
 
 export const flagUrl = (code) => `flags/${code.toLowerCase()}.svg`;
 
-// A round flag, or the globe glyph where there is no single country.
+// A round flag, or the globe glyph where there is no single country
+// (a region or an aggregator).
 export function buildFlag(code) {
   const globe = () => {
     const glyph = icon('globe');
     glyph.classList.add('flag', 'flag--intl');
     return glyph;
   };
-  if (!code) return globe();
+  if (!code || !CODE_RE.test(code)) return globe();
   const img = el('img', {
     class: 'flag',
     src: flagUrl(code),

@@ -9,10 +9,12 @@
 //
 // `country` is where the outlet is headquartered (ISO 3166-1 alpha-2, plus
 // the reserved codes EU and UN) — the feed shows it as a flag next to the
-// source so a reader can tell whose voice a story is. `null` means there is
-// no single home country (news aggregators, pan-regional services). Every
-// code needs its flag in public/flags/: run `npm run vendor:flags` after
-// adding one (test/unit/lib/sources.test.js fails until you do).
+// source so a reader can tell whose voice a story is. A pan-regional service
+// takes a UN M.49 region instead ('002' = Africa): it is named like a country
+// and shown with a globe. `null` means no home at all (news aggregators).
+// Every alpha-2 code needs its flag in public/flags/: run `npm run
+// vendor:flags` after adding one (test/unit/lib/sources.test.js fails until
+// you do).
 
 export const CATEGORIES = [
   'world',
@@ -48,7 +50,7 @@ export const RSS_SOURCES = {
     { id: 'timesofisrael', name: 'The Times of Israel', country: 'IL', category: 'world', lean: 'center', url: 'https://www.timesofisrael.com/feed/', homepage: 'https://www.timesofisrael.com' },
     { id: 'jpost', name: 'The Jerusalem Post', country: 'IL', category: 'world', lean: 'right', url: 'https://www.jpost.com/rss/rssfeedsfrontpage.aspx', homepage: 'https://www.jpost.com' },
     { id: 'toi-world', name: 'Times of India World', country: 'IN', category: 'world', url: 'https://timesofindia.indiatimes.com/rssfeeds/296589292.cms', homepage: 'https://timesofindia.indiatimes.com' },
-    { id: 'allafrica', name: 'AllAfrica', country: null, category: 'world', url: 'https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf', homepage: 'https://allafrica.com' },
+    { id: 'allafrica', name: 'AllAfrica', country: '002', category: 'world', url: 'https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf', homepage: 'https://allafrica.com' },
     { id: 'mercopress', name: 'MercoPress', country: 'UY', category: 'world', url: 'https://en.mercopress.com/rss/', homepage: 'https://en.mercopress.com' },
     // Removed after verification (2026-07-18): CNN edition_world.rss is
     // abandoned (last item Sep 2023), CBC webfeed times out consistently.

@@ -17,7 +17,7 @@ const codes = [
   ...new Set(
     [...Object.values(RSS_SOURCES).flat(), ...API_SOURCES]
       .map((s) => s.country)
-      .filter(Boolean)
+      .filter((c) => /^[A-Z]{2}$/.test(c || '')) // UN M.49 regions ('002') have no flag
       .map((c) => c.toLowerCase())
   ),
 ].sort();

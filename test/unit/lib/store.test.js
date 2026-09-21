@@ -51,7 +51,8 @@ test('every story says where its publisher is based', () => {
   assert.equal(byId.get('bbc-world'), 'GB');
   assert.equal(byId.get('espn'), 'US');
   assert.equal(byId.get('aljazeera'), 'QA');
-  assert.ok(all.every((a) => a.source.country === null || /^[A-Z]{2}$/.test(a.source.country)));
+  assert.ok(all.every((a) => a.source.country === null || /^([A-Z]{2}|\d{3})$/.test(a.source.country)));
+  assert.equal(store.listSources().sources.find((s) => s.id === 'allafrica').country, '002');
   const listed = store.listSources().sources;
   assert.ok(listed.every((s) => 'country' in s));
   assert.equal(listed.find((s) => s.id === 'gnews').country, null);

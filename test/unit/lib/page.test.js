@@ -20,6 +20,7 @@ test('renderIndex fills every placeholder and renders 30 escaped headlines', () 
 
 test('the crawler list names the country each publisher is based in', () => {
   assert.equal(countryNameEn('GB'), 'United Kingdom');
+  assert.equal(countryNameEn('002'), 'Africa');
   assert.equal(countryNameEn(null), '');
   assert.equal(countryNameEn('not-a-code'), '');
   const html = headlinesHtml();

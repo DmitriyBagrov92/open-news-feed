@@ -22,6 +22,9 @@ test('names and flag urls', () => {
   assert.equal(countryName('EU'), 'European Union');
   assert.equal(countryName('UN'), 'United Nations');
   assert.equal(countryName(null), 'International');
+  assert.equal(countryName('002'), 'Africa', 'a UN M.49 region is named like a country');
+  assert.equal(countryOf({ id: 'allafrica', country: '002' }), '002');
+  assert.equal(buildFlag('002').tagName.toLowerCase(), 'svg', 'a region has no flag to fetch: the globe');
   assert.equal(flagUrl('GB'), 'flags/gb.svg');
 });
 

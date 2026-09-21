@@ -165,6 +165,13 @@ const TABLES = {
     'card.unsave': 'Remove from saved',
     'card.open': 'Open the original article',
     'country.international': 'International',
+    // UN M.49 regions for pan-regional services — browsers' Intl data names
+    // countries reliably but not these, so they live here
+    'region.002': 'Africa',
+    'region.019': 'Americas',
+    'region.142': 'Asia',
+    'region.150': 'Europe',
+    'region.009': 'Oceania',
     'card.share': 'Share',
     'card.preview': 'Preview: {title}',
 

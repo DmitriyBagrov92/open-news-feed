@@ -62,7 +62,7 @@ test('news: params, decoration, Vary header', async () => {
 
 test('country: on every story and source, and the flags are served with a long cache', async () => {
   const news = await (await get('/api/news?pageSize=100')).json();
-  assert.ok(news.articles.every((a) => a.source.country === null || /^[A-Z]{2}$/.test(a.source.country)));
+  assert.ok(news.articles.every((a) => a.source.country === null || /^([A-Z]{2}|\d{3})$/.test(a.source.country)));
   assert.equal(news.articles.find((a) => a.source.id === 'bbc-world').source.country, 'GB');
   const { sources } = await (await get('/api/sources')).json();
   assert.equal(sources.find((s) => s.id === 'tass').country, 'RU');

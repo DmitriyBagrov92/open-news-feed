@@ -61,8 +61,9 @@ Principles:
   "url": "https://…",             // canonical link to the source article
   "image": "https://…" | null,    // best available image URL
   "source": { "id": "bbc-world", "name": "BBC World", "homepage": "https://bbc.com",
-              "country": "GB" },  // ISO 3166-1 alpha-2 of the publisher's HQ (plus EU / UN);
-                                  // null = no single home country (aggregators, pan-regional)
+              "country": "GB" },  // ISO 3166-1 alpha-2 of the publisher's HQ (plus EU / UN),
+                                  // or a UN M.49 region for a pan-regional service ("002" =
+                                  // Africa, shown with a globe); null = aggregator, no home
   "category": "world",            // one of CATEGORIES below
   "publishedAt": "2026-07-18T09:30:00.000Z",  // ISO 8601 UTC
   "language": "en"

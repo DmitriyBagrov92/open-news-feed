@@ -66,9 +66,9 @@ test('Settings lists every source with its flag; no single home shows the globe'
   await expect(row('tass').locator('img.flag')).toHaveAttribute('title', 'Russia');
   await expect(row('scmp').locator('img.flag')).toHaveAttribute('src', 'flags/hk.svg');
   await expect(row('euronews').locator('img.flag')).toHaveAttribute('title', 'European Union');
-  await expect(row('allafrica').locator('svg.flag--intl')).toHaveCount(1);
-  await expect(row('allafrica').locator('svg.flag--intl')).toHaveAttribute('title', 'International');
-  await expect(row('gnews').locator('svg.flag--intl')).toHaveCount(1);
+  // a pan-regional service is named by its UN region; an aggregator has no home
+  await expect(row('allafrica').locator('svg.flag--intl')).toHaveAttribute('title', 'Africa');
+  await expect(row('gnews').locator('svg.flag--intl')).toHaveAttribute('title', 'International');
   const flags = await page.evaluate(() => {
     const rows = [...document.querySelectorAll('[data-testid="source-row"]')];
     return { rows: rows.length, flagged: rows.filter((r) => r.querySelector('.flag')).length };
