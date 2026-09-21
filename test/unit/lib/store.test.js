@@ -45,6 +45,20 @@ test('query mixes native-language feeds and honours since + histogram', () => {
   assert.ok(h.timeline.reduce((a, b) => a + b, 0) > 0);
 });
 
+test('every story says where its publisher is based', () => {
+  const all = store.query({ pageSize: 100 }).articles;
+  const byId = new Map(all.map((a) => [a.source.id, a.source.country]));
+  assert.equal(byId.get('bbc-world'), 'GB');
+  assert.equal(byId.get('espn'), 'US');
+  assert.equal(byId.get('aljazeera'), 'QA');
+  assert.ok(all.every((a) => a.source.country === null || /^[A-Z]{2}$/.test(a.source.country)));
+  const listed = store.listSources().sources;
+  assert.ok(listed.every((s) => 'country' in s));
+  assert.equal(listed.find((s) => s.id === 'gnews').country, null);
+  // the partisan outlets are English-language media, not the zh list they once sat in
+  assert.ok(store.battlePool().every((a) => a.language === 'en'));
+});
+
 test('battle-only sources never surface in the feed but do in the pool', () => {
   assert.equal(store.query({ pageSize: 100, q: 'Trump Tariffs' }).articles.some((a) => a.source.id === 'fox-news'), false);
   const pool = store.battlePool();

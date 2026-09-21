@@ -4,6 +4,7 @@ import { el, icon, iconButton } from './dom.js';
 import { t, catLabel } from './i18n.js';
 import { relTime, freshness } from './time.js';
 import { showMenu } from './menu.js';
+import { buildByline } from './country.js';
 
 const SWIPE_COMMIT = 72; // px of travel that commits a swipe action
 const SWIPE_MAX = 112;
@@ -92,7 +93,9 @@ export function buildCard(article, { variant = 'std', saved = false, onOpen, onT
       'data-published': article.publishedAt,
       text: relTime(article.publishedAt),
     }),
-    el('span', { class: 'card-src', text: article.source?.name || '' })
+    // the byline: a round flag, the source and the country its publisher is
+    // based in — `.card-src` stays the bare source name
+    buildByline(article.source, { srcClass: 'card-src' })
   );
 
   const title = el('h3', { class: 'card-title', text: article.title });

@@ -6,6 +6,7 @@ import { el, clear } from './dom.js';
 import { t, catLabel } from './i18n.js';
 import { relTime } from './time.js';
 import { buildMedia } from './cards.js';
+import { buildByline } from './country.js';
 import { animateFlyOff, animateSpringBack, animateSwapIn } from './motion.js';
 
 const SWIPE_PX = 80; // pointer travel that commits a rating
@@ -40,18 +41,25 @@ export function initOnboarding({ section, onRate, onDone, translateArticle }) {
     );
   }
 
+  function onboardMeta(article) {
+    const meta = el('p', { class: 'mono onboard-meta' });
+    meta.append(
+      buildByline(article.source),
+      el('span', {
+        class: 'meta-rest',
+        text: [relTime(article.publishedAt), catLabel(article.category)].filter(Boolean).join(' · '),
+      })
+    );
+    return meta;
+  }
+
   function buildStoryCard(article) {
     const card = el('article', { class: 'onboard-card', 'data-testid': 'onboard-card' });
     card._article = article; // buttons/keys rate the story on stage
     card.append(buildMedia(article, 'onb-media'));
     const body = el('div', { class: 'onboard-body' });
     body.append(
-      el('p', {
-        class: 'mono onboard-meta',
-        text: [article.source?.name, relTime(article.publishedAt), catLabel(article.category)]
-          .filter(Boolean)
-          .join(' · '),
-      }),
+      onboardMeta(article),
       el('h3', { class: 'onboard-headline', text: article.title })
     );
     if (article.description) {

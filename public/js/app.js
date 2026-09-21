@@ -6,6 +6,7 @@ import { prefs, setPref, savePrefs, isSaved, toggleSaved, ensureAuthorId } from 
 import { api } from './api.js';
 import { initWireClocks, refreshTimes } from './time.js';
 import { initChrome } from './chrome.js';
+import { registerSources, refreshBylines, buildFlag, countryName } from './country.js';
 import { initTimescale } from './timescale.js';
 import { animateIn, animatePop, animateRelayout } from './motion.js';
 import { toast } from './toast.js';
@@ -1429,7 +1430,10 @@ function renderSourcesList() {
         if (state.category === 'saved') renderYourFeed();
         else loadFeed({ reset: true });
       });
+      const flag = buildFlag(source.country || null);
+      flag.setAttribute('title', countryName(source.country || null));
       row.append(
+        flag,
         el('span', { class: 'source-name', text: source.name }),
         el('span', {
           class: 'source-tag',
@@ -1449,6 +1453,9 @@ async function loadSources() {
     sourcesData = null;
   }
   nativeLangs = new Set(sourcesData?.languages || []);
+  // stories saved before sources carried a country resolve through the registry
+  registerSources(sourcesData?.sources || []);
+  refreshBylines();
   // the saved target may have native feeds — switch the feed to the mix
   if (feedLangs() && state.category !== 'saved' && state.category !== 'battle') {
     loadFeed({ reset: true });
@@ -1528,6 +1535,7 @@ function boot() {
   else if (state.category !== 'battle') loadFeed({ reset: true }); // battle boots via activate()
 
   loadSources();
+  document.addEventListener('meridian:langchange', () => refreshBylines());
   schedulePoll();
   // AI forecast (Chrome built-in model only): probed after the feed is on
   // its way; an unsupported browser gets no hint, no gesture, no setting

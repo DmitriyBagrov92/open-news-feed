@@ -15,6 +15,7 @@ import { openPreview } from './modal.js';
 import { relTime } from './time.js';
 import { summarize, translateTexts, toBullets } from './ai.js';
 import { initHoverTip } from './tooltip.js';
+import { buildFlag, countryOf, countryName } from './country.js';
 
 const TOPIC_BAND = 44;        // reserved height for the topic label
 const CLUSTER_GAP = 84;       // clearance between clusters
@@ -99,13 +100,27 @@ export function initBattle(options = {}) {
 
   /* ── shared DOM builders ───────────────────────────────────────────────── */
 
+  // where the outlet is based: a flag in the tile, the name for assistive tech
+  function bubbleCountry(article) {
+    const code = countryOf(article.source);
+    return code === undefined ? '' : countryName(code);
+  }
+  function bubbleSource(article) {
+    const src = el('span', { class: 'bubble-src mono' });
+    const code = countryOf(article.source);
+    if (code !== undefined) src.append(buildFlag(code));
+    src.append(document.createTextNode(article.source?.name || ''));
+    src.title = [article.source?.name, bubbleCountry(article)].filter(Boolean).join(' · ');
+    return src;
+  }
+
   function bubbleButton(article, r) {
     const btn = el('button', {
       class: 'bubble',
       'data-testid': 'bubble',
       type: 'button',
       'data-lean': article.lean,
-      'aria-label': `${article.source?.name} — ${article.title}`,
+      'aria-label': `${[article.source?.name, bubbleCountry(article)].filter(Boolean).join(', ')} — ${article.title}`,
     });
     btn.style.width = btn.style.height = r * 2 + 'px';
     setBubbleFont(btn, r);
@@ -116,7 +131,7 @@ export function initBattle(options = {}) {
     }
     const inner = el('span', { class: 'bubble-in' });
     inner.append(
-      el('span', { class: 'bubble-src mono', text: article.source?.name || '' }),
+      bubbleSource(article),
       el('span', { class: 'bubble-title', text: article.title }),
       el('time', { class: 'bubble-time mono', datetime: article.publishedAt, text: relTime(article.publishedAt) })
     );

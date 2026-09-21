@@ -60,6 +60,21 @@ test('news: params, decoration, Vary header', async () => {
   assert.equal(h.timeline.length, 24);
 });
 
+test('country: on every story and source, and the flags are served with a long cache', async () => {
+  const news = await (await get('/api/news?pageSize=100')).json();
+  assert.ok(news.articles.every((a) => a.source.country === null || /^[A-Z]{2}$/.test(a.source.country)));
+  assert.equal(news.articles.find((a) => a.source.id === 'bbc-world').source.country, 'GB');
+  const { sources } = await (await get('/api/sources')).json();
+  assert.equal(sources.find((s) => s.id === 'tass').country, 'RU');
+  assert.equal(sources.find((s) => s.id === 'newsdata').country, null);
+  const flag = await get('/flags/gb.svg');
+  assert.equal(flag.status, 200);
+  assert.match(flag.headers.get('content-type'), /image\/svg\+xml/);
+  assert.match(flag.headers.get('cache-control'), /max-age=2592000/);
+  assert.match(flag.headers.get('cache-control'), /immutable/);
+  assert.equal((await get('/flags/zz.svg')).status, 404);
+});
+
 test('sources and battles', async () => {
   const s = await (await get('/api/sources')).json();
   assert.ok(s.sources.length > 60 && s.categories.length === 7 && s.languages.includes('de'));

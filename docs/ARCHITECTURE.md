@@ -60,7 +60,9 @@ Principles:
   "description": "…",             // plain text, HTML-stripped, ≤ 500 chars
   "url": "https://…",             // canonical link to the source article
   "image": "https://…" | null,    // best available image URL
-  "source": { "id": "bbc-world", "name": "BBC World", "homepage": "https://bbc.com" },
+  "source": { "id": "bbc-world", "name": "BBC World", "homepage": "https://bbc.com",
+              "country": "GB" },  // ISO 3166-1 alpha-2 of the publisher's HQ (plus EU / UN);
+                                  // null = no single home country (aggregators, pan-regional)
   "category": "world",            // one of CATEGORIES below
   "publishedAt": "2026-07-18T09:30:00.000Z",  // ISO 8601 UTC
   "language": "en"
@@ -343,6 +345,19 @@ Used as the Railway healthcheck path.
   fonts, no third-party scripts or styles) + `img-src https: data:` (article
   images come from many hosts). No inline event handlers.
 - **PORT** from `process.env.PORT` (Railway sets it).
+- **Source country + flags.** `config/sources.js` gives every source a
+  `country` (where the outlet is headquartered); the store stamps it on
+  `article.source.country` and `/api/sources`. Flags are round SVGs from the
+  `circle-flags` package (MIT, devDependency) vendored by
+  `npm run vendor:flags` into `public/flags/<cc>.svg` — only the codes the
+  registry uses — and served from `/flags` with a 30-day immutable cache.
+  `test/unit/lib/sources.test.js` fails when a source has no country or a
+  code has no flag. Client: `public/js/country.js` (`buildByline`,
+  `buildFlag`, `countryName` via `Intl.DisplayNames`, `registerSources` as the
+  fallback for stories saved before the field existed, `refreshBylines` on
+  late data / language change). The code is validated as `^[A-Z]{2}$` before
+  it becomes part of a URL. Emoji flags are deliberately not used — Windows
+  does not render them.
 - **Glass chrome contract** (`public/js/chrome.js`, `css/styles.css`). The
   top cluster is `position: fixed`; `chrome.js` measures its bottom edge into
   `--sticky-top` (the "in view" line for the time rail, sticky rows and

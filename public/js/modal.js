@@ -22,6 +22,7 @@ import {
   animateCrossfade,
 } from './motion.js';
 import { buildCommentsPanel } from './comments.js';
+import { buildByline } from './country.js';
 
 let active = null; // { root, dialog, scrim, prevFocus, onKeydown, cardFor, closing }
 
@@ -172,12 +173,14 @@ function buildVotes(article) {
 // translation, comments. Stale async work is guarded by articleCol.isConnected
 // — false both after navigation (column replaced) and after close.
 function buildArticleView(article, { onCountChange } = {}) {
-  const meta = el('p', {
-    class: 'modal-meta mono',
-    text: [article.source?.name, absTime(article.publishedAt), catLabel(article.category)]
-      .filter(Boolean)
-      .join(' · '),
-  });
+  const meta = el('p', { class: 'modal-meta mono' });
+  meta.append(
+    buildByline(article.source),
+    el('span', {
+      class: 'meta-rest',
+      text: [absTime(article.publishedAt), catLabel(article.category)].filter(Boolean).join(' · '),
+    })
+  );
 
   const title = el('h2', { class: 'modal-title', text: article.title });
 

@@ -7,6 +7,7 @@ Meridian aggregates public RSS/Atom feeds from established outlets (BBC, The Gua
 ## What a reader gets
 
 - One chronological feed of world, business, technology, science, sports, culture and health news, refreshed every 5 minutes, covering the last 7 days.
+- Every story names its publisher and the country that publisher is based in (shown with the national flag), so a reader can tell whose perspective a headline carries.
 - Native-language feeds for Russian, Ukrainian, German, French, Spanish, Japanese and Chinese readers, mixed with the English backbone; machine translation on-device (browser Translator API) with a free server fallback for other languages.
 - An AI daily brief and per-story summaries, generated on the device (browser Summarizer API) or by a local extractive summarizer — never sent to a paid model, never used to train anything.
 - "Bubble Battle": the same story as covered by left-, center- and right-leaning outlets, side by side.

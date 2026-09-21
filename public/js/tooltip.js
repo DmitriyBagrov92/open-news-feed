@@ -3,6 +3,7 @@
 // the grid, hover-capable pointers only — touch never sees it.
 
 import { el, clear } from './dom.js';
+import { buildByline } from './country.js';
 import { catLabel } from './i18n.js';
 import { relTime } from './time.js';
 
@@ -49,15 +50,15 @@ export function initHoverTip({ root, selector, articleFor, textFor, ignore = 'bu
     if (!article) return;
     const text = textFor?.(article, card) || article;
     clear(tip);
-    tip.append(
-      el('p', {
-        class: 'card-tip-meta mono',
-        text: [article.source?.name, relTime(article.publishedAt), catLabel(article.category)]
-          .filter(Boolean)
-          .join(' · '),
-      }),
-      el('p', { class: 'card-tip-title', text: text.title })
+    const tipMeta = el('p', { class: 'card-tip-meta mono' });
+    tipMeta.append(
+      buildByline(article.source),
+      el('span', {
+        class: 'meta-rest',
+        text: [relTime(article.publishedAt), catLabel(article.category)].filter(Boolean).join(' · '),
+      })
     );
+    tip.append(tipMeta, el('p', { class: 'card-tip-title', text: text.title }));
     if (text.description) {
       tip.append(el('p', { class: 'card-tip-desc', text: text.description }));
     }

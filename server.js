@@ -75,6 +75,8 @@ if (INDEXNOW_KEY) {
   });
 }
 
+// Country flags are tiny, named by ISO code and effectively never change.
+app.use('/flags', express.static(path.join(__dirname, 'public', 'flags'), { maxAge: '30d', immutable: true }));
 app.use(express.static(path.join(__dirname, 'public'), { index: 'index.html' }));
 
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);

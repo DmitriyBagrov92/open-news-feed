@@ -47,6 +47,11 @@ tracking — your preferences never leave your browser.
   dependencies.
 - **No auth, no tracking.** Preferences (theme, language, hidden sources,
   saved articles) live in `localStorage` only.
+- **Whose voice is it.** Every story carries a round flag and the country
+  its publisher is based in — TASS 🇷🇺, CGTN 🇨🇳, Al Jazeera 🇶🇦 next to BBC 🇬🇧
+  and NPR 🇺🇸 — on cells, in the story header, the tooltip and the Sources
+  list. Flags are same-origin SVGs (emoji flags do not render on Windows);
+  country names come from `Intl.DisplayNames` in the interface language.
 - **One language setting.** The globe in the top cluster is the single
   language control on the site: stories are translated into the chosen
   language, the AI brief and forecast answer in it, and the interface

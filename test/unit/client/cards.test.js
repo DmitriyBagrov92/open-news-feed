@@ -10,7 +10,7 @@ const { el, icon, iconButton } = await import('../../../public/js/dom.js');
 
 const article = {
   id: '0123456789ab', title: 'Storm nears the coast', description: 'Ferries cancelled.', url: 'https://www.bbc.com/fixture/story-a',
-  image: 'https://images.example.net/1.jpg', source: { id: 'bbc-world', name: 'BBC World' }, category: 'world',
+  image: 'https://images.example.net/1.jpg', source: { id: 'bbc-world', name: 'BBC World', country: 'GB' }, category: 'world',
   publishedAt: new Date().toISOString(), language: 'en', commentCount: 0, up: 0, down: 0, myVote: null,
 };
 
@@ -36,6 +36,10 @@ test('buildCard keeps the DOM contract the feed machinery relies on', () => {
   assert.ok(meta.querySelector('.dot.dot--live'), 'freshness dot inside .card-meta');
   assert.equal(meta.querySelector('time[data-published]').getAttribute('data-published'), article.publishedAt);
   assert.equal(card.querySelector('.card-title').textContent, article.title);
+  // the byline: a flag, the bare source name (specs and filters read it) and the country
+  assert.equal(meta.querySelector('.card-src').textContent, 'BBC World');
+  assert.equal(meta.querySelector('.byline .flag').getAttribute('src'), 'flags/gb.svg');
+  assert.equal(meta.querySelector('.byline-country').textContent, 'United Kingdom');
   const actions = card.querySelectorAll('.card-actions .icon-btn');
   assert.equal(actions[0].getAttribute('data-testid'), 'card-translate', 'translate is the first action');
   assert.equal(actions[1].getAttribute('data-testid'), 'card-save');

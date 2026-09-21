@@ -1,7 +1,7 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import * as store from '../../../lib/store.js';
-import { escapeHtml, headlinesHtml, renderIndex, robotsTxt, sitemapXml, configuredOrigin, publicOrigin } from '../../../lib/page.js';
+import { escapeHtml, headlinesHtml, renderIndex, robotsTxt, sitemapXml, configuredOrigin, publicOrigin, countryNameEn } from '../../../lib/page.js';
 
 before(async () => { await store.seedFixture(new URL('../../fixtures/feed.json', import.meta.url).pathname); });
 
@@ -16,6 +16,15 @@ test('renderIndex fills every placeholder and renders 30 escaped headlines', () 
   assert.equal((html.match(/<li>/g) || []).length, 30);
   const ld = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1];
   assert.equal(JSON.parse(ld)['@graph'].length, 3);
+});
+
+test('the crawler list names the country each publisher is based in', () => {
+  assert.equal(countryNameEn('GB'), 'United Kingdom');
+  assert.equal(countryNameEn(null), '');
+  assert.equal(countryNameEn('not-a-code'), '');
+  const html = headlinesHtml();
+  assert.match(html, /BBC World \(United Kingdom\)/);
+  assert.match(html, /ESPN \(United States\)/);
 });
 
 test('verification tags come from env and reject junk', () => {

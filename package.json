@@ -1,7 +1,7 @@
 {
   "name": "open-news-feed",
   "version": "1.0.0",
-  "description": "Meridian — an open-source world news feed with live translation and AI briefs. Aggregates dozens of open sources, sorted by freshness.",
+  "description": "Meridian \u2014 an open-source world news feed with live translation and AI briefs. Aggregates dozens of open sources, sorted by freshness.",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -13,7 +13,8 @@
     "test:e2e": "playwright test",
     "test:e2e:update": "playwright test --update-snapshots",
     "test:e2e:ui": "playwright test --ui",
-    "verify:feeds": "node scripts/verify-feeds.mjs"
+    "verify:feeds": "node scripts/verify-feeds.mjs",
+    "vendor:flags": "node scripts/vendor-flags.mjs"
   },
   "engines": {
     "node": ">=22.13.0"
@@ -43,6 +44,7 @@
     "rss-parser": "^3.13.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0"
+    "@playwright/test": "^1.63.0",
+    "circle-flags": "^2.8.3"
   }
 }

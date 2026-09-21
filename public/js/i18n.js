@@ -164,6 +164,7 @@ const TABLES = {
     'card.save': 'Save story',
     'card.unsave': 'Remove from saved',
     'card.open': 'Open the original article',
+    'country.international': 'International',
     'card.share': 'Share',
     'card.preview': 'Preview: {title}',
 
