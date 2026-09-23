@@ -867,12 +867,21 @@ export function initBattle(options = {}) {
 
   function drawLinks() {
     const ctx = linksCanvas.getContext('2d');
-    const w = document.documentElement.clientWidth;
-    const h = document.documentElement.clientHeight;
-    if (linksCanvas.width !== w) linksCanvas.width = w;
-    if (linksCanvas.height !== h) linksCanvas.height = h;
+    // the bitmap follows the canvas's real box (CSS px × DPR), and bubbles
+    // are drawn relative to it — lines stay crisp, unstretched and attached
+    // even if an ancestor ever becomes the canvas's containing block
+    const box = linksCanvas.getBoundingClientRect();
+    const w = box.width;
+    const h = box.height;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const bw = Math.round(w * dpr);
+    const bh = Math.round(h * dpr);
+    if (linksCanvas.width !== bw) linksCanvas.width = bw;
+    if (linksCanvas.height !== bh) linksCanvas.height = bh;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
-    const rect = space.getBoundingClientRect();
+    const spaceRect = space.getBoundingClientRect();
+    const rect = { left: spaceRect.left - box.left, top: spaceRect.top - box.top };
     const link = getComputedStyle(section).getPropertyValue('--battle-link').trim() || 'rgba(255,255,255,0.16)';
     for (const cluster of clusters) {
       if (!cluster.mounted) continue;

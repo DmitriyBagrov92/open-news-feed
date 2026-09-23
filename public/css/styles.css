@@ -940,8 +940,11 @@
   .pull-indicator .icon { width: 16px; height: 16px; color: var(--indigo); rotate: var(--pull-deg, 0deg); transition: rotate var(--dur-1); }
   html.is-pulling .pull-indicator { opacity: 1; scale: 1; }
   .pull-indicator.is-armed { color: var(--indigo); scale: 1.06; }
-  main.feed > :not(.ssr) { translate: 0 var(--pull-px, 0px); }
-  html.is-pull-settling main.feed > :not(.ssr) { transition: translate 0.52s var(--ease-spring); }
+  /* never .battle: any translate makes it the containing block of its fixed
+     links canvas, which then stretches over the whole section and drifts
+     away from the bubbles */
+  main.feed > :not(.ssr, .battle) { translate: 0 var(--pull-px, 0px); }
+  html.is-pull-settling main.feed > :not(.ssr, .battle) { transition: translate 0.52s var(--ease-spring); }
   /* fixed in the cluster on wide screens: the segment never follows the pull */
   @media (min-width: 860px) { main.feed > .tabs { translate: none; transition: none; } }
   .forecast-hint-arrow { display: none; }
