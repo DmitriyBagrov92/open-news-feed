@@ -846,31 +846,64 @@ export function initBattle(options = {}) {
 
   /* ── frame loop ────────────────────────────────────────────────────────── */
 
+  // Reads first, writes after: both rects are taken while layout is still
+  // clean from the last frame, so no frame ever forces a synchronous
+  // layout. A frame where nothing moved and nothing scrolled writes nothing
+  // and leaves the canvas alone — a settled arena costs next to nothing.
+  let lastPaint = '';
   function frame(now) {
     rafId = requestAnimationFrame(frame);
     const dt = lastTick ? Math.min(now - lastTick, 33) : 16;
     lastTick = now;
+    const spaceRect = space.getBoundingClientRect();
+    const box = linksCanvas.getBoundingClientRect();
     Matter.Engine.update(engine, dt);
-    syncDom();
-    drawLinks();
+    const moved = syncDom(spaceRect);
+    const key = `${spaceRect.left},${spaceRect.top},${box.left},${box.top},${box.width},${box.height}`;
+    if (!moved && key === lastPaint) return;
+    lastPaint = key;
+    drawLinks(spaceRect, box);
   }
 
-  function syncDom() {
+  // Only bubbles near the viewport are displayed. Off-screen ones are
+  // display:none — no compositor layer, no decoded photo, no paint — while
+  // their bodies keep simulating; a cluster flips as a whole, rarely.
+  const SHOW_MARGIN = 1; // viewports above and below that stay displayed
+  function syncDom(spaceRect) {
+    const vh = document.documentElement.clientHeight;
+    let moved = 0;
     for (const cluster of clusters) {
-      if (!cluster.mounted) continue;
-      for (const { body, btn, r } of cluster.bubbles) {
-        const { x, y } = body.position;
-        btn.style.transform = `translate3d(${x - r}px, ${y - r}px, 0)`;
+      const y = cluster.anchor.y + spaceRect.top;
+      const reach = cluster.radius + vh * SHOW_MARGIN;
+      const shown = cluster.mounted && y > -reach && y < vh + reach;
+      if (shown !== cluster.shown) {
+        cluster.shown = shown;
+        for (const b of cluster.bubbles) {
+          b.btn.style.display = shown ? '' : 'none';
+          b.lx = b.ly = NaN; // repaint the position once it is back
+        }
+        moved += 1;
+      }
+      if (!shown) continue;
+      for (const b of cluster.bubbles) {
+        const x = b.body.position.x - b.r;
+        const y2 = b.body.position.y - b.r;
+        if (Math.abs(x - b.lx) < 0.05 && Math.abs(y2 - b.ly) < 0.05) continue;
+        b.lx = x;
+        b.ly = y2;
+        b.btn.style.transform = `translate3d(${x}px, ${y2}px, 0)`;
+        moved += 1;
       }
     }
+    return moved;
   }
 
-  function drawLinks() {
+  // the bitmap follows the canvas's real box (CSS px × DPR), and bubbles
+  // are drawn relative to it — lines stay crisp, unstretched and attached
+  // even if an ancestor ever becomes the canvas's containing block
+  let linkColor = '';
+  function drawLinks(spaceRect, box) {
     const ctx = linksCanvas.getContext('2d');
-    // the bitmap follows the canvas's real box (CSS px × DPR), and bubbles
-    // are drawn relative to it — lines stay crisp, unstretched and attached
-    // even if an ancestor ever becomes the canvas's containing block
-    const box = linksCanvas.getBoundingClientRect();
     const w = box.width;
     const h = box.height;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -880,11 +913,11 @@ export function initBattle(options = {}) {
     if (linksCanvas.height !== bh) linksCanvas.height = bh;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
-    const spaceRect = space.getBoundingClientRect();
     const rect = { left: spaceRect.left - box.left, top: spaceRect.top - box.top };
-    const link = getComputedStyle(section).getPropertyValue('--battle-link').trim() || 'rgba(255,255,255,0.16)';
+    if (!linkColor) linkColor = getComputedStyle(section).getPropertyValue('--battle-link').trim() || 'rgba(127,127,127,0.25)';
+    const link = linkColor;
     for (const cluster of clusters) {
-      if (!cluster.mounted) continue;
+      if (!cluster.shown) continue;
       const ay = cluster.anchor.y + rect.top;
       const cull = cluster.radius + 260;
       if (ay < -cull || ay > h + cull) continue;
@@ -1020,6 +1053,16 @@ export function initBattle(options = {}) {
     document.addEventListener('visibilitychange', onVisibility, { signal });
     document.addEventListener('meridian:langchange', onLangChange, { signal });
     document.addEventListener('meridian:gridsize', (e) => applySizeLevel(e.detail?.level || 0), { signal });
+    // theme flips recolor the links: drop the cached colour, repaint once
+    const repaint = () => {
+      linkColor = '';
+      lastPaint = '';
+    };
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', repaint, { signal });
+    const themeWatch = new MutationObserver(repaint);
+    themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    signal.addEventListener('abort', () => themeWatch.disconnect());
+    repaint();
     startFights();
     lastTick = 0;
     if (!rafId) rafId = requestAnimationFrame(frame);
@@ -1084,8 +1127,18 @@ export function initBattle(options = {}) {
   function timelineItems() {
     const out = [];
     for (const cluster of clusters) {
-      for (const { article, btn } of cluster.bubbles || []) {
-        out.push({ t: Date.parse(article.publishedAt), el: btn });
+      for (const b of cluster.bubbles || []) {
+        // off-screen bubbles are display:none — the rail gets the box from
+        // the physics body, which is where the bubble is (or will be) drawn
+        const el = {
+          getBoundingClientRect() {
+            const s = space.getBoundingClientRect();
+            const top = s.top + b.body.position.y - b.r;
+            const left = s.left + b.body.position.x - b.r;
+            return { top, left, bottom: top + b.r * 2, right: left + b.r * 2, width: b.r * 2, height: b.r * 2 };
+          },
+        };
+        out.push({ t: Date.parse(b.article.publishedAt), el });
       }
     }
     if (!out.length && staticMode) {
