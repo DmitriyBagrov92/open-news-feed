@@ -1,0 +1,107 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/article?url=https%3A%2F%2Fwww.bbc.com%2Ffixture%2Fstory-a"
+ },
+ "status": 200,
+ "body": {
+  "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+  "byline": null,
+  "text": "Forecasters expect Storm Idris to make landfall late on Thursday, bringing gusts of up to ninety miles an hour and a storm surge that could reach two metres along the southern coast. Ferry operators have cancelled every crossing, and schools in three counties will stay closed until Monday.\n\nThe Met Office raised its warning to amber on Wednesday morning, saying the system had strengthened faster than models predicted. Read the tariffs story for context on how ports are preparing.\n\nWhat to expect overnight\n\nWinds peaking between midnight and 3am\n\nCoastal roads closed from 8pm\n\nPower cuts likely in exposed villages\n\n“This is the strongest system we have tracked this autumn,” a forecaster said.\n\nResidents in low-lying areas have been advised to move vehicles to higher ground and to keep torches and water within reach. Emergency services said sandbags are available at three depots, and that volunteers will run a phone line through the night.\n\nAfter the storm\n\nClean-up crews are on standby, with the first assessments of damage expected by Friday afternoon. The council said it would publish a list of closed routes every two hours.",
+  "blocks": [
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Forecasters expect Storm Idris to make landfall late on Thursday, bringing gusts of up to ninety miles an hour and a storm surge that could reach two metres along the southern coast. Ferry operators have cancelled every crossing, and schools in three counties will stay closed until Monday."
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "The Met Office raised its warning to amber on Wednesday morning, saying the system had strengthened faster than models predicted. "
+     },
+     {
+      "text": "Read the tariffs story",
+      "href": "https://www.bbc.com/fixture/story-b"
+     },
+     {
+      "text": " for context on how ports are preparing."
+     }
+    ]
+   },
+   {
+    "type": "h2",
+    "runs": [
+     {
+      "text": "What to expect overnight"
+     }
+    ]
+   },
+   {
+    "type": "ul",
+    "items": [
+     [
+      {
+       "text": "Winds peaking between midnight and 3am"
+      }
+     ],
+     [
+      {
+       "text": "Coastal roads closed from 8pm"
+      }
+     ],
+     [
+      {
+       "text": "Power cuts likely in exposed villages"
+      }
+     ]
+    ]
+   },
+   {
+    "type": "quote",
+    "runs": [
+     {
+      "text": "“This is the strongest system we have tracked this autumn,” a forecaster said."
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Residents in low-lying areas have been advised to move vehicles to higher ground and to keep torches and water within reach. Emergency services said "
+     },
+     {
+      "text": "sandbags",
+      "b": true
+     },
+     {
+      "text": " are available at three depots, and that volunteers will run a phone line through the night."
+     }
+    ]
+   },
+   {
+    "type": "h3",
+    "runs": [
+     {
+      "text": "After the storm"
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Clean-up crews are on standby, with the first assessments of damage expected by Friday afternoon. The council said it would publish a list of closed routes every two hours."
+     }
+    ]
+   }
+  ],
+  "excerpt": "Forecasters expect Storm Idris to make landfall late on Thursday, bringing gusts of up to ninety miles an hour and a storm surge that could reach two metres along the southern coast. Ferry operators have cancelled every crossing, and schools in three counties will stay closed until Monday.",
+  "image": "https://images.example.net/fixture/story-a-og.jpg",
+  "siteName": "www.bbc.com"
+ }
+}

@@ -1,0 +1,13 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/nope"
+ },
+ "status": 404,
+ "body": {
+  "error": {
+   "code": "not-found",
+   "message": "Unknown API endpoint"
+  }
+ }
+}

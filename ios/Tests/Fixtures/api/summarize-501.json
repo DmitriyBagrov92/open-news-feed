@@ -1,0 +1,24 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/summarize",
+  "body": {
+   "mode": "brief",
+   "articles": [
+    {
+     "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+     "description": "",
+     "source": "BBC World"
+    }
+   ],
+   "targetLang": "en"
+  }
+ },
+ "status": 501,
+ "body": {
+  "error": {
+   "code": "premium-only",
+   "message": "Server-side AI summarization is a planned premium feature"
+  }
+ }
+}

@@ -1,0 +1,84 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/reactions?articles=825452304de0,cd5d68db7c99,1aea45772776,b52427f78777,810ee85f3aa9,62a6341372f2,1f6200bfa36e,a27c7f657175,fc332954648e,15eeca76f28c,7aaea9249b8a,28bc3a154f76",
+  "author": "quiet"
+ },
+ "status": 200,
+ "body": {
+  "reactions": {
+   "825452304de0": {
+    "comments": 3,
+    "up": 0,
+    "down": 1,
+    "myVote": -1
+   },
+   "cd5d68db7c99": {
+    "comments": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   "1aea45772776": {
+    "comments": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   "b52427f78777": {
+    "comments": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   "810ee85f3aa9": {
+    "comments": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   "62a6341372f2": {
+    "comments": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   "1f6200bfa36e": {
+    "comments": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   "a27c7f657175": {
+    "comments": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   "fc332954648e": {
+    "comments": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   "15eeca76f28c": {
+    "comments": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   "7aaea9249b8a": {
+    "comments": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   "28bc3a154f76": {
+    "comments": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   }
+  }
+ }
+}

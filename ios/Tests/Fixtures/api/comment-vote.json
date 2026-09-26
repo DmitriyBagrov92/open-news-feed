@@ -1,0 +1,16 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/comments/cc00000000000002/vote",
+  "author": "amber",
+  "body": {
+   "value": 1
+  }
+ },
+ "status": 200,
+ "body": {
+  "up": 1,
+  "down": 0,
+  "myVote": 1
+ }
+}

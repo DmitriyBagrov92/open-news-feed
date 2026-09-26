@@ -1,0 +1,1536 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/news?lang=de,en&pageSize=100"
+ },
+ "status": 200,
+ "body": {
+  "articles": [
+   {
+    "id": "825452304de0",
+    "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+    "description": "Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast.",
+    "url": "https://www.bbc.com/fixture/story-a",
+    "image": "https://images.example.net/fixture/1.jpg",
+    "source": {
+     "id": "bbc-world",
+     "name": "BBC World",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:56:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "cd5d68db7c99",
+    "title": "Shelton sets up US Open final against Alcaraz",
+    "description": "The American won a five-set thriller to reach his first Grand Slam final on Sunday.",
+    "url": "https://www.espn.com/fixture/story-39",
+    "image": "https://images.example.net/fixture/39.jpg",
+    "source": {
+     "id": "espn",
+     "name": "ESPN",
+     "homepage": "https://www.espn.com",
+     "country": "US"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-26T11:55:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "1aea45772776",
+    "title": "Chrome ships on-device AI to every desktop user",
+    "description": "The Prompt API leaves its origin trial with a smaller model download.",
+    "url": "https://www.theverge.com/fixture/story-26",
+    "image": "https://images.example.net/fixture/26.jpg",
+    "source": {
+     "id": "verge",
+     "name": "The Verge",
+     "homepage": "https://www.theverge.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T11:53:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "b52427f78777",
+    "title": "Supreme Court to hear challenge to sweeping import tariffs",
+    "description": "The justices agreed to take the case on an expedited schedule, with arguments set for next month.",
+    "url": "https://www.theguardian.com/fixture/story-b",
+    "image": "https://images.example.net/fixture/2.jpg",
+    "source": {
+     "id": "guardian-world",
+     "name": "The Guardian",
+     "homepage": "https://www.theguardian.com",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:51:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "810ee85f3aa9",
+    "title": "Federal Reserve holds rates steady, signals patience",
+    "description": "The central bank kept its benchmark unchanged and said it wants more evidence on inflation.",
+    "url": "https://www.bbc.com/fixture/story-20",
+    "image": "https://images.example.net/fixture/20.jpg",
+    "source": {
+     "id": "bbc-business",
+     "name": "BBC Business",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T11:48:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "62a6341372f2",
+    "title": "Ceasefire talks resume in Cairo after week-long pause",
+    "description": "Mediators say a framework for a phased truce is on the table for the first time since spring.",
+    "url": "https://www.aljazeera.com/fixture/story-3",
+    "image": "https://images.example.net/fixture/3.jpg",
+    "source": {
+     "id": "aljazeera",
+     "name": "Al Jazeera",
+     "homepage": "https://www.aljazeera.com",
+     "country": "QA"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:45:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "1f6200bfa36e",
+    "title": "Bacteria found thriving in concrete could cut cement emissions",
+    "description": "The strain self-heals cracks in lab tests.",
+    "url": "https://www.sciencedaily.com/fixture/story-33",
+    "image": "https://images.example.net/fixture/33.jpg",
+    "source": {
+     "id": "sciencedaily",
+     "name": "ScienceDaily",
+     "homepage": "https://www.sciencedaily.com",
+     "country": "US"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-26T11:42:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "730dda33242d",
+    "title": "Bundestag beschließt Haushalt nach Marathonsitzung",
+    "description": "Der Kompromiss hält die Schuldenbremse ein.",
+    "url": "https://www.tagesschau.de/fixture/story-76",
+    "image": "https://images.example.net/fixture/76.jpg",
+    "source": {
+     "id": "tagesschau",
+     "name": "Tagesschau",
+     "homepage": "https://www.tagesschau.de",
+     "country": "DE"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:40:00.000Z",
+    "language": "de",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "a27c7f657175",
+    "title": "Federal Reserve expected to hold rates as inflation cools",
+    "description": "Markets price a pause at Wednesday’s meeting, with the statement wording in focus.",
+    "url": "https://www.npr.org/fixture/story-4",
+    "image": null,
+    "source": {
+     "id": "npr-world",
+     "name": "NPR World",
+     "homepage": "https://www.npr.org",
+     "country": "US"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:38:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "fc332954648e",
+    "title": "Box office: “Ignition” opens to $48M",
+    "description": "The thriller beat projections in its first weekend.",
+    "url": "https://variety.com/fixture/story-42",
+    "image": "https://images.example.net/fixture/42.jpg",
+    "source": {
+     "id": "variety",
+     "name": "Variety",
+     "homepage": "https://variety.com",
+     "country": "US"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-26T11:32:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "15eeca76f28c",
+    "title": "Rail strike enters third day as talks collapse again",
+    "description": "Unions and the operator traded blame after an overnight session ended without agreement.",
+    "url": "https://news.sky.com/fixture/story-c",
+    "image": "https://images.example.net/fixture/5.jpg",
+    "source": {
+     "id": "sky-world",
+     "name": "Sky News",
+     "homepage": "https://news.sky.com",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:29:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "7aaea9249b8a",
+    "title": "Supermarket price war deepens as Tesco cuts 1,000 lines",
+    "description": "Rivals are expected to respond within days.",
+    "url": "https://www.theguardian.com/fixture/story-21",
+    "image": "https://images.example.net/fixture/21.jpg",
+    "source": {
+     "id": "guardian-business",
+     "name": "Guardian Business",
+     "homepage": "https://www.theguardian.com",
+     "country": "GB"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T11:26:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "28bc3a154f76",
+    "title": "NHS to offer weight-loss jab through GPs from January",
+    "description": "Eligibility starts with the highest-risk patients.",
+    "url": "https://www.bbc.com/fixture/story-47",
+    "image": "https://images.example.net/fixture/47.jpg",
+    "source": {
+     "id": "bbc-health",
+     "name": "BBC Health",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "health",
+    "publishedAt": "2026-09-26T11:24:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "fa642ecc1ebc",
+    "title": "Startup Orbis raises $120M to map the ocean floor",
+    "description": "The round values the company at $1.1B.",
+    "url": "https://techcrunch.com/fixture/story-27",
+    "image": "https://images.example.net/fixture/27.jpg",
+    "source": {
+     "id": "techcrunch",
+     "name": "TechCrunch",
+     "homepage": "https://techcrunch.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T11:20:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "aeedd9dac747",
+    "title": "Bahnstreik geht in den dritten Tag",
+    "description": "Die Gespräche wurden in der Nacht abgebrochen.",
+    "url": "https://www.spiegel.de/fixture/story-77",
+    "image": "https://images.example.net/fixture/77.jpg",
+    "source": {
+     "id": "spiegel",
+     "name": "Der Spiegel",
+     "homepage": "https://www.spiegel.de",
+     "country": "DE"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:15:00.000Z",
+    "language": "de",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "1c6e80c40a0a",
+    "title": "Berlin coalition agrees on 2027 budget after marathon session",
+    "description": "The compromise trims defence growth and keeps the debt brake intact.",
+    "url": "https://www.dw.com/fixture/story-6",
+    "image": "https://images.example.net/fixture/6.jpg",
+    "source": {
+     "id": "dw-world",
+     "name": "Deutsche Welle",
+     "homepage": "https://www.dw.com",
+     "country": "DE"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:13:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "8609bd1586f9",
+    "title": "Europe lead 7-5 going into Solheim Cup singles",
+    "description": "Sunday’s twelve matches decide the trophy.",
+    "url": "https://www.bbc.com/fixture/story-40",
+    "image": "https://images.example.net/fixture/40.jpg",
+    "source": {
+     "id": "bbc-sport",
+     "name": "BBC Sport",
+     "homepage": "https://www.bbc.com/sport",
+     "country": "GB"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-26T11:10:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "27427263b106",
+    "title": "Paris unveils plan to pedestrianise the Seine embankments",
+    "description": "The scheme would close two kilometres of quayside road to cars by 2028.",
+    "url": "https://www.france24.com/fixture/story-7",
+    "image": "https://images.example.net/fixture/7.jpg",
+    "source": {
+     "id": "france24",
+     "name": "France 24",
+     "homepage": "https://www.france24.com",
+     "country": "FR"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:02:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "b21814d6d311",
+    "title": "Chipmaker Vela posts record quarter on data-centre demand",
+    "description": "Shares rose 8% after hours on guidance above estimates.",
+    "url": "https://www.cnbc.com/fixture/story-22",
+    "image": null,
+    "source": {
+     "id": "cnbc",
+     "name": "CNBC",
+     "homepage": "https://www.cnbc.com",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T10:54:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "d7ad33dd321b",
+    "title": "Great Barrier Reef survey finds partial recovery after bleaching",
+    "description": "Scientists caution that the gains are fragile going into a warm summer.",
+    "url": "https://www.abc.net.au/fixture/story-8",
+    "image": null,
+    "source": {
+     "id": "abc-au",
+     "name": "ABC News (AU)",
+     "homepage": "https://www.abc.net.au",
+     "country": "AU"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T10:45:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "3247c3c67728",
+    "title": "Linux 7.2 lands with a rewritten scheduler",
+    "description": "Benchmarks show gains on hybrid CPUs.",
+    "url": "https://arstechnica.com/fixture/story-28",
+    "image": null,
+    "source": {
+     "id": "ars",
+     "name": "Ars Technica",
+     "homepage": "https://arstechnica.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T10:35:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "466f4fc4b4d7",
+    "title": "EU ministers back new rules on AI in hiring",
+    "description": "The regulation would require human review of automated rejections.",
+    "url": "https://www.euronews.com/fixture/story-9",
+    "image": "https://images.example.net/fixture/9.jpg",
+    "source": {
+     "id": "euronews",
+     "name": "Euronews",
+     "homepage": "https://www.euronews.com",
+     "country": "EU"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T10:28:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "f83b4a01c4d8",
+    "title": "Fusion experiment sustains plasma for a record 22 minutes",
+    "description": "The result edges toward continuous operation.",
+    "url": "https://www.nature.com/fixture/story-34",
+    "image": "https://images.example.net/fixture/34.jpg",
+    "source": {
+     "id": "nature",
+     "name": "Nature",
+     "homepage": "https://www.nature.com",
+     "country": "GB"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-26T10:25:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "2c1019d2f72f",
+    "title": "Oil slips below $70 as inventories build",
+    "description": "Analysts see a soft floor unless OPEC+ trims output.",
+    "url": "https://finance.yahoo.com/fixture/story-23",
+    "image": "https://images.example.net/fixture/23.jpg",
+    "source": {
+     "id": "yahoo-finance",
+     "name": "Yahoo Finance",
+     "homepage": "https://finance.yahoo.com",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T10:10:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "a25ca4f21204",
+    "title": "Wrexham suffer heaviest loss under Reynolds in 6-0 rout",
+    "description": "West Ham ran riot on Friday night.",
+    "url": "https://www.theguardian.com/fixture/story-41",
+    "image": null,
+    "source": {
+     "id": "guardian-sport",
+     "name": "Guardian Sport",
+     "homepage": "https://www.theguardian.com",
+     "country": "GB"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-26T10:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "81c08b9de9c0",
+    "title": "Northern Sea Route shipping season extended by six weeks",
+    "description": "Ice conditions allowed convoys to run into November for the first time.",
+    "url": "https://tass.com/fixture/story-10",
+    "image": "https://images.example.net/fixture/10.jpg",
+    "source": {
+     "id": "tass",
+     "name": "TASS",
+     "homepage": "https://tass.com",
+     "country": "RU"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T09:50:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "e9a3cd63240e",
+    "title": "Warum die Vier-Tage-Woche in Fabriken ankommt",
+    "description": "Erste Pilotprojekte melden weniger Kündigungen.",
+    "url": "https://www.zeit.de/fixture/story-78",
+    "image": null,
+    "source": {
+     "id": "zeit",
+     "name": "Die Zeit",
+     "homepage": "https://www.zeit.de",
+     "country": "DE"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T09:50:00.000Z",
+    "language": "de",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "9aed21e13c9e",
+    "title": "Emmys move to a single-night ceremony",
+    "description": "The academy says the shorter show will air live in every time zone.",
+    "url": "https://www.hollywoodreporter.com/fixture/story-43",
+    "image": "https://images.example.net/fixture/43.jpg",
+    "source": {
+     "id": "thr",
+     "name": "The Hollywood Reporter",
+     "homepage": "https://www.hollywoodreporter.com",
+     "country": "US"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-26T09:40:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "e662eaa867a6",
+    "title": "The quiet return of the small web",
+    "description": "Personal sites are growing again, and the tools are better than ever.",
+    "url": "https://www.wired.com/fixture/story-29",
+    "image": "https://images.example.net/fixture/29.jpg",
+    "source": {
+     "id": "wired",
+     "name": "Wired",
+     "homepage": "https://www.wired.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T09:30:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "fe0935081b35",
+    "title": "Hong Kong pilots four-day week for civil servants",
+    "description": "The trial covers 3,000 staff across two departments for six months.",
+    "url": "https://www.scmp.com/fixture/story-11",
+    "image": "https://images.example.net/fixture/11.jpg",
+    "source": {
+     "id": "scmp",
+     "name": "South China Morning Post",
+     "homepage": "https://www.scmp.com",
+     "country": "HK"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T09:20:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "390f5a694c92",
+    "title": "Artemis crew completes final dress rehearsal",
+    "description": "Launch remains targeted for the spring window.",
+    "url": "https://www.nasa.gov/fixture/story-35",
+    "image": "https://images.example.net/fixture/35.jpg",
+    "source": {
+     "id": "nasa",
+     "name": "NASA",
+     "homepage": "https://www.nasa.gov",
+     "country": "US"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-26T09:10:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "c9fe39a498de",
+    "title": "FDA panel backs first oral treatment for migraine prevention",
+    "description": "A decision is due within weeks.",
+    "url": "https://www.statnews.com/fixture/story-48",
+    "image": null,
+    "source": {
+     "id": "statnews",
+     "name": "STAT News",
+     "homepage": "https://www.statnews.com",
+     "country": "US"
+    },
+    "category": "health",
+    "publishedAt": "2026-09-26T09:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "28ec89263ff9",
+    "title": "The four-day week is spreading to factories",
+    "description": "Manufacturers report lower turnover after pilots in three states.",
+    "url": "https://fortune.com/fixture/story-24",
+    "image": "https://images.example.net/fixture/24.jpg",
+    "source": {
+     "id": "fortune",
+     "name": "Fortune",
+     "homepage": "https://fortune.com",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T08:50:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "1a42b80e1f2b",
+    "title": "Tokyo commuters face first fare rise in a decade",
+    "description": "The operator cites energy costs and a shrinking ridership base.",
+    "url": "https://www.japantimes.co.jp/fixture/story-12",
+    "image": null,
+    "source": {
+     "id": "japantimes",
+     "name": "The Japan Times",
+     "homepage": "https://www.japantimes.co.jp",
+     "country": "JP"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T08:40:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "3bb56d4b008d",
+    "title": "The 50 best albums of the year so far",
+    "description": "From bedroom pop to big-tent country.",
+    "url": "https://www.rollingstone.com/fixture/story-44",
+    "image": null,
+    "source": {
+     "id": "rollingstone",
+     "name": "Rolling Stone",
+     "homepage": "https://www.rollingstone.com",
+     "country": "US"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-26T08:30:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "f977161a3ffd",
+    "title": "Review: the first foldable that survives a pocket",
+    "description": "Durability finally matches the price.",
+    "url": "https://www.engadget.com/fixture/story-30",
+    "image": "https://images.example.net/fixture/30.jpg",
+    "source": {
+     "id": "engadget",
+     "name": "Engadget",
+     "homepage": "https://www.engadget.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T08:10:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "be252b0a9705",
+    "title": "Singapore tightens rules on e-scooter batteries after fires",
+    "description": "Only certified packs may be sold from January.",
+    "url": "https://www.straitstimes.com/fixture/story-13",
+    "image": "https://images.example.net/fixture/13.jpg",
+    "source": {
+     "id": "straitstimes",
+     "name": "The Straits Times",
+     "homepage": "https://www.straitstimes.com",
+     "country": "SG"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T08:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "091debb72790",
+    "title": "Ceasefire talks in Cairo: what each side wants",
+    "description": "A guide to the sticking points as mediators push for a phased truce.",
+    "url": "https://www.middleeasteye.net/fixture/story-14",
+    "image": "https://images.example.net/fixture/14.jpg",
+    "source": {
+     "id": "mee",
+     "name": "Middle East Eye",
+     "homepage": "https://www.middleeasteye.net",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T07:40:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "ccfb308344aa",
+    "title": "Ancient ice core reveals 1.2 million years of climate",
+    "description": "The Antarctic record is the oldest continuous one recovered.",
+    "url": "https://phys.org/fixture/story-36",
+    "image": null,
+    "source": {
+     "id": "phys-org",
+     "name": "Phys.org",
+     "homepage": "https://phys.org",
+     "country": "IM"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-26T07:40:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "e71914fdb2bc",
+    "title": "Regulator opens probe into app store fees",
+    "description": "Developers welcomed the inquiry; the platform said it would cooperate.",
+    "url": "https://www.bbc.com/fixture/story-31",
+    "image": "https://images.example.net/fixture/31.jpg",
+    "source": {
+     "id": "bbc-tech",
+     "name": "BBC Tech",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T07:20:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "e8066fa9bf86",
+    "title": "Turner Prize shortlist announced",
+    "description": "Four artists compete for the £25,000 award.",
+    "url": "https://www.bbc.com/fixture/story-45",
+    "image": "https://images.example.net/fixture/45.jpg",
+    "source": {
+     "id": "bbc-culture",
+     "name": "BBC Culture",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-26T07:10:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "b280ce2ea546",
+    "title": "Knesset committee advances judicial appointments bill",
+    "description": "The vote sends the measure to a first reading next week.",
+    "url": "https://www.timesofisrael.com/fixture/story-15",
+    "image": "https://images.example.net/fixture/15.jpg",
+    "source": {
+     "id": "timesofisrael",
+     "name": "The Times of Israel",
+     "homepage": "https://www.timesofisrael.com",
+     "country": "IL"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T07:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "3a2a02e09c5a",
+    "title": "Bond markets brace for heavy autumn issuance",
+    "description": "Treasuries face a record refunding calendar.",
+    "url": "https://www.ft.com/fixture/story-25",
+    "image": null,
+    "source": {
+     "id": "ft",
+     "name": "Financial Times",
+     "homepage": "https://www.ft.com",
+     "country": "GB"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T06:50:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "4b5b64e8ff26",
+    "title": "Ceasefire talks resume in Cairo, officials cautiously optimistic",
+    "description": "Israeli officials said the Cairo framework is closer than previous rounds.",
+    "url": "https://www.jpost.com/fixture/story-16",
+    "image": "https://images.example.net/fixture/16.jpg",
+    "source": {
+     "id": "jpost",
+     "name": "The Jerusalem Post",
+     "homepage": "https://www.jpost.com",
+     "country": "IL"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T06:40:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "1891161ec159",
+    "title": "Show HN: a news reader that runs its AI on your device",
+    "description": "Open source, no accounts, no tracking.",
+    "url": "https://news.ycombinator.com/fixture/story-32",
+    "image": null,
+    "source": {
+     "id": "hackernews",
+     "name": "Hacker News",
+     "homepage": "https://news.ycombinator.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T06:30:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "28217e0ba6da",
+    "title": "Rare comet visible to the naked eye this weekend",
+    "description": "Look west after sunset for a faint tail.",
+    "url": "https://www.bbc.com/fixture/story-37",
+    "image": "https://images.example.net/fixture/37.jpg",
+    "source": {
+     "id": "bbc-science",
+     "name": "BBC Science",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-26T06:10:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "18913034c8cf",
+    "title": "Review: a Hamlet that runs on batteries",
+    "description": "Two hours of electric theatre.",
+    "url": "https://www.theguardian.com/fixture/story-46",
+    "image": "https://images.example.net/fixture/46.jpg",
+    "source": {
+     "id": "guardian-culture",
+     "name": "Guardian Culture",
+     "homepage": "https://www.theguardian.com",
+     "country": "GB"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-26T06:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "ca56c3e9bcda",
+    "title": "Monsoon withdrawal delayed by a week, IMD says",
+    "description": "Farmers in the north are advised to hold sowing until the rains clear.",
+    "url": "https://timesofindia.indiatimes.com/fixture/story-17",
+    "image": "https://images.example.net/fixture/17.jpg",
+    "source": {
+     "id": "toi-world",
+     "name": "Times of India World",
+     "homepage": "https://timesofindia.indiatimes.com",
+     "country": "IN"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T05:20:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "b4d8974cde30",
+    "title": "WHO declares end of mpox emergency",
+    "description": "Cases have fallen for six consecutive months.",
+    "url": "https://www.who.int/fixture/story-49",
+    "image": "https://images.example.net/fixture/49.jpg",
+    "source": {
+     "id": "who",
+     "name": "WHO",
+     "homepage": "https://www.who.int",
+     "country": "UN"
+    },
+    "category": "health",
+    "publishedAt": "2026-09-26T05:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "37f86c642a0e",
+    "title": "Why sleep before a test beats cramming",
+    "description": "A new study measures memory consolidation directly.",
+    "url": "https://www.newscientist.com/fixture/story-38",
+    "image": "https://images.example.net/fixture/38.jpg",
+    "source": {
+     "id": "newscientist",
+     "name": "New Scientist",
+     "homepage": "https://www.newscientist.com",
+     "country": "GB"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-26T04:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "f8390e31fbc2",
+    "title": "Kenya launches continent’s largest solar-storage plant",
+    "description": "The 300 MW site near Nairobi will power 600,000 homes.",
+    "url": "https://allafrica.com/fixture/story-18",
+    "image": null,
+    "source": {
+     "id": "allafrica",
+     "name": "AllAfrica",
+     "homepage": "https://allafrica.com",
+     "country": "002"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T03:20:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "32b2ff26c08f",
+    "title": "Falklands fishing licences hit record value",
+    "description": "Squid catches drove the season to a new high.",
+    "url": "https://en.mercopress.com/fixture/story-19",
+    "image": "https://images.example.net/fixture/19.jpg",
+    "source": {
+     "id": "mercopress",
+     "name": "MercoPress",
+     "homepage": "https://en.mercopress.com",
+     "country": "UY"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T00:20:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "d143b62d265b",
+    "title": "Archive 1: an earlier world story from bbc-world",
+    "description": "Background reading number 1 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-50",
+    "image": null,
+    "source": {
+     "id": "bbc-world",
+     "name": "BBC World",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-25T21:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "fb7158bbc086",
+    "title": "Archive 2: an earlier world story from guardian-world",
+    "description": "Background reading number 2 — kept so the feed has a second page.",
+    "url": "https://www.theguardian.com/fixture/story-51",
+    "image": "https://images.example.net/fixture/51.jpg",
+    "source": {
+     "id": "guardian-world",
+     "name": "The Guardian",
+     "homepage": "https://www.theguardian.com",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-25T17:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "0b419ec5dd25",
+    "title": "Archive 3: an earlier world story from npr-world",
+    "description": "Background reading number 3 — kept so the feed has a second page.",
+    "url": "https://www.npr.org/fixture/story-52",
+    "image": "https://images.example.net/fixture/52.jpg",
+    "source": {
+     "id": "npr-world",
+     "name": "NPR World",
+     "homepage": "https://www.npr.org",
+     "country": "US"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-25T13:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "bac5ea0120d7",
+    "title": "Archive 4: an earlier business story from bbc-business",
+    "description": "Background reading number 4 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-53",
+    "image": null,
+    "source": {
+     "id": "bbc-business",
+     "name": "BBC Business",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-25T09:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "b6a6cdd1c43c",
+    "title": "Archive 5: an earlier business story from cnbc",
+    "description": "Background reading number 5 — kept so the feed has a second page.",
+    "url": "https://www.cnbc.com/fixture/story-54",
+    "image": "https://images.example.net/fixture/54.jpg",
+    "source": {
+     "id": "cnbc",
+     "name": "CNBC",
+     "homepage": "https://www.cnbc.com",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-25T05:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "9069e2390c03",
+    "title": "Archive 6: an earlier technology story from verge",
+    "description": "Background reading number 6 — kept so the feed has a second page.",
+    "url": "https://www.theverge.com/fixture/story-55",
+    "image": "https://images.example.net/fixture/55.jpg",
+    "source": {
+     "id": "verge",
+     "name": "The Verge",
+     "homepage": "https://www.theverge.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-25T01:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "16ed0accda22",
+    "title": "Archive 7: an earlier technology story from ars",
+    "description": "Background reading number 7 — kept so the feed has a second page.",
+    "url": "https://arstechnica.com/fixture/story-56",
+    "image": null,
+    "source": {
+     "id": "ars",
+     "name": "Ars Technica",
+     "homepage": "https://arstechnica.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-24T21:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "aacda79922b0",
+    "title": "Archive 8: an earlier science story from nature",
+    "description": "Background reading number 8 — kept so the feed has a second page.",
+    "url": "https://www.nature.com/fixture/story-57",
+    "image": "https://images.example.net/fixture/57.jpg",
+    "source": {
+     "id": "nature",
+     "name": "Nature",
+     "homepage": "https://www.nature.com",
+     "country": "GB"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-24T17:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "12150b67b408",
+    "title": "Archive 9: an earlier sports story from espn",
+    "description": "Background reading number 9 — kept so the feed has a second page.",
+    "url": "https://www.espn.com/fixture/story-58",
+    "image": "https://images.example.net/fixture/58.jpg",
+    "source": {
+     "id": "espn",
+     "name": "ESPN",
+     "homepage": "https://www.espn.com",
+     "country": "US"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-24T13:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "4d20682290a3",
+    "title": "Archive 10: an earlier culture story from variety",
+    "description": "Background reading number 10 — kept so the feed has a second page.",
+    "url": "https://variety.com/fixture/story-59",
+    "image": null,
+    "source": {
+     "id": "variety",
+     "name": "Variety",
+     "homepage": "https://variety.com",
+     "country": "US"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-24T09:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "a5096e20e43d",
+    "title": "Archive 11: an earlier health story from bbc-health",
+    "description": "Background reading number 11 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-60",
+    "image": "https://images.example.net/fixture/60.jpg",
+    "source": {
+     "id": "bbc-health",
+     "name": "BBC Health",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "health",
+    "publishedAt": "2026-09-24T05:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "f5a5c8c18f5c",
+    "title": "Archive 12: an earlier world story from euronews",
+    "description": "Background reading number 12 — kept so the feed has a second page.",
+    "url": "https://www.euronews.com/fixture/story-61",
+    "image": "https://images.example.net/fixture/61.jpg",
+    "source": {
+     "id": "euronews",
+     "name": "Euronews",
+     "homepage": "https://www.euronews.com",
+     "country": "EU"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-24T01:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "3eef753502aa",
+    "title": "Archive 13: an earlier world story from bbc-world",
+    "description": "Background reading number 13 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-62",
+    "image": null,
+    "source": {
+     "id": "bbc-world",
+     "name": "BBC World",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-23T21:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "27cdf67c18e2",
+    "title": "Archive 14: an earlier world story from guardian-world",
+    "description": "Background reading number 14 — kept so the feed has a second page.",
+    "url": "https://www.theguardian.com/fixture/story-63",
+    "image": "https://images.example.net/fixture/63.jpg",
+    "source": {
+     "id": "guardian-world",
+     "name": "The Guardian",
+     "homepage": "https://www.theguardian.com",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-23T17:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "16b503fd9507",
+    "title": "Archive 15: an earlier world story from npr-world",
+    "description": "Background reading number 15 — kept so the feed has a second page.",
+    "url": "https://www.npr.org/fixture/story-64",
+    "image": "https://images.example.net/fixture/64.jpg",
+    "source": {
+     "id": "npr-world",
+     "name": "NPR World",
+     "homepage": "https://www.npr.org",
+     "country": "US"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-23T13:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "1bd084f5fb8c",
+    "title": "Archive 16: an earlier business story from bbc-business",
+    "description": "Background reading number 16 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-65",
+    "image": null,
+    "source": {
+     "id": "bbc-business",
+     "name": "BBC Business",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-23T09:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "018993fb0f04",
+    "title": "Archive 17: an earlier business story from cnbc",
+    "description": "Background reading number 17 — kept so the feed has a second page.",
+    "url": "https://www.cnbc.com/fixture/story-66",
+    "image": "https://images.example.net/fixture/66.jpg",
+    "source": {
+     "id": "cnbc",
+     "name": "CNBC",
+     "homepage": "https://www.cnbc.com",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-23T05:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "329344851987",
+    "title": "Archive 18: an earlier technology story from verge",
+    "description": "Background reading number 18 — kept so the feed has a second page.",
+    "url": "https://www.theverge.com/fixture/story-67",
+    "image": "https://images.example.net/fixture/67.jpg",
+    "source": {
+     "id": "verge",
+     "name": "The Verge",
+     "homepage": "https://www.theverge.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-23T01:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "425aa26c143c",
+    "title": "Archive 19: an earlier technology story from ars",
+    "description": "Background reading number 19 — kept so the feed has a second page.",
+    "url": "https://arstechnica.com/fixture/story-68",
+    "image": null,
+    "source": {
+     "id": "ars",
+     "name": "Ars Technica",
+     "homepage": "https://arstechnica.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-22T21:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "9165b7bf158f",
+    "title": "Archive 20: an earlier science story from nature",
+    "description": "Background reading number 20 — kept so the feed has a second page.",
+    "url": "https://www.nature.com/fixture/story-69",
+    "image": "https://images.example.net/fixture/69.jpg",
+    "source": {
+     "id": "nature",
+     "name": "Nature",
+     "homepage": "https://www.nature.com",
+     "country": "GB"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-22T17:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "64dda6a3a835",
+    "title": "Archive 21: an earlier sports story from espn",
+    "description": "Background reading number 21 — kept so the feed has a second page.",
+    "url": "https://www.espn.com/fixture/story-70",
+    "image": "https://images.example.net/fixture/70.jpg",
+    "source": {
+     "id": "espn",
+     "name": "ESPN",
+     "homepage": "https://www.espn.com",
+     "country": "US"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-22T13:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "7e5303b873d2",
+    "title": "Archive 22: an earlier culture story from variety",
+    "description": "Background reading number 22 — kept so the feed has a second page.",
+    "url": "https://variety.com/fixture/story-71",
+    "image": null,
+    "source": {
+     "id": "variety",
+     "name": "Variety",
+     "homepage": "https://variety.com",
+     "country": "US"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-22T09:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "b1b18897c442",
+    "title": "Archive 23: an earlier health story from bbc-health",
+    "description": "Background reading number 23 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-72",
+    "image": "https://images.example.net/fixture/72.jpg",
+    "source": {
+     "id": "bbc-health",
+     "name": "BBC Health",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "health",
+    "publishedAt": "2026-09-22T05:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "c42269a675f5",
+    "title": "Archive 24: an earlier world story from euronews",
+    "description": "Background reading number 24 — kept so the feed has a second page.",
+    "url": "https://www.euronews.com/fixture/story-73",
+    "image": "https://images.example.net/fixture/73.jpg",
+    "source": {
+     "id": "euronews",
+     "name": "Euronews",
+     "homepage": "https://www.euronews.com",
+     "country": "EU"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-22T01:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   }
+  ],
+  "total": 76,
+  "page": 1,
+  "pageSize": 100,
+  "updatedAt": "2026-09-26T12:00:00.000Z",
+  "latestId": "825452304de0"
+ }
+}

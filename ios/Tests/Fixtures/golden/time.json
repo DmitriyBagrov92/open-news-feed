@@ -1,0 +1,220 @@
+{
+ "now": "2026-09-26T12:00:00.000Z",
+ "past": [
+  {
+   "publishedAt": "2026-09-26T14:00:00.000Z",
+   "freshness": "live",
+   "relTime": "JUST NOW"
+  },
+  {
+   "publishedAt": "2026-09-26T12:30:00.000Z",
+   "freshness": "live",
+   "relTime": "JUST NOW"
+  },
+  {
+   "publishedAt": "2026-09-26T12:01:00.000Z",
+   "freshness": "live",
+   "relTime": "JUST NOW"
+  },
+  {
+   "publishedAt": "2026-09-26T12:00:00.000Z",
+   "freshness": "live",
+   "relTime": "JUST NOW"
+  },
+  {
+   "publishedAt": "2026-09-26T11:59:30.000Z",
+   "freshness": "live",
+   "relTime": "JUST NOW"
+  },
+  {
+   "publishedAt": "2026-09-26T11:59:00.060Z",
+   "freshness": "live",
+   "relTime": "JUST NOW"
+  },
+  {
+   "publishedAt": "2026-09-26T11:59:00.000Z",
+   "freshness": "live",
+   "relTime": "1 MIN AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T11:58:30.000Z",
+   "freshness": "live",
+   "relTime": "1 MIN AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T11:01:00.000Z",
+   "freshness": "live",
+   "relTime": "59 MIN AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T11:00:00.600Z",
+   "freshness": "live",
+   "relTime": "59 MIN AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T11:00:00.000Z",
+   "freshness": "recent",
+   "relTime": "1 HR AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T10:59:00.000Z",
+   "freshness": "recent",
+   "relTime": "1 HR AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T10:01:00.000Z",
+   "freshness": "recent",
+   "relTime": "1 HR AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T10:00:00.000Z",
+   "freshness": "recent",
+   "relTime": "2 HRS AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T09:59:00.000Z",
+   "freshness": "recent",
+   "relTime": "2 HRS AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T06:01:00.000Z",
+   "freshness": "recent",
+   "relTime": "5 HRS AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T06:00:00.000Z",
+   "freshness": "stale",
+   "relTime": "6 HRS AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T05:59:00.000Z",
+   "freshness": "stale",
+   "relTime": "6 HRS AGO"
+  },
+  {
+   "publishedAt": "2026-09-26T00:01:00.000Z",
+   "freshness": "stale",
+   "relTime": "11 HRS AGO"
+  },
+  {
+   "publishedAt": "2026-09-25T12:01:00.000Z",
+   "freshness": "stale",
+   "relTime": "23 HRS AGO"
+  },
+  {
+   "publishedAt": "2026-09-25T12:00:00.000Z",
+   "freshness": "stale",
+   "relTime": "1 DAY AGO"
+  },
+  {
+   "publishedAt": "2026-09-25T11:59:00.000Z",
+   "freshness": "stale",
+   "relTime": "1 DAY AGO"
+  },
+  {
+   "publishedAt": "2026-09-24T12:01:00.000Z",
+   "freshness": "stale",
+   "relTime": "1 DAY AGO"
+  },
+  {
+   "publishedAt": "2026-09-24T12:00:00.000Z",
+   "freshness": "stale",
+   "relTime": "2 DAYS AGO"
+  },
+  {
+   "publishedAt": "2026-09-23T12:00:00.000Z",
+   "freshness": "stale",
+   "relTime": "3 DAYS AGO"
+  },
+  {
+   "publishedAt": "2026-09-19T12:00:00.000Z",
+   "freshness": "stale",
+   "relTime": "7 DAYS AGO"
+  },
+  {
+   "publishedAt": "2026-09-12T14:40:00.000Z",
+   "freshness": "stale",
+   "relTime": "13 DAYS AGO"
+  }
+ ],
+ "future": [
+  {
+   "dueAt": "2026-09-26T07:00:00.000Z",
+   "relFuture": "ANY MOMENT"
+  },
+  {
+   "dueAt": "2026-09-26T12:00:00.000Z",
+   "relFuture": "ANY MOMENT"
+  },
+  {
+   "dueAt": "2026-09-26T12:30:00.000Z",
+   "relFuture": "ANY MOMENT"
+  },
+  {
+   "dueAt": "2026-09-26T13:00:00.000Z",
+   "relFuture": "ANY MOMENT"
+  },
+  {
+   "dueAt": "2026-09-26T13:00:36.000Z",
+   "relFuture": "WITHIN 2 HRS"
+  },
+  {
+   "dueAt": "2026-09-26T14:00:00.000Z",
+   "relFuture": "WITHIN 2 HRS"
+  },
+  {
+   "dueAt": "2026-09-27T11:30:00.000Z",
+   "relFuture": "WITHIN 24 HRS"
+  },
+  {
+   "dueAt": "2026-09-27T12:00:00.000Z",
+   "relFuture": "WITHIN 24 HRS"
+  },
+  {
+   "dueAt": "2026-09-27T12:00:36.000Z",
+   "relFuture": "WITHIN 25 HRS"
+  },
+  {
+   "dueAt": "2026-09-28T11:54:00.000Z",
+   "relFuture": "WITHIN 48 HRS"
+  },
+  {
+   "dueAt": "2026-09-28T12:00:00.000Z",
+   "relFuture": "WITHIN 2 DAYS"
+  },
+  {
+   "dueAt": "2026-09-29T12:00:00.000Z",
+   "relFuture": "WITHIN 3 DAYS"
+  },
+  {
+   "dueAt": "2026-10-02T11:54:00.000Z",
+   "relFuture": "WITHIN 6 DAYS"
+  },
+  {
+   "dueAt": "2026-10-02T12:00:00.000Z",
+   "relFuture": "THIS WEEK"
+  },
+  {
+   "dueAt": "2026-10-03T12:00:00.000Z",
+   "relFuture": "THIS WEEK"
+  },
+  {
+   "dueAt": "2026-10-17T08:00:00.000Z",
+   "relFuture": "THIS WEEK"
+  }
+ ],
+ "invalid": [
+  {
+   "input": "garbage",
+   "freshness": "stale",
+   "relTime": "",
+   "relFuture": ""
+  },
+  {
+   "input": "",
+   "freshness": "stale",
+   "relTime": "",
+   "relFuture": ""
+  }
+ ]
+}

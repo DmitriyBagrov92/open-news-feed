@@ -1,0 +1,14 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/comments?article=825452304de0"
+ },
+ "status": 200,
+ "body": {
+  "comments": [],
+  "total": 0,
+  "page": 1,
+  "pageSize": 20,
+  "me": null
+ }
+}

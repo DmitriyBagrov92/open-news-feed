@@ -1,0 +1,3 @@
+# `railway up` uploads the working tree minus .gitignore and this file.
+# The iOS app is not part of the web service image.
+ios/

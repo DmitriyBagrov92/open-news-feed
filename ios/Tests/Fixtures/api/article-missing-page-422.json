@@ -1,0 +1,13 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/article?url=https%3A%2F%2Fwww.bbc.com%2Ffixture%2Fno-such-page"
+ },
+ "status": 422,
+ "body": {
+  "error": {
+   "code": "fetch-failed",
+   "message": "Upstream returned 404"
+  }
+ }
+}

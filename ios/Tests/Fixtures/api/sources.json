@@ -1,0 +1,947 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/sources"
+ },
+ "status": 200,
+ "body": {
+  "sources": [
+   {
+    "id": "bbc-world",
+    "name": "BBC World",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.bbc.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center"
+   },
+   {
+    "id": "guardian-world",
+    "name": "The Guardian",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.theguardian.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "left"
+   },
+   {
+    "id": "aljazeera",
+    "name": "Al Jazeera",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.aljazeera.com",
+    "country": "QA",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "left"
+   },
+   {
+    "id": "npr-world",
+    "name": "NPR World",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.npr.org",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center"
+   },
+   {
+    "id": "sky-world",
+    "name": "Sky News",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://news.sky.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center"
+   },
+   {
+    "id": "dw-world",
+    "name": "Deutsche Welle",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.dw.com",
+    "country": "DE",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center"
+   },
+   {
+    "id": "france24",
+    "name": "France 24",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.france24.com",
+    "country": "FR",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center"
+   },
+   {
+    "id": "abc-au",
+    "name": "ABC News (AU)",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.abc.net.au",
+    "country": "AU",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "euronews",
+    "name": "Euronews",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.euronews.com",
+    "country": "EU",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center"
+   },
+   {
+    "id": "tass",
+    "name": "TASS",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://tass.com",
+    "country": "RU",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "sputnik",
+    "name": "Sputnik Globe",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://sputnikglobe.com",
+    "country": "RU",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "cgtn",
+    "name": "CGTN",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.cgtn.com",
+    "country": "CN",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "scmp",
+    "name": "South China Morning Post",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.scmp.com",
+    "country": "HK",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "japantimes",
+    "name": "The Japan Times",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.japantimes.co.jp",
+    "country": "JP",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "straitstimes",
+    "name": "The Straits Times",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.straitstimes.com",
+    "country": "SG",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "mee",
+    "name": "Middle East Eye",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.middleeasteye.net",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "left"
+   },
+   {
+    "id": "timesofisrael",
+    "name": "The Times of Israel",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.timesofisrael.com",
+    "country": "IL",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center"
+   },
+   {
+    "id": "jpost",
+    "name": "The Jerusalem Post",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.jpost.com",
+    "country": "IL",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "right"
+   },
+   {
+    "id": "toi-world",
+    "name": "Times of India World",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://timesofindia.indiatimes.com",
+    "country": "IN",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "allafrica",
+    "name": "AllAfrica",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://allafrica.com",
+    "country": "002",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "mercopress",
+    "name": "MercoPress",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://en.mercopress.com",
+    "country": "UY",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "bbc-business",
+    "name": "BBC Business",
+    "category": "business",
+    "type": "rss",
+    "homepage": "https://www.bbc.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "guardian-business",
+    "name": "Guardian Business",
+    "category": "business",
+    "type": "rss",
+    "homepage": "https://www.theguardian.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "cnbc",
+    "name": "CNBC",
+    "category": "business",
+    "type": "rss",
+    "homepage": "https://www.cnbc.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "yahoo-finance",
+    "name": "Yahoo Finance",
+    "category": "business",
+    "type": "rss",
+    "homepage": "https://finance.yahoo.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "fortune",
+    "name": "Fortune",
+    "category": "business",
+    "type": "rss",
+    "homepage": "https://fortune.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "ft",
+    "name": "Financial Times",
+    "category": "business",
+    "type": "rss",
+    "homepage": "https://www.ft.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "verge",
+    "name": "The Verge",
+    "category": "technology",
+    "type": "rss",
+    "homepage": "https://www.theverge.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "techcrunch",
+    "name": "TechCrunch",
+    "category": "technology",
+    "type": "rss",
+    "homepage": "https://techcrunch.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "ars",
+    "name": "Ars Technica",
+    "category": "technology",
+    "type": "rss",
+    "homepage": "https://arstechnica.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "wired",
+    "name": "Wired",
+    "category": "technology",
+    "type": "rss",
+    "homepage": "https://www.wired.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "engadget",
+    "name": "Engadget",
+    "category": "technology",
+    "type": "rss",
+    "homepage": "https://www.engadget.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "bbc-tech",
+    "name": "BBC Tech",
+    "category": "technology",
+    "type": "rss",
+    "homepage": "https://www.bbc.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "hackernews",
+    "name": "Hacker News",
+    "category": "technology",
+    "type": "rss",
+    "homepage": "https://news.ycombinator.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "sciencedaily",
+    "name": "ScienceDaily",
+    "category": "science",
+    "type": "rss",
+    "homepage": "https://www.sciencedaily.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "nature",
+    "name": "Nature",
+    "category": "science",
+    "type": "rss",
+    "homepage": "https://www.nature.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "nasa",
+    "name": "NASA",
+    "category": "science",
+    "type": "rss",
+    "homepage": "https://www.nasa.gov",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "phys-org",
+    "name": "Phys.org",
+    "category": "science",
+    "type": "rss",
+    "homepage": "https://phys.org",
+    "country": "IM",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "bbc-science",
+    "name": "BBC Science",
+    "category": "science",
+    "type": "rss",
+    "homepage": "https://www.bbc.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "newscientist",
+    "name": "New Scientist",
+    "category": "science",
+    "type": "rss",
+    "homepage": "https://www.newscientist.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "espn",
+    "name": "ESPN",
+    "category": "sports",
+    "type": "rss",
+    "homepage": "https://www.espn.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "bbc-sport",
+    "name": "BBC Sport",
+    "category": "sports",
+    "type": "rss",
+    "homepage": "https://www.bbc.com/sport",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "guardian-sport",
+    "name": "Guardian Sport",
+    "category": "sports",
+    "type": "rss",
+    "homepage": "https://www.theguardian.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "variety",
+    "name": "Variety",
+    "category": "culture",
+    "type": "rss",
+    "homepage": "https://variety.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "thr",
+    "name": "The Hollywood Reporter",
+    "category": "culture",
+    "type": "rss",
+    "homepage": "https://www.hollywoodreporter.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "rollingstone",
+    "name": "Rolling Stone",
+    "category": "culture",
+    "type": "rss",
+    "homepage": "https://www.rollingstone.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "bbc-culture",
+    "name": "BBC Culture",
+    "category": "culture",
+    "type": "rss",
+    "homepage": "https://www.bbc.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "guardian-culture",
+    "name": "Guardian Culture",
+    "category": "culture",
+    "type": "rss",
+    "homepage": "https://www.theguardian.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "bbc-health",
+    "name": "BBC Health",
+    "category": "health",
+    "type": "rss",
+    "homepage": "https://www.bbc.com",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "statnews",
+    "name": "STAT News",
+    "category": "health",
+    "type": "rss",
+    "homepage": "https://www.statnews.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "who",
+    "name": "WHO",
+    "category": "health",
+    "type": "rss",
+    "homepage": "https://www.who.int",
+    "country": "UN",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "fox-news",
+    "name": "Fox News",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://www.foxnews.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "right",
+    "battle": true
+   },
+   {
+    "id": "nypost",
+    "name": "New York Post",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://nypost.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "right",
+    "battle": true
+   },
+   {
+    "id": "washtimes",
+    "name": "Washington Times",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://www.washingtontimes.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "right",
+    "battle": true
+   },
+   {
+    "id": "dailywire",
+    "name": "The Daily Wire",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://www.dailywire.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "right",
+    "battle": true
+   },
+   {
+    "id": "federalist",
+    "name": "The Federalist",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://thefederalist.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "right",
+    "battle": true
+   },
+   {
+    "id": "washexaminer",
+    "name": "Washington Examiner",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://www.washingtonexaminer.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "right",
+    "battle": true
+   },
+   {
+    "id": "thenation",
+    "name": "The Nation",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://www.thenation.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "left",
+    "battle": true
+   },
+   {
+    "id": "salon",
+    "name": "Salon",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://www.salon.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "left",
+    "battle": true
+   },
+   {
+    "id": "motherjones",
+    "name": "Mother Jones",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://www.motherjones.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "left",
+    "battle": true
+   },
+   {
+    "id": "dailykos",
+    "name": "Daily Kos",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://www.dailykos.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "left",
+    "battle": true
+   },
+   {
+    "id": "thehill",
+    "name": "The Hill",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://thehill.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center",
+    "battle": true
+   },
+   {
+    "id": "npr-politics",
+    "name": "NPR Politics",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://www.npr.org",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center",
+    "battle": true
+   },
+   {
+    "id": "csmonitor",
+    "name": "CS Monitor",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://www.csmonitor.com",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center",
+    "battle": true
+   },
+   {
+    "id": "meduza",
+    "name": "Meduza",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://meduza.io",
+    "country": "LV",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "bbc-russian",
+    "name": "BBC News Русская служба",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.bbc.com/russian",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "dw-russian",
+    "name": "DW на русском",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.dw.com/ru",
+    "country": "DE",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "pravda-ua",
+    "name": "Українська правда",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.pravda.com.ua",
+    "country": "UA",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "bbc-ukrainian",
+    "name": "BBC News Україна",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.bbc.com/ukrainian",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "ukrinform",
+    "name": "Укрінформ",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.ukrinform.ua",
+    "country": "UA",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "tagesschau",
+    "name": "Tagesschau",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.tagesschau.de",
+    "country": "DE",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "spiegel",
+    "name": "Der Spiegel",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.spiegel.de",
+    "country": "DE",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "zeit",
+    "name": "Die Zeit",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.zeit.de",
+    "country": "DE",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "lemonde",
+    "name": "Le Monde",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.lemonde.fr",
+    "country": "FR",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "franceinfo",
+    "name": "France Info",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.francetvinfo.fr",
+    "country": "FR",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "lefigaro",
+    "name": "Le Figaro",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.lefigaro.fr",
+    "country": "FR",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "elpais",
+    "name": "El País",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://elpais.com",
+    "country": "ES",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "bbc-mundo",
+    "name": "BBC Mundo",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.bbc.com/mundo",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "veinteminutos",
+    "name": "20minutos",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.20minutos.es",
+    "country": "ES",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "nhk",
+    "name": "NHKニュース",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www3.nhk.or.jp",
+    "country": "JP",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "asahi",
+    "name": "朝日新聞",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.asahi.com",
+    "country": "JP",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "bbc-zhongwen",
+    "name": "BBC中文",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.bbc.com/zhongwen/simp",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "dw-chinese",
+    "name": "DW中文",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://www.dw.com/zh",
+    "country": "DE",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "gnews",
+    "name": "GNews",
+    "category": "world",
+    "type": "api",
+    "homepage": "https://gnews.io",
+    "country": null,
+    "enabled": false,
+    "requiresKey": true
+   },
+   {
+    "id": "guardian-api",
+    "name": "The Guardian (API)",
+    "category": "world",
+    "type": "api",
+    "homepage": "https://www.theguardian.com",
+    "country": "GB",
+    "enabled": false,
+    "requiresKey": true
+   },
+   {
+    "id": "nyt",
+    "name": "The New York Times",
+    "category": "world",
+    "type": "api",
+    "homepage": "https://www.nytimes.com",
+    "country": "US",
+    "enabled": false,
+    "requiresKey": true
+   },
+   {
+    "id": "newsdata",
+    "name": "NewsData.io",
+    "category": "world",
+    "type": "api",
+    "homepage": "https://newsdata.io",
+    "country": null,
+    "enabled": false,
+    "requiresKey": true
+   },
+   {
+    "id": "currents",
+    "name": "Currents",
+    "category": "world",
+    "type": "api",
+    "homepage": "https://currentsapi.services",
+    "country": null,
+    "enabled": false,
+    "requiresKey": true
+   }
+  ],
+  "categories": [
+   "world",
+   "business",
+   "technology",
+   "science",
+   "sports",
+   "culture",
+   "health"
+  ],
+  "languages": [
+   "en",
+   "ru",
+   "uk",
+   "de",
+   "fr",
+   "es",
+   "ja",
+   "zh"
+  ]
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/comments",
+  "body": {
+   "articleId": "825452304de0",
+   "body": "No header"
+  }
+ },
+ "status": 400,
+ "body": {
+  "error": {
+   "code": "bad-author",
+   "message": "X-Author-Id header (UUID) is required"
+  }
+ }
+}

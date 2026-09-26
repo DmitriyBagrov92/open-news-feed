@@ -1,0 +1,22 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/translate",
+  "body": {
+   "texts": [
+    "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+    "Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast."
+   ],
+   "target": "de",
+   "source": "en"
+  }
+ },
+ "status": 200,
+ "body": {
+  "translations": [
+   "[de] Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+   "[de] Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast."
+  ],
+  "provider": "mymemory"
+ }
+}

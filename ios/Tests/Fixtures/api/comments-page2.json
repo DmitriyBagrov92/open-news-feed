@@ -1,0 +1,28 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/comments?article=825452304de0&page=2&pageSize=2"
+ },
+ "status": 200,
+ "body": {
+  "comments": [
+   {
+    "id": "cc00000000000001",
+    "name": "Solar Jetty",
+    "avatar": {
+     "hue": 286,
+     "glyph": 0
+    },
+    "body": "The ferry closures came early this time — sensible.",
+    "createdAt": "2026-09-26T12:00:00.000Z",
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   }
+  ],
+  "total": 3,
+  "page": 2,
+  "pageSize": 2,
+  "me": null
+ }
+}

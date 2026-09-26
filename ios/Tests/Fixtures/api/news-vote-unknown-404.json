@@ -1,0 +1,17 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/news/000000000000/vote",
+  "author": "amber",
+  "body": {
+   "value": 1
+  }
+ },
+ "status": 404,
+ "body": {
+  "error": {
+   "code": "unknown-article",
+   "message": "Voting is closed for archived stories"
+  }
+ }
+}

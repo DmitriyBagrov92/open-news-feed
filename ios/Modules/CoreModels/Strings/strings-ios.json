@@ -1,0 +1,18 @@
+{
+  "ios.sidebar.categories": "Categories",
+  "ios.wire.utc": "UTC",
+  "ios.wire.tokyo": "Tokyo",
+  "ios.wire.delhi": "Delhi",
+  "ios.wire.london": "London",
+  "ios.wire.newYork": "New York",
+  "ios.wire.losAngeles": "Los Angeles",
+  "ios.time.now": "NOW",
+  "ios.ahead.open": "Ahead · AI forecast",
+  "ios.soon.title": "Coming next",
+  "ios.soon.yourFeed": "Your Feed — taste onboarding and recommendations — arrives in a later build.",
+  "ios.soon.battle": "Bubble Battle arrives in a later build.",
+  "ios.soon.saved": "Saved stories arrive in a later build.",
+  "ios.soon.search": "Search arrives with the live feed.",
+  "ios.brief.more": "Show all · {n} more",
+  "ios.brief.less": "Show less"
+}

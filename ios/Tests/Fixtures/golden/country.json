@@ -1,0 +1,212 @@
+{
+ "names": [
+  {
+   "code": "GB",
+   "name": "United Kingdom"
+  },
+  {
+   "code": "QA",
+   "name": "Qatar"
+  },
+  {
+   "code": "US",
+   "name": "United States"
+  },
+  {
+   "code": "DE",
+   "name": "Germany"
+  },
+  {
+   "code": "FR",
+   "name": "France"
+  },
+  {
+   "code": "AU",
+   "name": "Australia"
+  },
+  {
+   "code": "EU",
+   "name": "European Union"
+  },
+  {
+   "code": "RU",
+   "name": "Russia"
+  },
+  {
+   "code": "CN",
+   "name": "China"
+  },
+  {
+   "code": "HK",
+   "name": "Hong Kong SAR China"
+  },
+  {
+   "code": "JP",
+   "name": "Japan"
+  },
+  {
+   "code": "SG",
+   "name": "Singapore"
+  },
+  {
+   "code": "IL",
+   "name": "Israel"
+  },
+  {
+   "code": "IN",
+   "name": "India"
+  },
+  {
+   "code": "002",
+   "name": "Africa"
+  },
+  {
+   "code": "UY",
+   "name": "Uruguay"
+  },
+  {
+   "code": "IM",
+   "name": "Isle of Man"
+  },
+  {
+   "code": "UN",
+   "name": "United Nations"
+  },
+  {
+   "code": "LV",
+   "name": "Latvia"
+  },
+  {
+   "code": "UA",
+   "name": "Ukraine"
+  },
+  {
+   "code": "ES",
+   "name": "Spain"
+  },
+  {
+   "code": null,
+   "name": "International"
+  },
+  {
+   "code": "XK",
+   "name": "Kosovo"
+  },
+  {
+   "code": "999",
+   "name": "999"
+  },
+  {
+   "code": "002",
+   "name": "Africa"
+  },
+  {
+   "code": "019",
+   "name": "Americas"
+  },
+  {
+   "code": "142",
+   "name": "Asia"
+  },
+  {
+   "code": "150",
+   "name": "Europe"
+  },
+  {
+   "code": "009",
+   "name": "Oceania"
+  }
+ ],
+ "countryOf": [
+  {
+   "source": {
+    "id": "x",
+    "country": "QA"
+   },
+   "result": {
+    "kind": "code",
+    "code": "QA"
+   }
+  },
+  {
+   "source": {
+    "id": "x",
+    "country": null
+   },
+   "result": {
+    "kind": "none"
+   }
+  },
+  {
+   "source": {
+    "id": "bbc-world"
+   },
+   "result": {
+    "kind": "code",
+    "code": "GB"
+   }
+  },
+  {
+   "source": {
+    "id": "gnews"
+   },
+   "result": {
+    "kind": "none"
+   }
+  },
+  {
+   "source": {
+    "id": "allafrica",
+    "country": "002"
+   },
+   "result": {
+    "kind": "code",
+    "code": "002"
+   }
+  },
+  {
+   "source": {
+    "id": "gone"
+   },
+   "result": {
+    "kind": "unknown"
+   }
+  },
+  {
+   "source": {
+    "id": "x",
+    "country": "gb"
+   },
+   "result": {
+    "kind": "none"
+   }
+  },
+  {
+   "source": {
+    "id": "x",
+    "country": "GBR"
+   },
+   "result": {
+    "kind": "none"
+   }
+  },
+  {
+   "source": {
+    "id": "x",
+    "country": "../x"
+   },
+   "result": {
+    "kind": "none"
+   }
+  },
+  {
+   "source": {
+    "id": "x",
+    "country": 7
+   },
+   "result": {
+    "kind": "none"
+   }
+  }
+ ]
+}

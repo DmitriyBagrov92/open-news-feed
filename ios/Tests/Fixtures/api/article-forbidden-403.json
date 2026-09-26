@@ -1,0 +1,13 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/article?url=https%3A%2F%2Fevil.example.net%2Fx"
+ },
+ "status": 403,
+ "body": {
+  "error": {
+   "code": "host-not-allowed",
+   "message": "Host not allowed (requested url)"
+  }
+ }
+}

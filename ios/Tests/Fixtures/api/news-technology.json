@@ -1,0 +1,236 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/news?category=technology&pageSize=30"
+ },
+ "status": 200,
+ "body": {
+  "articles": [
+   {
+    "id": "1aea45772776",
+    "title": "Chrome ships on-device AI to every desktop user",
+    "description": "The Prompt API leaves its origin trial with a smaller model download.",
+    "url": "https://www.theverge.com/fixture/story-26",
+    "image": "https://images.example.net/fixture/26.jpg",
+    "source": {
+     "id": "verge",
+     "name": "The Verge",
+     "homepage": "https://www.theverge.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T11:53:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "fa642ecc1ebc",
+    "title": "Startup Orbis raises $120M to map the ocean floor",
+    "description": "The round values the company at $1.1B.",
+    "url": "https://techcrunch.com/fixture/story-27",
+    "image": "https://images.example.net/fixture/27.jpg",
+    "source": {
+     "id": "techcrunch",
+     "name": "TechCrunch",
+     "homepage": "https://techcrunch.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T11:20:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "3247c3c67728",
+    "title": "Linux 7.2 lands with a rewritten scheduler",
+    "description": "Benchmarks show gains on hybrid CPUs.",
+    "url": "https://arstechnica.com/fixture/story-28",
+    "image": null,
+    "source": {
+     "id": "ars",
+     "name": "Ars Technica",
+     "homepage": "https://arstechnica.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T10:35:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "e662eaa867a6",
+    "title": "The quiet return of the small web",
+    "description": "Personal sites are growing again, and the tools are better than ever.",
+    "url": "https://www.wired.com/fixture/story-29",
+    "image": "https://images.example.net/fixture/29.jpg",
+    "source": {
+     "id": "wired",
+     "name": "Wired",
+     "homepage": "https://www.wired.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T09:30:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "f977161a3ffd",
+    "title": "Review: the first foldable that survives a pocket",
+    "description": "Durability finally matches the price.",
+    "url": "https://www.engadget.com/fixture/story-30",
+    "image": "https://images.example.net/fixture/30.jpg",
+    "source": {
+     "id": "engadget",
+     "name": "Engadget",
+     "homepage": "https://www.engadget.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T08:10:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "e71914fdb2bc",
+    "title": "Regulator opens probe into app store fees",
+    "description": "Developers welcomed the inquiry; the platform said it would cooperate.",
+    "url": "https://www.bbc.com/fixture/story-31",
+    "image": "https://images.example.net/fixture/31.jpg",
+    "source": {
+     "id": "bbc-tech",
+     "name": "BBC Tech",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T07:20:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "1891161ec159",
+    "title": "Show HN: a news reader that runs its AI on your device",
+    "description": "Open source, no accounts, no tracking.",
+    "url": "https://news.ycombinator.com/fixture/story-32",
+    "image": null,
+    "source": {
+     "id": "hackernews",
+     "name": "Hacker News",
+     "homepage": "https://news.ycombinator.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T06:30:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "9069e2390c03",
+    "title": "Archive 6: an earlier technology story from verge",
+    "description": "Background reading number 6 — kept so the feed has a second page.",
+    "url": "https://www.theverge.com/fixture/story-55",
+    "image": "https://images.example.net/fixture/55.jpg",
+    "source": {
+     "id": "verge",
+     "name": "The Verge",
+     "homepage": "https://www.theverge.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-25T01:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "16ed0accda22",
+    "title": "Archive 7: an earlier technology story from ars",
+    "description": "Background reading number 7 — kept so the feed has a second page.",
+    "url": "https://arstechnica.com/fixture/story-56",
+    "image": null,
+    "source": {
+     "id": "ars",
+     "name": "Ars Technica",
+     "homepage": "https://arstechnica.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-24T21:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "329344851987",
+    "title": "Archive 18: an earlier technology story from verge",
+    "description": "Background reading number 18 — kept so the feed has a second page.",
+    "url": "https://www.theverge.com/fixture/story-67",
+    "image": "https://images.example.net/fixture/67.jpg",
+    "source": {
+     "id": "verge",
+     "name": "The Verge",
+     "homepage": "https://www.theverge.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-23T01:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "425aa26c143c",
+    "title": "Archive 19: an earlier technology story from ars",
+    "description": "Background reading number 19 — kept so the feed has a second page.",
+    "url": "https://arstechnica.com/fixture/story-68",
+    "image": null,
+    "source": {
+     "id": "ars",
+     "name": "Ars Technica",
+     "homepage": "https://arstechnica.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-22T21:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   }
+  ],
+  "total": 11,
+  "page": 1,
+  "pageSize": 30,
+  "updatedAt": "2026-09-26T12:00:00.000Z",
+  "latestId": "1aea45772776"
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/comments",
+  "author": "solar",
+  "body": {
+   "articleId": "825452304de0",
+   "body": "Anyone on the coast: stay safe tonight."
+  }
+ },
+ "status": 409,
+ "body": {
+  "error": {
+   "code": "duplicate",
+   "message": "You already posted exactly this"
+  }
+ }
+}

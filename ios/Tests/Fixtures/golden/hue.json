@@ -1,0 +1,740 @@
+{
+ "cases": [
+  {
+   "input": "bbc-world",
+   "hue": 286
+  },
+  {
+   "input": "guardian-world",
+   "hue": 168
+  },
+  {
+   "input": "aljazeera",
+   "hue": 266
+  },
+  {
+   "input": "npr-world",
+   "hue": 32
+  },
+  {
+   "input": "sky-world",
+   "hue": 248
+  },
+  {
+   "input": "dw-world",
+   "hue": 286
+  },
+  {
+   "input": "france24",
+   "hue": 228
+  },
+  {
+   "input": "abc-au",
+   "hue": 352
+  },
+  {
+   "input": "euronews",
+   "hue": 212
+  },
+  {
+   "input": "tass",
+   "hue": 312
+  },
+  {
+   "input": "sputnik",
+   "hue": 16
+  },
+  {
+   "input": "cgtn",
+   "hue": 168
+  },
+  {
+   "input": "scmp",
+   "hue": 352
+  },
+  {
+   "input": "japantimes",
+   "hue": 286
+  },
+  {
+   "input": "straitstimes",
+   "hue": 168
+  },
+  {
+   "input": "mee",
+   "hue": 32
+  },
+  {
+   "input": "timesofisrael",
+   "hue": 228
+  },
+  {
+   "input": "jpost",
+   "hue": 248
+  },
+  {
+   "input": "toi-world",
+   "hue": 352
+  },
+  {
+   "input": "allafrica",
+   "hue": 190
+  },
+  {
+   "input": "mercopress",
+   "hue": 228
+  },
+  {
+   "input": "bbc-business",
+   "hue": 248
+  },
+  {
+   "input": "guardian-business",
+   "hue": 286
+  },
+  {
+   "input": "cnbc",
+   "hue": 16
+  },
+  {
+   "input": "yahoo-finance",
+   "hue": 228
+  },
+  {
+   "input": "fortune",
+   "hue": 312
+  },
+  {
+   "input": "ft",
+   "hue": 248
+  },
+  {
+   "input": "verge",
+   "hue": 312
+  },
+  {
+   "input": "techcrunch",
+   "hue": 266
+  },
+  {
+   "input": "ars",
+   "hue": 334
+  },
+  {
+   "input": "wired",
+   "hue": 352
+  },
+  {
+   "input": "engadget",
+   "hue": 228
+  },
+  {
+   "input": "bbc-tech",
+   "hue": 212
+  },
+  {
+   "input": "hackernews",
+   "hue": 32
+  },
+  {
+   "input": "sciencedaily",
+   "hue": 228
+  },
+  {
+   "input": "nature",
+   "hue": 190
+  },
+  {
+   "input": "nasa",
+   "hue": 228
+  },
+  {
+   "input": "phys-org",
+   "hue": 228
+  },
+  {
+   "input": "bbc-science",
+   "hue": 334
+  },
+  {
+   "input": "newscientist",
+   "hue": 212
+  },
+  {
+   "input": "espn",
+   "hue": 212
+  },
+  {
+   "input": "bbc-sport",
+   "hue": 334
+  },
+  {
+   "input": "guardian-sport",
+   "hue": 212
+  },
+  {
+   "input": "variety",
+   "hue": 212
+  },
+  {
+   "input": "thr",
+   "hue": 334
+  },
+  {
+   "input": "rollingstone",
+   "hue": 16
+  },
+  {
+   "input": "bbc-culture",
+   "hue": 212
+  },
+  {
+   "input": "guardian-culture",
+   "hue": 168
+  },
+  {
+   "input": "bbc-health",
+   "hue": 168
+  },
+  {
+   "input": "statnews",
+   "hue": 352
+  },
+  {
+   "input": "who",
+   "hue": 334
+  },
+  {
+   "input": "fox-news",
+   "hue": 312
+  },
+  {
+   "input": "nypost",
+   "hue": 266
+  },
+  {
+   "input": "washtimes",
+   "hue": 352
+  },
+  {
+   "input": "dailywire",
+   "hue": 168
+  },
+  {
+   "input": "federalist",
+   "hue": 312
+  },
+  {
+   "input": "washexaminer",
+   "hue": 212
+  },
+  {
+   "input": "thenation",
+   "hue": 16
+  },
+  {
+   "input": "salon",
+   "hue": 312
+  },
+  {
+   "input": "motherjones",
+   "hue": 286
+  },
+  {
+   "input": "dailykos",
+   "hue": 334
+  },
+  {
+   "input": "thehill",
+   "hue": 168
+  },
+  {
+   "input": "npr-politics",
+   "hue": 334
+  },
+  {
+   "input": "csmonitor",
+   "hue": 248
+  },
+  {
+   "input": "meduza",
+   "hue": 16
+  },
+  {
+   "input": "bbc-russian",
+   "hue": 228
+  },
+  {
+   "input": "dw-russian",
+   "hue": 312
+  },
+  {
+   "input": "pravda-ua",
+   "hue": 228
+  },
+  {
+   "input": "bbc-ukrainian",
+   "hue": 334
+  },
+  {
+   "input": "ukrinform",
+   "hue": 312
+  },
+  {
+   "input": "tagesschau",
+   "hue": 286
+  },
+  {
+   "input": "spiegel",
+   "hue": 32
+  },
+  {
+   "input": "zeit",
+   "hue": 168
+  },
+  {
+   "input": "lemonde",
+   "hue": 212
+  },
+  {
+   "input": "franceinfo",
+   "hue": 312
+  },
+  {
+   "input": "lefigaro",
+   "hue": 190
+  },
+  {
+   "input": "elpais",
+   "hue": 334
+  },
+  {
+   "input": "bbc-mundo",
+   "hue": 266
+  },
+  {
+   "input": "veinteminutos",
+   "hue": 16
+  },
+  {
+   "input": "nhk",
+   "hue": 228
+  },
+  {
+   "input": "asahi",
+   "hue": 212
+  },
+  {
+   "input": "bbc-zhongwen",
+   "hue": 16
+  },
+  {
+   "input": "dw-chinese",
+   "hue": 352
+  },
+  {
+   "input": "gnews",
+   "hue": 334
+  },
+  {
+   "input": "guardian-api",
+   "hue": 168
+  },
+  {
+   "input": "nyt",
+   "hue": 32
+  },
+  {
+   "input": "newsdata",
+   "hue": 32
+  },
+  {
+   "input": "currents",
+   "hue": 168
+  },
+  {
+   "input": "BBC World",
+   "hue": 228
+  },
+  {
+   "input": "The Guardian",
+   "hue": 286
+  },
+  {
+   "input": "Al Jazeera",
+   "hue": 32
+  },
+  {
+   "input": "NPR World",
+   "hue": 334
+  },
+  {
+   "input": "Sky News",
+   "hue": 334
+  },
+  {
+   "input": "Deutsche Welle",
+   "hue": 16
+  },
+  {
+   "input": "France 24",
+   "hue": 190
+  },
+  {
+   "input": "ABC News (AU)",
+   "hue": 212
+  },
+  {
+   "input": "Euronews",
+   "hue": 212
+  },
+  {
+   "input": "TASS",
+   "hue": 228
+  },
+  {
+   "input": "Sputnik Globe",
+   "hue": 32
+  },
+  {
+   "input": "CGTN",
+   "hue": 334
+  },
+  {
+   "input": "South China Morning Post",
+   "hue": 16
+  },
+  {
+   "input": "The Japan Times",
+   "hue": 32
+  },
+  {
+   "input": "The Straits Times",
+   "hue": 190
+  },
+  {
+   "input": "Middle East Eye",
+   "hue": 312
+  },
+  {
+   "input": "The Times of Israel",
+   "hue": 16
+  },
+  {
+   "input": "The Jerusalem Post",
+   "hue": 266
+  },
+  {
+   "input": "Times of India World",
+   "hue": 248
+  },
+  {
+   "input": "AllAfrica",
+   "hue": 352
+  },
+  {
+   "input": "MercoPress",
+   "hue": 32
+  },
+  {
+   "input": "BBC Business",
+   "hue": 228
+  },
+  {
+   "input": "Guardian Business",
+   "hue": 352
+  },
+  {
+   "input": "CNBC",
+   "hue": 212
+  },
+  {
+   "input": "Yahoo Finance",
+   "hue": 248
+  },
+  {
+   "input": "Fortune",
+   "hue": 312
+  },
+  {
+   "input": "Financial Times",
+   "hue": 190
+  },
+  {
+   "input": "The Verge",
+   "hue": 334
+  },
+  {
+   "input": "TechCrunch",
+   "hue": 190
+  },
+  {
+   "input": "Ars Technica",
+   "hue": 312
+  },
+  {
+   "input": "Wired",
+   "hue": 190
+  },
+  {
+   "input": "Engadget",
+   "hue": 32
+  },
+  {
+   "input": "BBC Tech",
+   "hue": 190
+  },
+  {
+   "input": "Hacker News",
+   "hue": 32
+  },
+  {
+   "input": "ScienceDaily",
+   "hue": 312
+  },
+  {
+   "input": "Nature",
+   "hue": 266
+  },
+  {
+   "input": "NASA",
+   "hue": 312
+  },
+  {
+   "input": "Phys.org",
+   "hue": 212
+  },
+  {
+   "input": "BBC Science",
+   "hue": 190
+  },
+  {
+   "input": "New Scientist",
+   "hue": 212
+  },
+  {
+   "input": "ESPN",
+   "hue": 16
+  },
+  {
+   "input": "BBC Sport",
+   "hue": 352
+  },
+  {
+   "input": "Guardian Sport",
+   "hue": 228
+  },
+  {
+   "input": "Variety",
+   "hue": 212
+  },
+  {
+   "input": "The Hollywood Reporter",
+   "hue": 228
+  },
+  {
+   "input": "Rolling Stone",
+   "hue": 248
+  },
+  {
+   "input": "BBC Culture",
+   "hue": 312
+  },
+  {
+   "input": "Guardian Culture",
+   "hue": 352
+  },
+  {
+   "input": "BBC Health",
+   "hue": 228
+  },
+  {
+   "input": "STAT News",
+   "hue": 190
+  },
+  {
+   "input": "WHO",
+   "hue": 248
+  },
+  {
+   "input": "Fox News",
+   "hue": 286
+  },
+  {
+   "input": "New York Post",
+   "hue": 312
+  },
+  {
+   "input": "Washington Times",
+   "hue": 168
+  },
+  {
+   "input": "The Daily Wire",
+   "hue": 266
+  },
+  {
+   "input": "The Federalist",
+   "hue": 16
+  },
+  {
+   "input": "Washington Examiner",
+   "hue": 312
+  },
+  {
+   "input": "The Nation",
+   "hue": 334
+  },
+  {
+   "input": "Salon",
+   "hue": 32
+  },
+  {
+   "input": "Mother Jones",
+   "hue": 334
+  },
+  {
+   "input": "Daily Kos",
+   "hue": 16
+  },
+  {
+   "input": "The Hill",
+   "hue": 16
+  },
+  {
+   "input": "NPR Politics",
+   "hue": 32
+  },
+  {
+   "input": "CS Monitor",
+   "hue": 334
+  },
+  {
+   "input": "Meduza",
+   "hue": 212
+  },
+  {
+   "input": "BBC News Русская служба",
+   "hue": 334
+  },
+  {
+   "input": "DW на русском",
+   "hue": 312
+  },
+  {
+   "input": "Українська правда",
+   "hue": 312
+  },
+  {
+   "input": "BBC News Україна",
+   "hue": 266
+  },
+  {
+   "input": "Укрінформ",
+   "hue": 248
+  },
+  {
+   "input": "Tagesschau",
+   "hue": 212
+  },
+  {
+   "input": "Der Spiegel",
+   "hue": 248
+  },
+  {
+   "input": "Die Zeit",
+   "hue": 248
+  },
+  {
+   "input": "Le Monde",
+   "hue": 334
+  },
+  {
+   "input": "France Info",
+   "hue": 352
+  },
+  {
+   "input": "Le Figaro",
+   "hue": 228
+  },
+  {
+   "input": "El País",
+   "hue": 286
+  },
+  {
+   "input": "BBC Mundo",
+   "hue": 212
+  },
+  {
+   "input": "20minutos",
+   "hue": 190
+  },
+  {
+   "input": "NHKニュース",
+   "hue": 286
+  },
+  {
+   "input": "朝日新聞",
+   "hue": 168
+  },
+  {
+   "input": "BBC中文",
+   "hue": 32
+  },
+  {
+   "input": "DW中文",
+   "hue": 228
+  },
+  {
+   "input": "GNews",
+   "hue": 334
+  },
+  {
+   "input": "The Guardian (API)",
+   "hue": 266
+  },
+  {
+   "input": "The New York Times",
+   "hue": 16
+  },
+  {
+   "input": "NewsData.io",
+   "hue": 190
+  },
+  {
+   "input": "Currents",
+   "hue": 168
+  },
+  {
+   "input": "",
+   "hue": 212
+  },
+  {
+   "input": "?",
+   "hue": 266
+  },
+  {
+   "input": "a",
+   "hue": 228
+  },
+  {
+   "input": "Ромашка",
+   "hue": 16
+  },
+  {
+   "input": "日本語ニュース",
+   "hue": 248
+  },
+  {
+   "input": "émoji 🎉 test",
+   "hue": 266
+  },
+  {
+   "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "hue": 286
+  },
+  {
+   "input": "Zürich Daily",
+   "hue": 190
+  }
+ ]
+}

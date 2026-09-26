@@ -1,0 +1,16 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/news/825452304de0/vote",
+  "author": "amber",
+  "body": {
+   "value": 0
+  }
+ },
+ "status": 200,
+ "body": {
+  "up": 0,
+  "down": 0,
+  "myVote": null
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/translate",
+  "body": {
+   "texts": [],
+   "target": "de"
+  }
+ },
+ "status": 400,
+ "body": {
+  "error": {
+   "code": "bad-request",
+   "message": "\"texts\" must be an array of 1–20 strings"
+  }
+ }
+}

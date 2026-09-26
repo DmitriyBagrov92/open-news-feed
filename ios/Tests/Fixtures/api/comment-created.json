@@ -1,0 +1,25 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/comments",
+  "author": "amber",
+  "body": {
+   "articleId": "825452304de0",
+   "body": "The ferry closures came early this time — sensible."
+  }
+ },
+ "status": 201,
+ "body": {
+  "id": "cc00000000000001",
+  "name": "Solar Jetty",
+  "avatar": {
+   "hue": 286,
+   "glyph": 0
+  },
+  "body": "The ferry closures came early this time — sensible.",
+  "createdAt": "2026-09-26T12:00:00.000Z",
+  "up": 0,
+  "down": 0,
+  "myVote": null
+ }
+}

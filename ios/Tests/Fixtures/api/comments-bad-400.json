@@ -1,0 +1,13 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/comments?article=nope"
+ },
+ "status": 400,
+ "body": {
+  "error": {
+   "code": "bad-article",
+   "message": "Query parameter \"article\" must be a 12-hex article id"
+  }
+ }
+}

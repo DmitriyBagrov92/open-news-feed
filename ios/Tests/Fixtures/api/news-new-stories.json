@@ -1,0 +1,76 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/news?since=2026-09-26T11%3A56%3A00.000Z&pageSize=100"
+ },
+ "status": 200,
+ "body": {
+  "articles": [
+   {
+    "id": "0bd99f751628",
+    "title": "Breaking: Storm Idris makes landfall near Portsmouth",
+    "description": "Gusts of 90 mph were recorded as the storm came ashore.",
+    "url": "https://www.bbc.com/fixture/fresh-1",
+    "image": "https://images.example.net/fixture/fresh.jpg",
+    "source": {
+     "id": "bbc-world",
+     "name": "BBC World",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T12:01:45.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "3bbe17206ef6",
+    "title": "Breaking: Vela shares jump 12% at the open",
+    "description": "Investors cheered the data-centre guidance.",
+    "url": "https://www.cnbc.com/fixture/fresh-3",
+    "image": null,
+    "source": {
+     "id": "cnbc",
+     "name": "CNBC",
+     "homepage": "https://www.cnbc.com",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T12:01:45.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "1d6c0b5bdc10",
+    "title": "Breaking: Shelton wins the US Open in four sets",
+    "description": "The first American men’s champion since 2003.",
+    "url": "https://www.espn.com/fixture/fresh-2",
+    "image": null,
+    "source": {
+     "id": "espn",
+     "name": "ESPN",
+     "homepage": "https://www.espn.com",
+     "country": "US"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-26T12:01:45.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   }
+  ],
+  "total": 3,
+  "page": 1,
+  "pageSize": 100,
+  "updatedAt": "2026-09-26T12:01:45.000Z",
+  "latestId": "0bd99f751628"
+ }
+}

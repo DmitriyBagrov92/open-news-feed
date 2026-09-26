@@ -1,0 +1,425 @@
+# Meridian for iOS — XcodeGen spec. The .xcodeproj is generated (git-ignored):
+#   cd ios && xcodegen generate
+# Module map and conventions: ios/CLAUDE.md. Build/test: ios/scripts/test.sh.
+name: Meridian
+options:
+  bundleIdPrefix: info.meridi.app
+  developmentLanguage: en
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+packages:
+  Dependencies:
+    url: https://github.com/pointfreeco/swift-dependencies
+    exactVersion: "1.17.1"
+  Collections:
+    url: https://github.com/apple/swift-collections
+    exactVersion: "1.7.1"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"             # Swift 6 language mode (toolchain: Xcode 26.4.1 / Swift 6.3)
+    SWIFT_STRICT_CONCURRENCY: complete
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: TAFK8PJV44     # the user's team (same as ~/pet_projects/ai_predictor)
+    TARGETED_DEVICE_FAMILY: "1,2"    # iPhone + iPad
+    SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+    SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+    GENERATE_INFOPLIST_FILE: "YES"   # frameworks/test bundles; the app overrides with App/Info.plist
+    LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
+    SWIFT_EMIT_LOC_STRINGS: "YES"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_USER_SCRIPT_SANDBOXING: "YES"
+  configs:
+    Debug:
+      ENABLE_TESTABILITY: "YES"
+    Release:
+      ENABLE_TESTABILITY: "NO"
+
+targetTemplates:
+  Module:
+    type: framework
+    platform: iOS
+    sources:
+      - path: Modules/${target_name}/Sources
+    settings:
+      base:
+        DEFINES_MODULE: "YES"
+        PRODUCT_BUNDLE_IDENTIFIER: info.meridi.app.${target_name}
+  UnitTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/${target_name}/Sources
+      - path: Tests/UnitShared
+      - path: Tests/Fixtures
+        type: folder
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: info.meridi.app.${target_name}
+
+targets:
+  # ── modules (dependencies point downward; see ios/CLAUDE.md) ───────────────
+  CoreModels:
+    templates: [Module]
+    sources:
+      - path: Modules/CoreModels/Sources
+      - path: Modules/CoreModels/Resources
+    dependencies:
+      - package: Collections
+        product: OrderedCollections
+
+  Networking:
+    templates: [Module]
+    dependencies:
+      - target: CoreModels
+      - package: Dependencies
+        product: Dependencies
+      - package: Dependencies
+        product: DependenciesMacros
+
+  Persistence:
+    templates: [Module]
+    dependencies:
+      - target: CoreModels
+      - package: Dependencies
+        product: Dependencies
+
+  Intelligence:
+    templates: [Module]
+    dependencies:
+      - target: CoreModels
+      - target: Networking
+      - package: Collections
+        product: OrderedCollections
+      - package: Dependencies
+        product: Dependencies
+
+  AppleAI:
+    templates: [Module]
+    dependencies:
+      - target: Intelligence
+      - target: CoreModels
+      - sdk: FoundationModels.framework
+      - sdk: Translation.framework
+
+  DesignSystem:
+    templates: [Module]
+    sources:
+      - path: Modules/DesignSystem/Sources
+      - path: Modules/DesignSystem/Resources
+    dependencies:
+      - target: CoreModels
+      - package: Dependencies
+        product: Dependencies
+
+  ArticleKit:
+    templates: [Module]
+    dependencies:
+      - target: CoreModels
+      - target: DesignSystem
+      - target: Intelligence
+      - target: Networking
+      - target: Persistence
+      - package: Dependencies
+        product: Dependencies
+
+  FeedFeature:
+    templates: [Module]
+    dependencies: &featureDeps
+      - target: ArticleKit
+      - target: CoreModels
+      - target: DesignSystem
+      - target: Intelligence
+      - target: Networking
+      - target: Persistence
+      - package: Dependencies
+        product: Dependencies
+
+  StoryFeature:
+    templates: [Module]
+    dependencies: *featureDeps
+
+  YourFeedFeature:
+    templates: [Module]
+    dependencies: *featureDeps
+
+  BattleFeature:
+    templates: [Module]
+    dependencies: *featureDeps
+
+  SettingsFeature:
+    templates: [Module]
+    dependencies:
+      - target: CoreModels
+      - target: DesignSystem
+      - target: Intelligence
+      - target: Networking
+      - target: Persistence
+      - package: Dependencies
+        product: Dependencies
+
+  AppFeature:
+    templates: [Module]
+    dependencies:
+      - target: FeedFeature
+      - target: StoryFeature
+      - target: YourFeedFeature
+      - target: BattleFeature
+      - target: SettingsFeature
+      - target: ArticleKit
+      - target: CoreModels
+      - target: DesignSystem
+      - target: Intelligence
+      - target: Networking
+      - target: Persistence
+      - package: Dependencies
+        product: Dependencies
+
+  TestSupport:
+    # Test doubles + the launch contract. Linked by test targets and only by the app's #if DEBUG
+    # UI-test composition — never by a production module. Holds code only: fixture data stays in
+    # ios/Tests/Fixtures and is read from FIXTURES_DIR (simulator) or the test bundle.
+    templates: [Module]
+    sources:
+      - path: Modules/TestSupport/Sources
+      - path: Tests/Shared
+    dependencies:
+      - target: CoreModels
+      - target: Networking
+      - target: Persistence
+      - target: Intelligence
+      - target: DesignSystem
+      - package: Dependencies
+        product: Dependencies
+
+  # ── the app ─────────────────────────────────────────────────────────────────
+  Meridian:
+    type: application
+    platform: iOS
+    sources:
+      - path: App/Sources
+      - path: App/Resources
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Meridian
+        CFBundleDevelopmentRegion: en
+        LSApplicationCategoryType: public.app-category.news
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true   # Demo/contract runs against the local fixture server
+        MeridianAPIBaseURL: $(MERIDIAN_API_BASE_URL)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: info.meridi.app
+        GENERATE_INFOPLIST_FILE: "NO"
+        INFOPLIST_FILE: App/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        MERIDIAN_API_BASE_URL: https://meridi.info
+    dependencies:
+      - target: AppFeature
+      - target: FeedFeature
+      - target: StoryFeature
+      - target: YourFeedFeature
+      - target: BattleFeature
+      - target: SettingsFeature
+      - target: ArticleKit
+      - target: AppleAI
+      - target: DesignSystem
+      - target: Intelligence
+      - target: Persistence
+      - target: Networking
+      - target: CoreModels
+      - target: TestSupport
+      - package: Dependencies
+        product: Dependencies
+      - package: Collections
+        product: OrderedCollections
+
+  # ── unit tests (Swift Testing) ──────────────────────────────────────────────
+  CoreModelsTests:
+    templates: [UnitTests]
+    dependencies:
+      - target: CoreModels
+      - package: Collections
+        product: OrderedCollections
+
+  NetworkingTests:
+    templates: [UnitTests]
+    dependencies:
+      - target: Networking
+      - target: CoreModels
+      - target: TestSupport
+
+  PersistenceTests:
+    templates: [UnitTests]
+    dependencies:
+      - target: Persistence
+      - target: CoreModels
+
+  IntelligenceTests:
+    templates: [UnitTests]
+    dependencies:
+      - target: Intelligence
+      - target: CoreModels
+      - target: TestSupport
+      - package: Collections
+        product: OrderedCollections
+
+  DesignSystemTests:
+    templates: [UnitTests]
+    dependencies:
+      - target: DesignSystem
+      - target: CoreModels
+
+  ArticleKitTests:
+    templates: [UnitTests]
+    dependencies:
+      - target: ArticleKit
+      - target: CoreModels
+      - target: TestSupport
+
+  AppFeatureTests:
+    templates: [UnitTests]
+    dependencies:
+      - target: AppFeature
+      - target: CoreModels
+      - target: TestSupport
+
+  # ── integration tests ───────────────────────────────────────────────────────
+  AppIntegrationTests:
+    templates: [UnitTests]
+    dependencies:
+      - target: AppFeature
+      - target: ArticleKit
+      - target: CoreModels
+      - target: Networking
+      - target: Persistence
+      - target: Intelligence
+      - target: TestSupport
+
+  ContractTests:
+    # The LIVE client against the real Node server in fixture mode (booted by scripts/test.sh).
+    templates: [UnitTests]
+    dependencies:
+      - target: Networking
+      - target: CoreModels
+
+  # ── acceptance (XCUITest) ───────────────────────────────────────────────────
+  MeridianUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/MeridianUITests/Sources
+      - path: Tests/Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: info.meridi.app.MeridianUITests
+    dependencies:
+      - target: Meridian
+
+  MeridianScreenshotTests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/MeridianScreenshotTests/Sources
+      - path: Tests/Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: info.meridi.app.MeridianScreenshotTests
+    dependencies:
+      - target: Meridian
+
+schemes:
+  Meridian:
+    build:
+      targets:
+        Meridian: all
+    run:
+      config: Debug
+
+  Meridian-Demo:
+    # The app on the fixture newsroom with fakes everywhere — for design work in the simulator.
+    build:
+      targets:
+        Meridian: all
+    run:
+      config: Debug
+      commandLineArguments:
+        "-UITestMode": true
+      environmentVariables:
+        FIXTURES_DIR: $(SRCROOT)/Tests/Fixtures
+
+  Meridian-Unit:
+    build:
+      targets:
+        CoreModelsTests: [test]
+        NetworkingTests: [test]
+        PersistenceTests: [test]
+        IntelligenceTests: [test]
+        DesignSystemTests: [test]
+        ArticleKitTests: [test]
+        AppFeatureTests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - CoreModelsTests
+        - NetworkingTests
+        - PersistenceTests
+        - IntelligenceTests
+        - DesignSystemTests
+        - ArticleKitTests
+        - AppFeatureTests
+
+  Meridian-Integration:
+    build:
+      targets:
+        AppIntegrationTests: [test]
+    test:
+      targets:
+        - AppIntegrationTests
+
+  Meridian-Contract:
+    build:
+      targets:
+        ContractTests: [test]
+    test:
+      targets:
+        - ContractTests
+
+  Meridian-Acceptance:
+    build:
+      targets:
+        Meridian: all
+        MeridianUITests: [test]
+    test:
+      targets:
+        - MeridianUITests
+
+  Meridian-Screenshots:
+    build:
+      targets:
+        Meridian: all
+        MeridianScreenshotTests: [test]
+    test:
+      targets:
+        - MeridianScreenshotTests

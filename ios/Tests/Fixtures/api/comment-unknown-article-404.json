@@ -1,0 +1,18 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/comments",
+  "author": "amber",
+  "body": {
+   "articleId": "000000000000",
+   "body": "Hello there"
+  }
+ },
+ "status": 404,
+ "body": {
+  "error": {
+   "code": "unknown-article",
+   "message": "Comments are closed for archived stories"
+  }
+ }
+}

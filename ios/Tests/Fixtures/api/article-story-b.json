@@ -1,0 +1,49 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/article?url=https%3A%2F%2Fwww.theguardian.com%2Ffixture%2Fstory-b"
+ },
+ "status": 200,
+ "body": {
+  "title": "Supreme Court to hear challenge to sweeping import tariffs",
+  "byline": null,
+  "text": "The justices agreed on Monday to take the case on an expedited schedule, with oral arguments set for the first week of next month and a decision expected before the end of the term.\n\nThe challenge, brought by a coalition of importers and two states, argues that the emergency powers used to impose the duties do not extend to broad, open-ended tariffs. The government says the statute is deliberately wide.\n\nLegal scholars said the case could redraw the boundary between the branches on trade, and that the court’s decision to expedite suggests it sees the question as urgent.\n\nPorts along the east coast have already begun adjusting schedules in anticipation of the ruling, with some carriers front-loading shipments.",
+  "blocks": [
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "The justices agreed on Monday to take the case on an expedited schedule, with oral arguments set for the first week of next month and a decision expected before the end of the term."
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "The challenge, brought by a coalition of importers and two states, argues that the emergency powers used to impose the duties do not extend to broad, open-ended tariffs. The government says the statute is deliberately wide."
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Legal scholars said the case could redraw the boundary between the branches on trade, and that the court’s decision to expedite suggests it sees the question as urgent."
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Ports along the east coast have already begun adjusting schedules in anticipation of the ruling, with some carriers front-loading shipments."
+     }
+    ]
+   }
+  ],
+  "excerpt": "The justices agreed on Monday to take the case on an expedited schedule, with oral arguments set for the first week of next month and a decision expected before the end of the term.",
+  "image": "https://images.example.net/fixture/story-b-og.jpg",
+  "siteName": "www.theguardian.com"
+ }
+}

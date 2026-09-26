@@ -1,0 +1,25 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/article?url=https%3A%2F%2Fnews.sky.com%2Ffixture%2Fstory-c"
+ },
+ "status": 200,
+ "body": {
+  "title": "Rail strike",
+  "byline": null,
+  "text": "Subscribe to read this story.",
+  "blocks": [
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Subscribe to read this story."
+     }
+    ]
+   }
+  ],
+  "excerpt": "Subscribe to read this story.",
+  "image": null,
+  "siteName": "news.sky.com"
+ }
+}

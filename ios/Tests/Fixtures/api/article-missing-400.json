@@ -1,0 +1,13 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/article"
+ },
+ "status": 400,
+ "body": {
+  "error": {
+   "code": "missing-url",
+   "message": "Query parameter \"url\" is required"
+  }
+ }
+}

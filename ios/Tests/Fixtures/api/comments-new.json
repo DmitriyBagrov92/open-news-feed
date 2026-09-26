@@ -1,0 +1,54 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/comments?article=825452304de0&sort=new"
+ },
+ "status": 200,
+ "body": {
+  "comments": [
+   {
+    "id": "cc00000000000002",
+    "name": "Lunar Tundra",
+    "avatar": {
+     "hue": 63,
+     "glyph": 1
+    },
+    "body": "Anyone on the coast: stay safe tonight.",
+    "createdAt": "2026-09-26T12:00:30.000Z",
+    "up": 2,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "cc00000000000003",
+    "name": "Mellow Kestrel",
+    "avatar": {
+     "hue": 18,
+     "glyph": 14
+    },
+    "body": "Landfall forecasts have been drifting north all week.",
+    "createdAt": "2026-09-26T12:00:15.000Z",
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "cc00000000000001",
+    "name": "Solar Jetty",
+    "avatar": {
+     "hue": 286,
+     "glyph": 0
+    },
+    "body": "The ferry closures came early this time — sensible.",
+    "createdAt": "2026-09-26T12:00:00.000Z",
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   }
+  ],
+  "total": 3,
+  "page": 1,
+  "pageSize": 20,
+  "me": null
+ }
+}

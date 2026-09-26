@@ -1,0 +1,15 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/news?since=2026-09-26T11%3A56%3A00.000Z&pageSize=100"
+ },
+ "status": 200,
+ "body": {
+  "articles": [],
+  "total": 0,
+  "page": 1,
+  "pageSize": 100,
+  "updatedAt": "2026-09-26T12:00:00.000Z",
+  "latestId": null
+ }
+}

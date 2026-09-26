@@ -1,0 +1,17 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/health"
+ },
+ "status": 200,
+ "body": {
+  "ok": true,
+  "uptime": 0,
+  "articles": 88,
+  "sources": {
+   "ok": 63,
+   "failing": 0
+  },
+  "updatedAt": "2026-09-26T12:00:00.000Z"
+ }
+}

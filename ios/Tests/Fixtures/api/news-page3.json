@@ -1,0 +1,276 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/news?page=3&pageSize=30"
+ },
+ "status": 200,
+ "body": {
+  "articles": [
+   {
+    "id": "f5a5c8c18f5c",
+    "title": "Archive 12: an earlier world story from euronews",
+    "description": "Background reading number 12 — kept so the feed has a second page.",
+    "url": "https://www.euronews.com/fixture/story-61",
+    "image": "https://images.example.net/fixture/61.jpg",
+    "source": {
+     "id": "euronews",
+     "name": "Euronews",
+     "homepage": "https://www.euronews.com",
+     "country": "EU"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-24T01:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "3eef753502aa",
+    "title": "Archive 13: an earlier world story from bbc-world",
+    "description": "Background reading number 13 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-62",
+    "image": null,
+    "source": {
+     "id": "bbc-world",
+     "name": "BBC World",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-23T21:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "27cdf67c18e2",
+    "title": "Archive 14: an earlier world story from guardian-world",
+    "description": "Background reading number 14 — kept so the feed has a second page.",
+    "url": "https://www.theguardian.com/fixture/story-63",
+    "image": "https://images.example.net/fixture/63.jpg",
+    "source": {
+     "id": "guardian-world",
+     "name": "The Guardian",
+     "homepage": "https://www.theguardian.com",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-23T17:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "16b503fd9507",
+    "title": "Archive 15: an earlier world story from npr-world",
+    "description": "Background reading number 15 — kept so the feed has a second page.",
+    "url": "https://www.npr.org/fixture/story-64",
+    "image": "https://images.example.net/fixture/64.jpg",
+    "source": {
+     "id": "npr-world",
+     "name": "NPR World",
+     "homepage": "https://www.npr.org",
+     "country": "US"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-23T13:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "1bd084f5fb8c",
+    "title": "Archive 16: an earlier business story from bbc-business",
+    "description": "Background reading number 16 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-65",
+    "image": null,
+    "source": {
+     "id": "bbc-business",
+     "name": "BBC Business",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-23T09:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "018993fb0f04",
+    "title": "Archive 17: an earlier business story from cnbc",
+    "description": "Background reading number 17 — kept so the feed has a second page.",
+    "url": "https://www.cnbc.com/fixture/story-66",
+    "image": "https://images.example.net/fixture/66.jpg",
+    "source": {
+     "id": "cnbc",
+     "name": "CNBC",
+     "homepage": "https://www.cnbc.com",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-23T05:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "329344851987",
+    "title": "Archive 18: an earlier technology story from verge",
+    "description": "Background reading number 18 — kept so the feed has a second page.",
+    "url": "https://www.theverge.com/fixture/story-67",
+    "image": "https://images.example.net/fixture/67.jpg",
+    "source": {
+     "id": "verge",
+     "name": "The Verge",
+     "homepage": "https://www.theverge.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-23T01:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "425aa26c143c",
+    "title": "Archive 19: an earlier technology story from ars",
+    "description": "Background reading number 19 — kept so the feed has a second page.",
+    "url": "https://arstechnica.com/fixture/story-68",
+    "image": null,
+    "source": {
+     "id": "ars",
+     "name": "Ars Technica",
+     "homepage": "https://arstechnica.com",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-22T21:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "9165b7bf158f",
+    "title": "Archive 20: an earlier science story from nature",
+    "description": "Background reading number 20 — kept so the feed has a second page.",
+    "url": "https://www.nature.com/fixture/story-69",
+    "image": "https://images.example.net/fixture/69.jpg",
+    "source": {
+     "id": "nature",
+     "name": "Nature",
+     "homepage": "https://www.nature.com",
+     "country": "GB"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-22T17:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "64dda6a3a835",
+    "title": "Archive 21: an earlier sports story from espn",
+    "description": "Background reading number 21 — kept so the feed has a second page.",
+    "url": "https://www.espn.com/fixture/story-70",
+    "image": "https://images.example.net/fixture/70.jpg",
+    "source": {
+     "id": "espn",
+     "name": "ESPN",
+     "homepage": "https://www.espn.com",
+     "country": "US"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-22T13:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "7e5303b873d2",
+    "title": "Archive 22: an earlier culture story from variety",
+    "description": "Background reading number 22 — kept so the feed has a second page.",
+    "url": "https://variety.com/fixture/story-71",
+    "image": null,
+    "source": {
+     "id": "variety",
+     "name": "Variety",
+     "homepage": "https://variety.com",
+     "country": "US"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-22T09:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "b1b18897c442",
+    "title": "Archive 23: an earlier health story from bbc-health",
+    "description": "Background reading number 23 — kept so the feed has a second page.",
+    "url": "https://www.bbc.com/fixture/story-72",
+    "image": "https://images.example.net/fixture/72.jpg",
+    "source": {
+     "id": "bbc-health",
+     "name": "BBC Health",
+     "homepage": "https://www.bbc.com",
+     "country": "GB"
+    },
+    "category": "health",
+    "publishedAt": "2026-09-22T05:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "c42269a675f5",
+    "title": "Archive 24: an earlier world story from euronews",
+    "description": "Background reading number 24 — kept so the feed has a second page.",
+    "url": "https://www.euronews.com/fixture/story-73",
+    "image": "https://images.example.net/fixture/73.jpg",
+    "source": {
+     "id": "euronews",
+     "name": "Euronews",
+     "homepage": "https://www.euronews.com",
+     "country": "EU"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-22T01:00:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   }
+  ],
+  "total": 73,
+  "page": 3,
+  "pageSize": 30,
+  "updatedAt": "2026-09-26T12:00:00.000Z",
+  "latestId": "825452304de0"
+ }
+}

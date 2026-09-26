@@ -1,0 +1,2216 @@
+{
+ "stopwords": [
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "but",
+  "nor",
+  "of",
+  "in",
+  "on",
+  "at",
+  "to",
+  "for",
+  "from",
+  "by",
+  "with",
+  "about",
+  "as",
+  "into",
+  "over",
+  "after",
+  "before",
+  "between",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "been",
+  "being",
+  "has",
+  "have",
+  "had",
+  "do",
+  "does",
+  "did",
+  "will",
+  "would",
+  "can",
+  "could",
+  "may",
+  "might",
+  "must",
+  "shall",
+  "should",
+  "it",
+  "its",
+  "this",
+  "that",
+  "these",
+  "those",
+  "he",
+  "she",
+  "they",
+  "them",
+  "him",
+  "his",
+  "her",
+  "their",
+  "our",
+  "we",
+  "you",
+  "your",
+  "i",
+  "me",
+  "my",
+  "not",
+  "no",
+  "yes",
+  "than",
+  "then",
+  "so",
+  "if",
+  "when",
+  "while",
+  "what",
+  "which",
+  "who",
+  "whom",
+  "how",
+  "where",
+  "why",
+  "all",
+  "any",
+  "both",
+  "each",
+  "more",
+  "most",
+  "other",
+  "some",
+  "such",
+  "only"
+ ],
+ "entityStop": [
+  "the",
+  "a",
+  "an",
+  "and",
+  "of",
+  "in",
+  "on",
+  "at",
+  "to",
+  "for",
+  "with",
+  "by",
+  "from",
+  "as",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "after",
+  "before",
+  "over",
+  "under",
+  "into",
+  "amid",
+  "vs",
+  "new",
+  "his",
+  "her",
+  "their",
+  "this",
+  "that",
+  "these",
+  "those",
+  "it",
+  "its",
+  "he",
+  "she",
+  "they",
+  "we",
+  "you",
+  "why",
+  "how",
+  "what",
+  "when"
+ ],
+ "regex": {
+  "VAGUE_RE": {
+   "source": "\\b(evolv\\w*|continu\\w*|develop\\w*|shap\\w*|remain\\w*|focus\\w*|shift\\w*|attention|momentum|reaction\\w*|discussion\\w*|speculation|scrutiny|tension\\w*|uncertaint\\w*|pressure|ongoing|planned|prowess|amaze\\w*|showcase\\w*|compelling|emerging|impact\\w*|prompt\\w*|prepare\\w*|heighten\\w*|increas\\w*|strategy|condemnation|escalat\\w*|faces|face|sparks|fuels|raises questions|spotlight|boost\\w*|outlook|seen as|potential\\w*|narrative|complexit\\w*|signal\\w*|significant\\w*|commit\\w*|priorit\\w*|amid)\\b",
+   "flags": "gi"
+  },
+  "FUTURE_CUE_RE": {
+   "source": "\\b(will|set to|due|scheduled|expected|to (face|meet|vote|decide|announce|hold|open|close|release|play|host|begin|start|resume|testify|appear|unveil)|monday|tuesday|wednesday|thursday|friday|saturday|sunday|this (week|weekend|month)|next (week|month|year)|tomorrow|tonight|deadline|final\\w*|semi-?final\\w*|opener|vote\\w*|hearing|trial|verdict|sentencing|summit|talks|meeting|election\\w*|launch\\w*|earnings|deal|strike|ceasefire|ruling|referendum|debate|inauguration|kickoff|matchday|playoff\\w*)\\b",
+   "flags": "gi"
+  },
+  "EVENT_RE": {
+   "source": "\\b(vote\\w*|hearing|ruling|verdict|sentenc\\w*|deadline|launch\\w*|report\\w*|earnings|deal|agreement|strike\\w*|landfall|final\\w*|semi-?final\\w*|match|game|opener|derby|election\\w*|summit|meeting|announce\\w*|sign\\w*|release\\w*|ship\\w*|cut\\w*|hike\\w*|hold\\w* rates|ban\\w*|approv\\w*|reject\\w*|fine\\w*|indict\\w*|charge\\w*|arrest\\w*|resign\\w*|appoint\\w*|acquir\\w*|buy\\w*|sell\\w*|ipo|evacuat\\w*|close\\w*|open\\w*|start\\w*|play\\w*|beat\\w*|win\\w*|lose\\w*|return\\w*|test\\w*|unveil\\w*|publish\\w*|ceasefire|sanction\\w*|tariff\\w*)\\b",
+   "flags": "i"
+  },
+  "WHEN_RE": {
+   "source": "\\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|tonight|tomorrow|weekend|\\d{1,2}(st|nd|rd|th)?|\\d+(\\.\\d+)?%|\\$\\d)",
+   "flags": "i"
+  }
+ },
+ "providerLabels": [
+  {
+   "provider": "on-device",
+   "label": "ON-DEVICE AI"
+  },
+  {
+   "provider": "local",
+   "label": "LOCAL DIGEST"
+  },
+  {
+   "provider": "mock",
+   "label": "MOCK"
+  },
+  {
+   "provider": "libretranslate",
+   "label": "LIBRETRANSLATE"
+  },
+  {
+   "provider": "server",
+   "label": "SERVER"
+  }
+ ],
+ "splitSentences": [
+  {
+   "text": "The central bank held interest rates on Wednesday, citing cooling inflation and a softer labour market. Markets had priced in a pause for weeks. Analysts at three large banks now expect a cut in December! The statement dropped a line about \"further tightening\", which traders read as a signal. Mortgage lenders reacted within hours; two cut their fixed rates by a quarter point. Is the housing market turning? Sales rose for a second month (the first back-to-back rise this year). The governor will testify before parliament next Tuesday about the decision. Opposition lawmakers called the pause overdue.",
+   "sentences": [
+    "The central bank held interest rates on Wednesday, citing cooling inflation and a softer labour market.",
+    "Markets had priced in a pause for weeks.",
+    "Analysts at three large banks now expect a cut in December!",
+    "The statement dropped a line about \"further tightening\", which traders read as a signal.",
+    "Mortgage lenders reacted within hours; two cut their fixed rates by a quarter point.",
+    "Is the housing market turning?",
+    "Sales rose for a second month (the first back-to-back rise this year).",
+    "The governor will testify before parliament next Tuesday about the decision.",
+    "Opposition lawmakers called the pause overdue."
+   ]
+  },
+  {
+   "text": "One sentence without end",
+   "sentences": [
+    "One sentence without end"
+   ]
+  },
+  {
+   "text": "Quoted end.\" Next one! And \"another?\" Last…",
+   "sentences": [
+    "Quoted end.\"",
+    "Next one!",
+    "And \"another?\"",
+    "Last…"
+   ]
+  },
+  {
+   "text": "  lots   of   space.   Then more.  ",
+   "sentences": [
+    "lots of space.",
+    "Then more."
+   ]
+  },
+  {
+   "text": "U.S. officials met Mr. Smith at 3 p.m. on Friday. It went well.",
+   "sentences": [
+    "U.",
+    "S.",
+    "officials met Mr.",
+    "Smith at 3 p.",
+    "m.",
+    "on Friday.",
+    "It went well."
+   ]
+  },
+  {
+   "text": "",
+   "sentences": []
+  }
+ ],
+ "extractive": [
+  {
+   "max": 5,
+   "sentences": [
+    "The central bank held interest rates on Wednesday, citing cooling inflation and a softer labour market.",
+    "Markets had priced in a pause for weeks.",
+    "Analysts at three large banks now expect a cut in December!",
+    "The statement dropped a line about \"further tightening\", which traders read as a signal.",
+    "Mortgage lenders reacted within hours; two cut their fixed rates by a quarter point.",
+    "Is the housing market turning?",
+    "Sales rose for a second month (the first back-to-back rise this year).",
+    "The governor will testify before parliament next Tuesday about the decision.",
+    "Opposition lawmakers called the pause overdue."
+   ],
+   "result": [
+    "The central bank held interest rates on Wednesday, citing cooling inflation and a softer labour market.",
+    "Analysts at three large banks now expect a cut in December!",
+    "Mortgage lenders reacted within hours; two cut their fixed rates by a quarter point.",
+    "Sales rose for a second month (the first back-to-back rise this year).",
+    "Opposition lawmakers called the pause overdue."
+   ]
+  },
+  {
+   "max": 3,
+   "sentences": [
+    "The central bank held interest rates on Wednesday, citing cooling inflation and a softer labour market.",
+    "Markets had priced in a pause for weeks.",
+    "Analysts at three large banks now expect a cut in December!",
+    "The statement dropped a line about \"further tightening\", which traders read as a signal.",
+    "Mortgage lenders reacted within hours; two cut their fixed rates by a quarter point.",
+    "Is the housing market turning?",
+    "Sales rose for a second month (the first back-to-back rise this year).",
+    "The governor will testify before parliament next Tuesday about the decision.",
+    "Opposition lawmakers called the pause overdue."
+   ],
+   "result": [
+    "The central bank held interest rates on Wednesday, citing cooling inflation and a softer labour market.",
+    "Mortgage lenders reacted within hours; two cut their fixed rates by a quarter point.",
+    "Sales rose for a second month (the first back-to-back rise this year)."
+   ]
+  },
+  {
+   "max": 5,
+   "sentences": [
+    "Only one.",
+    "Two."
+   ],
+   "result": [
+    "Only one.",
+    "Two."
+   ]
+  },
+  {
+   "max": 2,
+   "sentences": [
+    "Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast.",
+    "The American won a five-set thriller to reach his first Grand Slam final on Sunday.",
+    "Duplicate of the lead story with a different URL.",
+    "The Prompt API leaves its origin trial with a smaller model download.",
+    "The justices agreed to take the case on an expedited schedule, with arguments set for next month.",
+    "The central bank kept its benchmark unchanged and said it wants more evidence on inflation.",
+    "Mediators say a framework for a phased truce is on the table for the first time since spring.",
+    "The strain self-heals cracks in lab tests.",
+    "Markets price a pause at Wednesday’s meeting, with the statement wording in focus.",
+    "The thriller beat projections in its first weekend.",
+    "Unions and the operator traded blame after an overnight session ended without agreement.",
+    "Rivals are expected to respond within days."
+   ],
+   "result": [
+    "Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast.",
+    "The American won a five-set thriller to reach his first Grand Slam final on Sunday."
+   ]
+  }
+ ],
+ "toBullets": [
+  {
+   "summary": "- First point\n- Second point\n\n* Third point\n• Fourth",
+   "max": 7,
+   "bullets": [
+    "First point",
+    "Second point",
+    "Third point",
+    "Fourth"
+   ]
+  },
+  {
+   "summary": "A single paragraph. It has three sentences! Does it split?",
+   "max": 7,
+   "bullets": [
+    "A single paragraph.",
+    "It has three sentences!",
+    "Does it split?"
+   ]
+  },
+  {
+   "summary": "1. Numbered stays\n2. As is",
+   "max": 7,
+   "bullets": [
+    "1. Numbered stays",
+    "2. As is"
+   ]
+  },
+  {
+   "summary": "",
+   "max": 7,
+   "bullets": []
+  },
+  {
+   "summary": "- point 1\n- point 2\n- point 3\n- point 4\n- point 5\n- point 6\n- point 7\n- point 8\n- point 9\n- point 10",
+   "max": 7,
+   "bullets": [
+    "point 1",
+    "point 2",
+    "point 3",
+    "point 4",
+    "point 5",
+    "point 6",
+    "point 7"
+   ]
+  }
+ ],
+ "entityTokens": [
+  {
+   "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+   "tokens": [
+    [
+     "coastal",
+     "Coastal"
+    ],
+    [
+     "storm idris",
+     "Storm Idris"
+    ],
+    [
+     "storm",
+     "Storm"
+    ],
+    [
+     "idris",
+     "Idris"
+    ],
+    [
+     "atlantic",
+     "Atlantic"
+    ]
+   ]
+  },
+  {
+   "title": "Shelton sets up US Open final against Alcaraz",
+   "tokens": [
+    [
+     "shelton",
+     "Shelton"
+    ],
+    [
+     "open",
+     "Open"
+    ],
+    [
+     "alcaraz",
+     "Alcaraz"
+    ]
+   ]
+  },
+  {
+   "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+   "tokens": [
+    [
+     "coastal",
+     "Coastal"
+    ],
+    [
+     "storm idris",
+     "Storm Idris"
+    ],
+    [
+     "storm",
+     "Storm"
+    ],
+    [
+     "idris",
+     "Idris"
+    ],
+    [
+     "atlantic",
+     "Atlantic"
+    ]
+   ]
+  },
+  {
+   "title": "Chrome ships on-device AI to every desktop user",
+   "tokens": [
+    [
+     "chrome",
+     "Chrome"
+    ]
+   ]
+  },
+  {
+   "title": "Supreme Court to hear challenge to sweeping import tariffs",
+   "tokens": [
+    [
+     "supreme court",
+     "Supreme Court"
+    ],
+    [
+     "supreme",
+     "Supreme"
+    ],
+    [
+     "court",
+     "Court"
+    ]
+   ]
+  },
+  {
+   "title": "Federal Reserve holds rates steady, signals patience",
+   "tokens": [
+    [
+     "federal reserve",
+     "Federal Reserve"
+    ],
+    [
+     "federal",
+     "Federal"
+    ],
+    [
+     "reserve",
+     "Reserve"
+    ]
+   ]
+  },
+  {
+   "title": "Ceasefire talks resume in Cairo after week-long pause",
+   "tokens": [
+    [
+     "ceasefire",
+     "Ceasefire"
+    ],
+    [
+     "cairo",
+     "Cairo"
+    ]
+   ]
+  },
+  {
+   "title": "Bacteria found thriving in concrete could cut cement emissions",
+   "tokens": [
+    [
+     "bacteria",
+     "Bacteria"
+    ]
+   ]
+  },
+  {
+   "title": "Federal Reserve expected to hold rates as inflation cools",
+   "tokens": [
+    [
+     "federal reserve",
+     "Federal Reserve"
+    ],
+    [
+     "federal",
+     "Federal"
+    ],
+    [
+     "reserve",
+     "Reserve"
+    ]
+   ]
+  },
+  {
+   "title": "Box office: “Ignition” opens to $48M",
+   "tokens": [
+    [
+     "box",
+     "Box"
+    ],
+    [
+     "ignition",
+     "Ignition"
+    ]
+   ]
+  },
+  {
+   "title": "Rail strike enters third day as talks collapse again",
+   "tokens": [
+    [
+     "rail",
+     "Rail"
+    ]
+   ]
+  },
+  {
+   "title": "Supermarket price war deepens as Tesco cuts 1,000 lines",
+   "tokens": [
+    [
+     "supermarket",
+     "Supermarket"
+    ],
+    [
+     "tesco",
+     "Tesco"
+    ]
+   ]
+  },
+  {
+   "title": "NHS to offer weight-loss jab through GPs from January",
+   "tokens": [
+    [
+     "nhs",
+     "NHS"
+    ],
+    [
+     "gps",
+     "GPs"
+    ],
+    [
+     "january",
+     "January"
+    ]
+   ]
+  },
+  {
+   "title": "Startup Orbis raises $120M to map the ocean floor",
+   "tokens": [
+    [
+     "startup orbis",
+     "Startup Orbis"
+    ],
+    [
+     "startup",
+     "Startup"
+    ],
+    [
+     "orbis",
+     "Orbis"
+    ]
+   ]
+  },
+  {
+   "title": "Berlin coalition agrees on 2027 budget after marathon session",
+   "tokens": [
+    [
+     "berlin",
+     "Berlin"
+    ]
+   ]
+  },
+  {
+   "title": "Europe lead 7-5 going into Solheim Cup singles",
+   "tokens": [
+    [
+     "europe",
+     "Europe"
+    ],
+    [
+     "solheim cup",
+     "Solheim Cup"
+    ],
+    [
+     "solheim",
+     "Solheim"
+    ],
+    [
+     "cup",
+     "Cup"
+    ]
+   ]
+  },
+  {
+   "title": "Paris unveils plan to pedestrianise the Seine embankments",
+   "tokens": [
+    [
+     "paris",
+     "Paris"
+    ],
+    [
+     "seine",
+     "Seine"
+    ]
+   ]
+  },
+  {
+   "title": "Chipmaker Vela posts record quarter on data-centre demand",
+   "tokens": [
+    [
+     "chipmaker vela",
+     "Chipmaker Vela"
+    ],
+    [
+     "chipmaker",
+     "Chipmaker"
+    ],
+    [
+     "vela",
+     "Vela"
+    ]
+   ]
+  },
+  {
+   "title": "Great Barrier Reef survey finds partial recovery after bleaching",
+   "tokens": [
+    [
+     "great barrier",
+     "Great Barrier"
+    ],
+    [
+     "great",
+     "Great"
+    ],
+    [
+     "barrier reef",
+     "Barrier Reef"
+    ],
+    [
+     "barrier",
+     "Barrier"
+    ],
+    [
+     "reef",
+     "Reef"
+    ]
+   ]
+  },
+  {
+   "title": "Linux 7.2 lands with a rewritten scheduler",
+   "tokens": [
+    [
+     "linux",
+     "Linux"
+    ]
+   ]
+  },
+  {
+   "title": "EU ministers back new rules on AI in hiring",
+   "tokens": []
+  },
+  {
+   "title": "Fusion experiment sustains plasma for a record 22 minutes",
+   "tokens": [
+    [
+     "fusion",
+     "Fusion"
+    ]
+   ]
+  },
+  {
+   "title": "Oil slips below $70 as inventories build",
+   "tokens": [
+    [
+     "oil",
+     "Oil"
+    ]
+   ]
+  },
+  {
+   "title": "Wrexham suffer heaviest loss under Reynolds in 6-0 rout",
+   "tokens": [
+    [
+     "wrexham",
+     "Wrexham"
+    ],
+    [
+     "reynolds",
+     "Reynolds"
+    ]
+   ]
+  },
+  {
+   "title": "Northern Sea Route shipping season extended by six weeks",
+   "tokens": [
+    [
+     "northern sea",
+     "Northern Sea"
+    ],
+    [
+     "northern",
+     "Northern"
+    ],
+    [
+     "sea route",
+     "Sea Route"
+    ],
+    [
+     "sea",
+     "Sea"
+    ],
+    [
+     "route",
+     "Route"
+    ]
+   ]
+  },
+  {
+   "title": "Emmys move to a single-night ceremony",
+   "tokens": [
+    [
+     "emmys",
+     "Emmys"
+    ]
+   ]
+  },
+  {
+   "title": "The quiet return of the small web",
+   "tokens": []
+  },
+  {
+   "title": "Hong Kong pilots four-day week for civil servants",
+   "tokens": [
+    [
+     "hong kong",
+     "Hong Kong"
+    ],
+    [
+     "hong",
+     "Hong"
+    ],
+    [
+     "kong",
+     "Kong"
+    ]
+   ]
+  },
+  {
+   "title": "Artemis crew completes final dress rehearsal",
+   "tokens": [
+    [
+     "artemis",
+     "Artemis"
+    ]
+   ]
+  },
+  {
+   "title": "FDA panel backs first oral treatment for migraine prevention",
+   "tokens": [
+    [
+     "fda",
+     "FDA"
+    ]
+   ]
+  },
+  {
+   "title": "The four-day week is spreading to factories",
+   "tokens": []
+  },
+  {
+   "title": "Tokyo commuters face first fare rise in a decade",
+   "tokens": [
+    [
+     "tokyo",
+     "Tokyo"
+    ]
+   ]
+  },
+  {
+   "title": "The 50 best albums of the year so far",
+   "tokens": []
+  },
+  {
+   "title": "Review: the first foldable that survives a pocket",
+   "tokens": [
+    [
+     "review",
+     "Review"
+    ]
+   ]
+  },
+  {
+   "title": "Singapore tightens rules on e-scooter batteries after fires",
+   "tokens": [
+    [
+     "singapore",
+     "Singapore"
+    ]
+   ]
+  },
+  {
+   "title": "Ceasefire talks in Cairo: what each side wants",
+   "tokens": [
+    [
+     "ceasefire",
+     "Ceasefire"
+    ],
+    [
+     "cairo",
+     "Cairo"
+    ]
+   ]
+  },
+  {
+   "title": "Ancient ice core reveals 1.2 million years of climate",
+   "tokens": [
+    [
+     "ancient",
+     "Ancient"
+    ]
+   ]
+  },
+  {
+   "title": "Regulator opens probe into app store fees",
+   "tokens": [
+    [
+     "regulator",
+     "Regulator"
+    ]
+   ]
+  },
+  {
+   "title": "Turner Prize shortlist announced",
+   "tokens": [
+    [
+     "turner prize",
+     "Turner Prize"
+    ],
+    [
+     "turner",
+     "Turner"
+    ],
+    [
+     "prize",
+     "Prize"
+    ]
+   ]
+  },
+  {
+   "title": "Knesset committee advances judicial appointments bill",
+   "tokens": [
+    [
+     "knesset",
+     "Knesset"
+    ]
+   ]
+  },
+  {
+   "title": "Macron's government faces Senate vote on Tuesday",
+   "tokens": [
+    [
+     "macron",
+     "Macron"
+    ],
+    [
+     "senate",
+     "Senate"
+    ],
+    [
+     "tuesday",
+     "Tuesday"
+    ]
+   ]
+  },
+  {
+   "title": "Supreme Court hears Texas case as New York watches",
+   "tokens": [
+    [
+     "supreme court",
+     "Supreme Court"
+    ],
+    [
+     "supreme",
+     "Supreme"
+    ],
+    [
+     "court",
+     "Court"
+    ],
+    [
+     "texas",
+     "Texas"
+    ],
+    [
+     "new york",
+     "New York"
+    ],
+    [
+     "new",
+     "New"
+    ],
+    [
+     "york",
+     "York"
+    ]
+   ]
+  },
+  {
+   "title": "É Ãccented Names and Ümlaut Österreich Talks",
+   "tokens": [
+    [
+     "ãccented names",
+     "Ãccented Names"
+    ],
+    [
+     "ãccented",
+     "Ãccented"
+    ],
+    [
+     "names",
+     "Names"
+    ],
+    [
+     "ümlaut österreich",
+     "Ümlaut Österreich"
+    ],
+    [
+     "ümlaut",
+     "Ümlaut"
+    ],
+    [
+     "österreich talks",
+     "Österreich Talks"
+    ],
+    [
+     "österreich",
+     "Österreich"
+    ],
+    [
+     "talks",
+     "Talks"
+    ]
+   ]
+  },
+  {
+   "title": "日本の首相が訪米",
+   "tokens": []
+  },
+  {
+   "title": "O'Brien and D'Angelo sign with the Wolves",
+   "tokens": [
+    [
+     "o'brien",
+     "O'Brien"
+    ],
+    [
+     "d'angelo",
+     "D'Angelo"
+    ],
+    [
+     "wolves",
+     "Wolves"
+    ]
+   ]
+  },
+  {
+   "title": "the lowercase start Then Capitals Follow",
+   "tokens": [
+    [
+     "capitals follow",
+     "Capitals Follow"
+    ],
+    [
+     "capitals",
+     "Capitals"
+    ],
+    [
+     "follow",
+     "Follow"
+    ]
+   ]
+  }
+ ],
+ "forecastability": [
+  {
+   "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+   "description": "Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast.",
+   "score": 1
+  },
+  {
+   "title": "Shelton sets up US Open final against Alcaraz",
+   "description": "The American won a five-set thriller to reach his first Grand Slam final on Sunday.",
+   "score": 3
+  },
+  {
+   "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+   "description": "Duplicate of the lead story with a different URL.",
+   "score": 0
+  },
+  {
+   "title": "Chrome ships on-device AI to every desktop user",
+   "description": "The Prompt API leaves its origin trial with a smaller model download.",
+   "score": 1
+  },
+  {
+   "title": "Supreme Court to hear challenge to sweeping import tariffs",
+   "description": "The justices agreed to take the case on an expedited schedule, with arguments set for next month.",
+   "score": 1
+  },
+  {
+   "title": "Federal Reserve holds rates steady, signals patience",
+   "description": "The central bank kept its benchmark unchanged and said it wants more evidence on inflation.",
+   "score": 0
+  },
+  {
+   "title": "Ceasefire talks resume in Cairo after week-long pause",
+   "description": "Mediators say a framework for a phased truce is on the table for the first time since spring.",
+   "score": 2
+  },
+  {
+   "title": "Bacteria found thriving in concrete could cut cement emissions",
+   "description": "The strain self-heals cracks in lab tests.",
+   "score": 0
+  },
+  {
+   "title": "Federal Reserve expected to hold rates as inflation cools",
+   "description": "Markets price a pause at Wednesday’s meeting, with the statement wording in focus.",
+   "score": 4
+  },
+  {
+   "title": "Box office: “Ignition” opens to $48M",
+   "description": "The thriller beat projections in its first weekend.",
+   "score": 0
+  },
+  {
+   "title": "Rail strike enters third day as talks collapse again",
+   "description": "Unions and the operator traded blame after an overnight session ended without agreement.",
+   "score": 2
+  },
+  {
+   "title": "Supermarket price war deepens as Tesco cuts 1,000 lines",
+   "description": "Rivals are expected to respond within days.",
+   "score": 1
+  },
+  {
+   "title": "NHS to offer weight-loss jab through GPs from January",
+   "description": "Eligibility starts with the highest-risk patients.",
+   "score": 0
+  },
+  {
+   "title": "Startup Orbis raises $120M to map the ocean floor",
+   "description": "The round values the company at $1.1B.",
+   "score": 0
+  },
+  {
+   "title": "Berlin coalition agrees on 2027 budget after marathon session",
+   "description": "The compromise trims defence growth and keeps the debt brake intact.",
+   "score": 0
+  },
+  {
+   "title": "Europe lead 7-5 going into Solheim Cup singles",
+   "description": "Sunday’s twelve matches decide the trophy.",
+   "score": 1
+  },
+  {
+   "title": "Paris unveils plan to pedestrianise the Seine embankments",
+   "description": "The scheme would close two kilometres of quayside road to cars by 2028.",
+   "score": 0
+  },
+  {
+   "title": "Chipmaker Vela posts record quarter on data-centre demand",
+   "description": "Shares rose 8% after hours on guidance above estimates.",
+   "score": 0
+  },
+  {
+   "title": "Great Barrier Reef survey finds partial recovery after bleaching",
+   "description": "Scientists caution that the gains are fragile going into a warm summer.",
+   "score": 0
+  },
+  {
+   "title": "Linux 7.2 lands with a rewritten scheduler",
+   "description": "Benchmarks show gains on hybrid CPUs.",
+   "score": 0
+  },
+  {
+   "title": "EU ministers back new rules on AI in hiring",
+   "description": "The regulation would require human review of automated rejections.",
+   "score": 0
+  },
+  {
+   "title": "Fusion experiment sustains plasma for a record 22 minutes",
+   "description": "The result edges toward continuous operation.",
+   "score": 0
+  },
+  {
+   "title": "Oil slips below $70 as inventories build",
+   "description": "Analysts see a soft floor unless OPEC+ trims output.",
+   "score": 0
+  },
+  {
+   "title": "Wrexham suffer heaviest loss under Reynolds in 6-0 rout",
+   "description": "West Ham ran riot on Friday night.",
+   "score": 1
+  },
+  {
+   "title": "Northern Sea Route shipping season extended by six weeks",
+   "description": "Ice conditions allowed convoys to run into November for the first time.",
+   "score": 0
+  },
+  {
+   "title": "Emmys move to a single-night ceremony",
+   "description": "The academy says the shorter show will air live in every time zone.",
+   "score": 1
+  },
+  {
+   "title": "The quiet return of the small web",
+   "description": "Personal sites are growing again, and the tools are better than ever.",
+   "score": 0
+  },
+  {
+   "title": "Hong Kong pilots four-day week for civil servants",
+   "description": "The trial covers 3,000 staff across two departments for six months.",
+   "score": 1
+  },
+  {
+   "title": "Artemis crew completes final dress rehearsal",
+   "description": "Launch remains targeted for the spring window.",
+   "score": 2
+  },
+  {
+   "title": "FDA panel backs first oral treatment for migraine prevention",
+   "description": "A decision is due within weeks.",
+   "score": 1
+  },
+  {
+   "title": "The four-day week is spreading to factories",
+   "description": "Manufacturers report lower turnover after pilots in three states.",
+   "score": 0
+  },
+  {
+   "title": "Tokyo commuters face first fare rise in a decade",
+   "description": "The operator cites energy costs and a shrinking ridership base.",
+   "score": 0
+  },
+  {
+   "title": "The 50 best albums of the year so far",
+   "description": "From bedroom pop to big-tent country.",
+   "score": 0
+  },
+  {
+   "title": "Review: the first foldable that survives a pocket",
+   "description": "Durability finally matches the price.",
+   "score": 1
+  },
+  {
+   "title": "Singapore tightens rules on e-scooter batteries after fires",
+   "description": "Only certified packs may be sold from January.",
+   "score": 0
+  },
+  {
+   "title": "Ceasefire talks in Cairo: what each side wants",
+   "description": "A guide to the sticking points as mediators push for a phased truce.",
+   "score": 2
+  },
+  {
+   "title": "Ancient ice core reveals 1.2 million years of climate",
+   "description": "The Antarctic record is the oldest continuous one recovered.",
+   "score": 0
+  },
+  {
+   "title": "Regulator opens probe into app store fees",
+   "description": "Developers welcomed the inquiry; the platform said it would cooperate.",
+   "score": 0
+  },
+  {
+   "title": "Turner Prize shortlist announced",
+   "description": "Four artists compete for the £25,000 award.",
+   "score": 0
+  },
+  {
+   "title": "Knesset committee advances judicial appointments bill",
+   "description": "The vote sends the measure to a first reading next week.",
+   "score": 2
+  }
+ ],
+ "forecastEntities": [
+  {
+   "text": "Coastal towns brace as Storm Idris nears the Atlantic seaboard Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast.",
+   "entities": [
+    "coastal",
+    "storm",
+    "idris",
+    "atlantic",
+    "forecasters",
+    "thursday"
+   ]
+  },
+  {
+   "text": "Shelton sets up US Open final against Alcaraz The American won a five-set thriller to reach his first Grand Slam final on Sunday.",
+   "entities": [
+    "shelton",
+    "open",
+    "alcaraz",
+    "american",
+    "grand",
+    "slam",
+    "sunday"
+   ]
+  },
+  {
+   "text": "Coastal towns brace as Storm Idris nears the Atlantic seaboard Duplicate of the lead story with a different URL.",
+   "entities": [
+    "coastal",
+    "storm",
+    "idris",
+    "atlantic",
+    "duplicate",
+    "url"
+   ]
+  },
+  {
+   "text": "Chrome ships on-device AI to every desktop user The Prompt API leaves its origin trial with a smaller model download.",
+   "entities": [
+    "chrome",
+    "prompt",
+    "api"
+   ]
+  },
+  {
+   "text": "Supreme Court to hear challenge to sweeping import tariffs The justices agreed to take the case on an expedited schedule, with arguments set for next month.",
+   "entities": [
+    "supreme",
+    "court"
+   ]
+  },
+  {
+   "text": "Federal Reserve holds rates steady, signals patience The central bank kept its benchmark unchanged and said it wants more evidence on inflation.",
+   "entities": [
+    "federal",
+    "reserve"
+   ]
+  },
+  {
+   "text": "Ceasefire talks resume in Cairo after week-long pause Mediators say a framework for a phased truce is on the table for the first time since spring.",
+   "entities": [
+    "ceasefire",
+    "cairo",
+    "mediators"
+   ]
+  },
+  {
+   "text": "Bacteria found thriving in concrete could cut cement emissions The strain self-heals cracks in lab tests.",
+   "entities": [
+    "bacteria"
+   ]
+  },
+  {
+   "text": "Federal Reserve expected to hold rates as inflation cools Markets price a pause at Wednesday’s meeting, with the statement wording in focus.",
+   "entities": [
+    "federal",
+    "reserve",
+    "markets",
+    "wednesday"
+   ]
+  },
+  {
+   "text": "Box office: “Ignition” opens to $48M The thriller beat projections in its first weekend.",
+   "entities": [
+    "box",
+    "ignition"
+   ]
+  },
+  {
+   "text": "Rail strike enters third day as talks collapse again Unions and the operator traded blame after an overnight session ended without agreement.",
+   "entities": [
+    "rail",
+    "unions"
+   ]
+  },
+  {
+   "text": "Supermarket price war deepens as Tesco cuts 1,000 lines Rivals are expected to respond within days.",
+   "entities": [
+    "supermarket",
+    "tesco",
+    "000",
+    "rivals"
+   ]
+  },
+  {
+   "text": "NHS to offer weight-loss jab through GPs from January Eligibility starts with the highest-risk patients.",
+   "entities": [
+    "nhs",
+    "gps",
+    "january",
+    "eligibility"
+   ]
+  },
+  {
+   "text": "Startup Orbis raises $120M to map the ocean floor The round values the company at $1.1B.",
+   "entities": [
+    "startup",
+    "orbis"
+   ]
+  },
+  {
+   "text": "Berlin coalition agrees on 2027 budget after marathon session The compromise trims defence growth and keeps the debt brake intact.",
+   "entities": [
+    "berlin",
+    "2027"
+   ]
+  },
+  {
+   "text": "Europe lead 7-5 going into Solheim Cup singles Sunday’s twelve matches decide the trophy.",
+   "entities": [
+    "europe",
+    "solheim",
+    "cup",
+    "sunday"
+   ]
+  },
+  {
+   "text": "Paris unveils plan to pedestrianise the Seine embankments The scheme would close two kilometres of quayside road to cars by 2028.",
+   "entities": [
+    "paris",
+    "seine",
+    "2028"
+   ]
+  },
+  {
+   "text": "Chipmaker Vela posts record quarter on data-centre demand Shares rose 8% after hours on guidance above estimates.",
+   "entities": [
+    "chipmaker",
+    "vela",
+    "shares",
+    "8%"
+   ]
+  },
+  {
+   "text": "Great Barrier Reef survey finds partial recovery after bleaching Scientists caution that the gains are fragile going into a warm summer.",
+   "entities": [
+    "great",
+    "barrier",
+    "reef",
+    "scientists"
+   ]
+  },
+  {
+   "text": "Linux 7.2 lands with a rewritten scheduler Benchmarks show gains on hybrid CPUs.",
+   "entities": [
+    "linux",
+    "7.2",
+    "benchmarks",
+    "cpus"
+   ]
+  },
+  {
+   "text": "Rates rise 2.5% to $33.75M on 12th; 7 of 10 agree — UK’s FTSE 100",
+   "entities": [
+    "rates",
+    "2.5%",
+    "10",
+    "ftse",
+    "100"
+   ]
+  }
+ ],
+ "briefDigest": [
+  {
+   "articles": [
+    {
+     "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+     "description": "Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast.",
+     "source": "BBC World",
+     "publishedAt": "2026-09-26T11:56:00.000Z"
+    },
+    {
+     "title": "Shelton sets up US Open final against Alcaraz",
+     "description": "The American won a five-set thriller to reach his first Grand Slam final on Sunday.",
+     "source": "ESPN",
+     "publishedAt": "2026-09-26T11:55:00.000Z"
+    },
+    {
+     "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+     "description": "Duplicate of the lead story with a different URL.",
+     "source": "BBC World",
+     "publishedAt": "2026-09-26T11:54:00.000Z"
+    },
+    {
+     "title": "Chrome ships on-device AI to every desktop user",
+     "description": "The Prompt API leaves its origin trial with a smaller model download.",
+     "source": "The Verge",
+     "publishedAt": "2026-09-26T11:53:00.000Z"
+    },
+    {
+     "title": "Supreme Court to hear challenge to sweeping import tariffs",
+     "description": "The justices agreed to take the case on an expedited schedule, with arguments set for next month.",
+     "source": "The Guardian",
+     "publishedAt": "2026-09-26T11:51:00.000Z"
+    },
+    {
+     "title": "Federal Reserve holds rates steady, signals patience",
+     "description": "The central bank kept its benchmark unchanged and said it wants more evidence on inflation.",
+     "source": "BBC Business",
+     "publishedAt": "2026-09-26T11:48:00.000Z"
+    },
+    {
+     "title": "Ceasefire talks resume in Cairo after week-long pause",
+     "description": "Mediators say a framework for a phased truce is on the table for the first time since spring.",
+     "source": "Al Jazeera",
+     "publishedAt": "2026-09-26T11:45:00.000Z"
+    },
+    {
+     "title": "Bacteria found thriving in concrete could cut cement emissions",
+     "description": "The strain self-heals cracks in lab tests.",
+     "source": "ScienceDaily",
+     "publishedAt": "2026-09-26T11:42:00.000Z"
+    },
+    {
+     "title": "Federal Reserve expected to hold rates as inflation cools",
+     "description": "Markets price a pause at Wednesday’s meeting, with the statement wording in focus.",
+     "source": "NPR World",
+     "publishedAt": "2026-09-26T11:38:00.000Z"
+    },
+    {
+     "title": "Box office: “Ignition” opens to $48M",
+     "description": "The thriller beat projections in its first weekend.",
+     "source": "Variety",
+     "publishedAt": "2026-09-26T11:32:00.000Z"
+    },
+    {
+     "title": "Rail strike enters third day as talks collapse again",
+     "description": "Unions and the operator traded blame after an overnight session ended without agreement.",
+     "source": "Sky News",
+     "publishedAt": "2026-09-26T11:29:00.000Z"
+    },
+    {
+     "title": "Supermarket price war deepens as Tesco cuts 1,000 lines",
+     "description": "Rivals are expected to respond within days.",
+     "source": "Guardian Business",
+     "publishedAt": "2026-09-26T11:26:00.000Z"
+    },
+    {
+     "title": "NHS to offer weight-loss jab through GPs from January",
+     "description": "Eligibility starts with the highest-risk patients.",
+     "source": "BBC Health",
+     "publishedAt": "2026-09-26T11:24:00.000Z"
+    },
+    {
+     "title": "Startup Orbis raises $120M to map the ocean floor",
+     "description": "The round values the company at $1.1B.",
+     "source": "TechCrunch",
+     "publishedAt": "2026-09-26T11:20:00.000Z"
+    },
+    {
+     "title": "Berlin coalition agrees on 2027 budget after marathon session",
+     "description": "The compromise trims defence growth and keeps the debt brake intact.",
+     "source": "Deutsche Welle",
+     "publishedAt": "2026-09-26T11:13:00.000Z"
+    },
+    {
+     "title": "Europe lead 7-5 going into Solheim Cup singles",
+     "description": "Sunday’s twelve matches decide the trophy.",
+     "source": "BBC Sport",
+     "publishedAt": "2026-09-26T11:10:00.000Z"
+    },
+    {
+     "title": "Paris unveils plan to pedestrianise the Seine embankments",
+     "description": "The scheme would close two kilometres of quayside road to cars by 2028.",
+     "source": "France 24",
+     "publishedAt": "2026-09-26T11:02:00.000Z"
+    },
+    {
+     "title": "Chipmaker Vela posts record quarter on data-centre demand",
+     "description": "Shares rose 8% after hours on guidance above estimates.",
+     "source": "CNBC",
+     "publishedAt": "2026-09-26T10:54:00.000Z"
+    },
+    {
+     "title": "Great Barrier Reef survey finds partial recovery after bleaching",
+     "description": "Scientists caution that the gains are fragile going into a warm summer.",
+     "source": "ABC News (AU)",
+     "publishedAt": "2026-09-26T10:45:00.000Z"
+    },
+    {
+     "title": "Linux 7.2 lands with a rewritten scheduler",
+     "description": "Benchmarks show gains on hybrid CPUs.",
+     "source": "Ars Technica",
+     "publishedAt": "2026-09-26T10:35:00.000Z"
+    }
+   ],
+   "lines": [
+    "Storm Idris: Coastal towns brace as Storm Idris nears the Atlantic seaboard — 2 stories from BBC World",
+    "Federal Reserve holds rates steady, signals patience — 2 stories from BBC Business, NPR World",
+    "Also: Shelton sets up US Open final against Alcaraz (ESPN)",
+    "Also: Chrome ships on-device AI to every desktop user (The Verge)",
+    "Also: Supreme Court to hear challenge to sweeping import tariffs (The Guardian)",
+    "Also: Ceasefire talks resume in Cairo after week-long pause (Al Jazeera)",
+    "Also: Bacteria found thriving in concrete could cut cement emissions (ScienceDaily)"
+   ]
+  },
+  {
+   "articles": [
+    {
+     "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+     "description": "Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast.",
+     "source": "BBC World",
+     "publishedAt": "2026-09-26T11:56:00.000Z"
+    },
+    {
+     "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+     "description": "Duplicate of the lead story with a different URL.",
+     "source": "BBC World",
+     "publishedAt": "2026-09-26T11:54:00.000Z"
+    },
+    {
+     "title": "Supreme Court to hear challenge to sweeping import tariffs",
+     "description": "The justices agreed to take the case on an expedited schedule, with arguments set for next month.",
+     "source": "The Guardian",
+     "publishedAt": "2026-09-26T11:51:00.000Z"
+    },
+    {
+     "title": "Ceasefire talks resume in Cairo after week-long pause",
+     "description": "Mediators say a framework for a phased truce is on the table for the first time since spring.",
+     "source": "Al Jazeera",
+     "publishedAt": "2026-09-26T11:45:00.000Z"
+    },
+    {
+     "title": "Federal Reserve expected to hold rates as inflation cools",
+     "description": "Markets price a pause at Wednesday’s meeting, with the statement wording in focus.",
+     "source": "NPR World",
+     "publishedAt": "2026-09-26T11:38:00.000Z"
+    },
+    {
+     "title": "Rail strike enters third day as talks collapse again",
+     "description": "Unions and the operator traded blame after an overnight session ended without agreement.",
+     "source": "Sky News",
+     "publishedAt": "2026-09-26T11:29:00.000Z"
+    },
+    {
+     "title": "Berlin coalition agrees on 2027 budget after marathon session",
+     "description": "The compromise trims defence growth and keeps the debt brake intact.",
+     "source": "Deutsche Welle",
+     "publishedAt": "2026-09-26T11:13:00.000Z"
+    },
+    {
+     "title": "Paris unveils plan to pedestrianise the Seine embankments",
+     "description": "The scheme would close two kilometres of quayside road to cars by 2028.",
+     "source": "France 24",
+     "publishedAt": "2026-09-26T11:02:00.000Z"
+    },
+    {
+     "title": "Great Barrier Reef survey finds partial recovery after bleaching",
+     "description": "Scientists caution that the gains are fragile going into a warm summer.",
+     "source": "ABC News (AU)",
+     "publishedAt": "2026-09-26T10:45:00.000Z"
+    },
+    {
+     "title": "EU ministers back new rules on AI in hiring",
+     "description": "The regulation would require human review of automated rejections.",
+     "source": "Euronews",
+     "publishedAt": "2026-09-26T10:28:00.000Z"
+    },
+    {
+     "title": "Northern Sea Route shipping season extended by six weeks",
+     "description": "Ice conditions allowed convoys to run into November for the first time.",
+     "source": "TASS",
+     "publishedAt": "2026-09-26T09:50:00.000Z"
+    },
+    {
+     "title": "Hong Kong pilots four-day week for civil servants",
+     "description": "The trial covers 3,000 staff across two departments for six months.",
+     "source": "South China Morning Post",
+     "publishedAt": "2026-09-26T09:20:00.000Z"
+    },
+    {
+     "title": "Tokyo commuters face first fare rise in a decade",
+     "description": "The operator cites energy costs and a shrinking ridership base.",
+     "source": "The Japan Times",
+     "publishedAt": "2026-09-26T08:40:00.000Z"
+    },
+    {
+     "title": "Singapore tightens rules on e-scooter batteries after fires",
+     "description": "Only certified packs may be sold from January.",
+     "source": "The Straits Times",
+     "publishedAt": "2026-09-26T08:00:00.000Z"
+    },
+    {
+     "title": "Ceasefire talks in Cairo: what each side wants",
+     "description": "A guide to the sticking points as mediators push for a phased truce.",
+     "source": "Middle East Eye",
+     "publishedAt": "2026-09-26T07:40:00.000Z"
+    },
+    {
+     "title": "Knesset committee advances judicial appointments bill",
+     "description": "The vote sends the measure to a first reading next week.",
+     "source": "The Times of Israel",
+     "publishedAt": "2026-09-26T07:00:00.000Z"
+    },
+    {
+     "title": "Ceasefire talks resume in Cairo, officials cautiously optimistic",
+     "description": "Israeli officials said the Cairo framework is closer than previous rounds.",
+     "source": "The Jerusalem Post",
+     "publishedAt": "2026-09-26T06:40:00.000Z"
+    },
+    {
+     "title": "Monsoon withdrawal delayed by a week, IMD says",
+     "description": "Farmers in the north are advised to hold sowing until the rains clear.",
+     "source": "Times of India World",
+     "publishedAt": "2026-09-26T05:20:00.000Z"
+    },
+    {
+     "title": "Kenya launches continent’s largest solar-storage plant",
+     "description": "The 300 MW site near Nairobi will power 600,000 homes.",
+     "source": "AllAfrica",
+     "publishedAt": "2026-09-26T03:20:00.000Z"
+    },
+    {
+     "title": "Falklands fishing licences hit record value",
+     "description": "Squid catches drove the season to a new high.",
+     "source": "MercoPress",
+     "publishedAt": "2026-09-26T00:20:00.000Z"
+    }
+   ],
+   "lines": [
+    "Ceasefire talks resume in Cairo after week-long pause — 3 stories from Al Jazeera, Middle East Eye, The Jerusalem Post",
+    "Storm Idris: Coastal towns brace as Storm Idris nears the Atlantic seaboard — 2 stories from BBC World",
+    "Also: Supreme Court to hear challenge to sweeping import tariffs (The Guardian)",
+    "Also: Federal Reserve expected to hold rates as inflation cools (NPR World)",
+    "Also: Rail strike enters third day as talks collapse again (Sky News)",
+    "Also: Berlin coalition agrees on 2027 budget after marathon session (Deutsche Welle)",
+    "Also: Paris unveils plan to pedestrianise the Seine embankments (France 24)"
+   ]
+  },
+  {
+   "articles": [
+    {
+     "title": "Chrome ships on-device AI to every desktop user",
+     "description": "The Prompt API leaves its origin trial with a smaller model download.",
+     "source": "The Verge",
+     "publishedAt": "2026-09-26T11:53:00.000Z"
+    },
+    {
+     "title": "Startup Orbis raises $120M to map the ocean floor",
+     "description": "The round values the company at $1.1B.",
+     "source": "TechCrunch",
+     "publishedAt": "2026-09-26T11:20:00.000Z"
+    },
+    {
+     "title": "Linux 7.2 lands with a rewritten scheduler",
+     "description": "Benchmarks show gains on hybrid CPUs.",
+     "source": "Ars Technica",
+     "publishedAt": "2026-09-26T10:35:00.000Z"
+    },
+    {
+     "title": "The quiet return of the small web",
+     "description": "Personal sites are growing again, and the tools are better than ever.",
+     "source": "Wired",
+     "publishedAt": "2026-09-26T09:30:00.000Z"
+    },
+    {
+     "title": "Review: the first foldable that survives a pocket",
+     "description": "Durability finally matches the price.",
+     "source": "Engadget",
+     "publishedAt": "2026-09-26T08:10:00.000Z"
+    },
+    {
+     "title": "Regulator opens probe into app store fees",
+     "description": "Developers welcomed the inquiry; the platform said it would cooperate.",
+     "source": "BBC Tech",
+     "publishedAt": "2026-09-26T07:20:00.000Z"
+    },
+    {
+     "title": "Show HN: a news reader that runs its AI on your device",
+     "description": "Open source, no accounts, no tracking.",
+     "source": "Hacker News",
+     "publishedAt": "2026-09-26T06:30:00.000Z"
+    },
+    {
+     "title": "Archive 6: an earlier technology story from verge",
+     "description": "Background reading number 6 — kept so the feed has a second page.",
+     "source": "The Verge",
+     "publishedAt": "2026-09-25T01:00:00.000Z"
+    },
+    {
+     "title": "Archive 7: an earlier technology story from ars",
+     "description": "Background reading number 7 — kept so the feed has a second page.",
+     "source": "Ars Technica",
+     "publishedAt": "2026-09-24T21:00:00.000Z"
+    },
+    {
+     "title": "Archive 18: an earlier technology story from verge",
+     "description": "Background reading number 18 — kept so the feed has a second page.",
+     "source": "The Verge",
+     "publishedAt": "2026-09-23T01:00:00.000Z"
+    },
+    {
+     "title": "Archive 19: an earlier technology story from ars",
+     "description": "Background reading number 19 — kept so the feed has a second page.",
+     "source": "Ars Technica",
+     "publishedAt": "2026-09-22T21:00:00.000Z"
+    }
+   ],
+   "lines": [
+    "Archive 6: an earlier technology story from verge — 4 stories from The Verge, Ars Technica",
+    "Also: Chrome ships on-device AI to every desktop user (The Verge)",
+    "Also: Startup Orbis raises $120M to map the ocean floor (TechCrunch)",
+    "Also: Linux 7.2 lands with a rewritten scheduler (Ars Technica)",
+    "Also: The quiet return of the small web (Wired)",
+    "Also: Review: the first foldable that survives a pocket (Engadget)",
+    "Also: Regulator opens probe into app store fees (BBC Tech)"
+   ]
+  },
+  {
+   "articles": [
+    {
+     "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+     "description": "Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast.",
+     "source": "BBC World",
+     "publishedAt": "2026-09-26T11:56:00.000Z"
+    },
+    {
+     "title": "Shelton sets up US Open final against Alcaraz",
+     "description": "The American won a five-set thriller to reach his first Grand Slam final on Sunday.",
+     "source": "ESPN",
+     "publishedAt": "2026-09-26T11:55:00.000Z"
+    },
+    {
+     "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+     "description": "Duplicate of the lead story with a different URL.",
+     "source": "BBC World",
+     "publishedAt": "2026-09-26T11:54:00.000Z"
+    }
+   ],
+   "lines": [
+    "Storm Idris: Coastal towns brace as Storm Idris nears the Atlantic seaboard — 2 stories from BBC World",
+    "Also: Shelton sets up US Open final against Alcaraz (ESPN)"
+   ]
+  },
+  {
+   "articles": [],
+   "lines": []
+  }
+ ],
+ "chunkParagraph": [
+  {
+   "text": "The central bank held interest rates on Wednesday, citing cooling inflation and a softer labour market. Markets had priced in a pause for weeks. Analysts at three large banks now expect a cut in December! The statement dropped a line about \"further tightening\", which traders read as a signal. Mortgage lenders reacted within hours; two cut their fixed rates by a quarter point. Is the housing market turning? Sales rose for a second month (the first back-to-back rise this year). The governor will testify before parliament next Tuesday about the decision. Opposition lawmakers called the pause overdue.",
+   "maxLen": 1000,
+   "chunks": [
+    "The central bank held interest rates on Wednesday, citing cooling inflation and a softer labour market. Markets had priced in a pause for weeks. Analysts at three large banks now expect a cut in December! The statement dropped a line about \"further tightening\", which traders read as a signal. Mortgage lenders reacted within hours; two cut their fixed rates by a quarter point. Is the housing market turning? Sales rose for a second month (the first back-to-back rise this year). The governor will testify before parliament next Tuesday about the decision. Opposition lawmakers called the pause overdue."
+   ]
+  },
+  {
+   "text": "The central bank held interest rates on Wednesday, citing cooling inflation and a softer labour market. Markets had priced in a pause for weeks. Analysts at three large banks now expect a cut in December! The statement dropped a line about \"further tightening\", which traders read as a signal. Mortgage lenders reacted within hours; two cut their fixed rates by a quarter point. Is the housing market turning? Sales rose for a second month (the first back-to-back rise this year). The governor will testify before parliament next Tuesday about the decision. Opposition lawmakers called the pause overdue.",
+   "maxLen": 200,
+   "chunks": [
+    "The central bank held interest rates on Wednesday, citing cooling inflation and a softer labour market. Markets had priced in a pause for weeks.",
+    "Analysts at three large banks now expect a cut in December! The statement dropped a line about \"further tightening\", which traders read as a signal.",
+    "Mortgage lenders reacted within hours; two cut their fixed rates by a quarter point. Is the housing market turning? Sales rose for a second month (the first back-to-back rise this year).",
+    "The governor will testify before parliament next Tuesday about the decision. Opposition lawmakers called the pause overdue."
+   ]
+  },
+  {
+   "text": "The central bank held interest rates on Wednesday, citing cooling inflation and a softer labour market. Markets had priced in a pause for weeks. Analysts at three large banks now expect a cut in December! The statement dropped a line about \"further tightening\", which traders read as a signal. Mortgage lenders reacted within hours; two cut their fixed rates by a quarter point. Is the housing market turning? Sales rose for a second month (the first back-to-back rise this year). The governor will testify before parliament next Tuesday about the decision. Opposition lawmakers called the pause overdue.",
+   "maxLen": 50,
+   "chunks": [
+    "The central bank held interest rates on Wednesday,",
+    "Markets had priced in a pause for weeks.",
+    "Analysts at three large banks now expect a cut in ",
+    "The statement dropped a line about \"further tighte",
+    "Mortgage lenders reacted within hours; two cut the",
+    "Is the housing market turning?",
+    "Sales rose for a second month (the first back-to-b",
+    "The governor will testify before parliament next T",
+    "Opposition lawmakers called the pause overdue."
+   ]
+  },
+  {
+   "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "maxLen": 50,
+   "chunks": [
+    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   ]
+  },
+  {
+   "text": "Short.",
+   "maxLen": 1000,
+   "chunks": [
+    "Short."
+   ]
+  }
+ ],
+ "forecast": {
+  "now": "2026-09-26T12:00:00.000Z",
+  "pool": [
+   {
+    "id": "825452304de0",
+    "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+    "description": "Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast.",
+    "source": "BBC World",
+    "publishedAt": "2026-09-26T11:56:00.000Z"
+   },
+   {
+    "id": "cd5d68db7c99",
+    "title": "Shelton sets up US Open final against Alcaraz",
+    "description": "The American won a five-set thriller to reach his first Grand Slam final on Sunday.",
+    "source": "ESPN",
+    "publishedAt": "2026-09-26T11:55:00.000Z"
+   },
+   {
+    "id": "7a54a5577e2a",
+    "title": "Coastal towns brace as Storm Idris nears the Atlantic seaboard",
+    "description": "Duplicate of the lead story with a different URL.",
+    "source": "BBC World",
+    "publishedAt": "2026-09-26T11:54:00.000Z"
+   },
+   {
+    "id": "1aea45772776",
+    "title": "Chrome ships on-device AI to every desktop user",
+    "description": "The Prompt API leaves its origin trial with a smaller model download.",
+    "source": "The Verge",
+    "publishedAt": "2026-09-26T11:53:00.000Z"
+   },
+   {
+    "id": "b52427f78777",
+    "title": "Supreme Court to hear challenge to sweeping import tariffs",
+    "description": "The justices agreed to take the case on an expedited schedule, with arguments set for next month.",
+    "source": "The Guardian",
+    "publishedAt": "2026-09-26T11:51:00.000Z"
+   },
+   {
+    "id": "810ee85f3aa9",
+    "title": "Federal Reserve holds rates steady, signals patience",
+    "description": "The central bank kept its benchmark unchanged and said it wants more evidence on inflation.",
+    "source": "BBC Business",
+    "publishedAt": "2026-09-26T11:48:00.000Z"
+   },
+   {
+    "id": "62a6341372f2",
+    "title": "Ceasefire talks resume in Cairo after week-long pause",
+    "description": "Mediators say a framework for a phased truce is on the table for the first time since spring.",
+    "source": "Al Jazeera",
+    "publishedAt": "2026-09-26T11:45:00.000Z"
+   },
+   {
+    "id": "1f6200bfa36e",
+    "title": "Bacteria found thriving in concrete could cut cement emissions",
+    "description": "The strain self-heals cracks in lab tests.",
+    "source": "ScienceDaily",
+    "publishedAt": "2026-09-26T11:42:00.000Z"
+   },
+   {
+    "id": "a27c7f657175",
+    "title": "Federal Reserve expected to hold rates as inflation cools",
+    "description": "Markets price a pause at Wednesday’s meeting, with the statement wording in focus.",
+    "source": "NPR World",
+    "publishedAt": "2026-09-26T11:38:00.000Z"
+   },
+   {
+    "id": "fc332954648e",
+    "title": "Box office: “Ignition” opens to $48M",
+    "description": "The thriller beat projections in its first weekend.",
+    "source": "Variety",
+    "publishedAt": "2026-09-26T11:32:00.000Z"
+   },
+   {
+    "id": "15eeca76f28c",
+    "title": "Rail strike enters third day as talks collapse again",
+    "description": "Unions and the operator traded blame after an overnight session ended without agreement.",
+    "source": "Sky News",
+    "publishedAt": "2026-09-26T11:29:00.000Z"
+   },
+   {
+    "id": "7aaea9249b8a",
+    "title": "Supermarket price war deepens as Tesco cuts 1,000 lines",
+    "description": "Rivals are expected to respond within days.",
+    "source": "Guardian Business",
+    "publishedAt": "2026-09-26T11:26:00.000Z"
+   }
+  ],
+  "count": 4,
+  "candidates": 6,
+  "timeframes": {
+   "24h": 24,
+   "48h": 48,
+   "3d": 72,
+   "7d": 168
+  },
+  "maxHeadline": 110,
+  "maxWhy": 320,
+  "minArticles": 5,
+  "outputLangs": [
+   "en",
+   "es",
+   "ja",
+   "de",
+   "fr"
+  ],
+  "languageNames": {
+   "en": "English",
+   "es": "Spanish",
+   "ja": "Japanese",
+   "de": "German",
+   "fr": "French"
+  },
+  "systemPrompt": {
+   "en": "You are a cautious news analyst writing in English. For each story you are given you predict the NEXT event it points to within 7 days — never the story itself.\nRules:\n- A forecast is a future headline: it names the same people, teams, companies, places or figures as the story it builds on, and states one checkable event with who / what / where (a vote, ruling, hearing, deadline, match result, launch, earnings report, announcement, strike, deal, sentencing, price move, landfall).\n- Never copy or paraphrase a headline. If a forecast could be read as a summary of the story, it is wrong.\n- No clichés: \"talks continue\", \"situation evolves\", \"tensions escalate\", \"focus shifts to\", \"reactions follow\", \"events planned\", \"prowess continues\", \"faces pressure\".\n- \"why\": one or two sentences citing the specific fact in the story that points there.\n- 6 forecasts on 6 different stories, spread across the timeframes \"24h\", \"48h\", \"3d\", \"7d\".\n- \"confidence\" is \"low\" unless several stories point the same way; then \"medium\". Never higher.\n- \"basis\" lists the index numbers of the stories each forecast builds on. Headlines under 100 characters. Output JSON only.",
+   "de": "You are a cautious news analyst writing in German. For each story you are given you predict the NEXT event it points to within 7 days — never the story itself.\nRules:\n- A forecast is a future headline: it names the same people, teams, companies, places or figures as the story it builds on, and states one checkable event with who / what / where (a vote, ruling, hearing, deadline, match result, launch, earnings report, announcement, strike, deal, sentencing, price move, landfall).\n- Never copy or paraphrase a headline. If a forecast could be read as a summary of the story, it is wrong.\n- No clichés: \"talks continue\", \"situation evolves\", \"tensions escalate\", \"focus shifts to\", \"reactions follow\", \"events planned\", \"prowess continues\", \"faces pressure\".\n- \"why\": one or two sentences citing the specific fact in the story that points there.\n- 6 forecasts on 6 different stories, spread across the timeframes \"24h\", \"48h\", \"3d\", \"7d\".\n- \"confidence\" is \"low\" unless several stories point the same way; then \"medium\". Never higher.\n- \"basis\" lists the index numbers of the stories each forecast builds on. Headlines under 100 characters. Output JSON only. Write every headline and \"why\" in German, even though the example below is in English.",
+   "ja": "You are a cautious news analyst writing in Japanese. For each story you are given you predict the NEXT event it points to within 7 days — never the story itself.\nRules:\n- A forecast is a future headline: it names the same people, teams, companies, places or figures as the story it builds on, and states one checkable event with who / what / where (a vote, ruling, hearing, deadline, match result, launch, earnings report, announcement, strike, deal, sentencing, price move, landfall).\n- Never copy or paraphrase a headline. If a forecast could be read as a summary of the story, it is wrong.\n- No clichés: \"talks continue\", \"situation evolves\", \"tensions escalate\", \"focus shifts to\", \"reactions follow\", \"events planned\", \"prowess continues\", \"faces pressure\".\n- \"why\": one or two sentences citing the specific fact in the story that points there.\n- 6 forecasts on 6 different stories, spread across the timeframes \"24h\", \"48h\", \"3d\", \"7d\".\n- \"confidence\" is \"low\" unless several stories point the same way; then \"medium\". Never higher.\n- \"basis\" lists the index numbers of the stories each forecast builds on. Headlines under 100 characters. Output JSON only. Write every headline and \"why\" in Japanese, even though the example below is in English."
+  },
+  "exampleUser": "Today is Tue, 09 Sep 2026 10:00:00 GMT. Headlines, newest first (index · source · age · title — description):\n0 · Harbor Sports · 3h ago · Sources: Halden Wolves, Rask agree to $33.75M extension — The Wolves and striker Teo Rask have reached an agreement on a three-year extension ahead of Sunday’s opener against Vardo.\n1 · Meridian Wire · 5h ago · Sable Bank expected to hold rates this week as inflation cools — Markets price a hold at Wednesday’s policy meeting; the statement language is in focus.\n2 · Coast News · 1h ago · Storm Kestrel strengthens as it heads for Port Averly — Forecasters expect landfall on the east coast late Thursday.\n\nReturn exactly 3 forecasts as JSON.",
+  "exampleAssistant": "{\"forecasts\":[{\"headline\":\"Rask starts for the Halden Wolves in Sunday’s opener against Vardo\",\"why\":\"The three-year, $33.75M extension signed this week makes him the lead striker going into the opener.\",\"timeframe\":\"48h\",\"confidence\":\"medium\",\"basis\":[0]},{\"headline\":\"Sable Bank holds rates on Wednesday and hints at a December cut\",\"why\":\"Markets price a hold at this week’s policy meeting, so the statement’s wording is the next move.\",\"timeframe\":\"3d\",\"confidence\":\"medium\",\"basis\":[1]},{\"headline\":\"Port Averly closes schools and offices on Thursday as Kestrel makes landfall\",\"why\":\"Forecasters expect landfall on the east coast late Thursday; closures follow every storm warning.\",\"timeframe\":\"7d\",\"confidence\":\"low\",\"basis\":[2]}]}",
+  "exampleEntities": [
+   "halden",
+   "wolves",
+   "rask",
+   "vardo",
+   "sable bank",
+   "kestrel",
+   "averly"
+  ],
+  "schema12": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "forecasts"
+   ],
+   "properties": {
+    "forecasts": {
+     "type": "array",
+     "minItems": 6,
+     "maxItems": 6,
+     "items": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "headline",
+       "why",
+       "timeframe",
+       "confidence",
+       "basis"
+      ],
+      "properties": {
+       "headline": {
+        "type": "string",
+        "maxLength": 110
+       },
+       "why": {
+        "type": "string",
+        "maxLength": 320
+       },
+       "timeframe": {
+        "type": "string",
+        "enum": [
+         "24h",
+         "48h",
+         "3d",
+         "7d"
+        ]
+       },
+       "confidence": {
+        "type": "string",
+        "enum": [
+         "low",
+         "medium"
+        ]
+       },
+       "basis": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 3,
+        "items": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 11
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "userPrompt": "Today is Sat, 26 Sep 2026 12:00:00 GMT. Headlines, newest first (index · source · age · title — description):\n0 · BBC World · 0h ago · Coastal towns brace as Storm Idris nears the Atlantic seaboard — Forecasters expect landfall on Thursday night; ferries and schools are already closed along the coast.\n1 · ESPN · 0h ago · Shelton sets up US Open final against Alcaraz — The American won a five-set thriller to reach his first Grand Slam final on Sunday.\n2 · BBC World · 0h ago · Coastal towns brace as Storm Idris nears the Atlantic seaboard — Duplicate of the lead story with a different URL.\n3 · The Verge · 0h ago · Chrome ships on-device AI to every desktop user — The Prompt API leaves its origin trial with a smaller model download.\n4 · The Guardian · 0h ago · Supreme Court to hear challenge to sweeping import tariffs — The justices agreed to take the case on an expedited schedule, with arguments set for next month.\n5 · BBC Business · 0h ago · Federal Reserve holds rates steady, signals patience — The central bank kept its benchmark unchanged and said it wants more evidence on inflation.\n6 · Al Jazeera · 0h ago · Ceasefire talks resume in Cairo after week-long pause — Mediators say a framework for a phased truce is on the table for the first time since spring.\n7 · ScienceDaily · 0h ago · Bacteria found thriving in concrete could cut cement emissions — The strain self-heals cracks in lab tests.\n8 · NPR World · 0h ago · Federal Reserve expected to hold rates as inflation cools — Markets price a pause at Wednesday’s meeting, with the statement wording in focus.\n9 · Variety · 0h ago · Box office: “Ignition” opens to $48M — The thriller beat projections in its first weekend.\n10 · Sky News · 1h ago · Rail strike enters third day as talks collapse again — Unions and the operator traded blame after an overnight session ended without agreement.\n11 · Guardian Business · 1h ago · Supermarket price war deepens as Tesco cuts 1,000 lines — Rivals are expected to respond within days.\n\nReturn exactly 6 forecasts as JSON.",
+  "mock": [
+   {
+    "headline": "Follow-up talks announced after this week’s breakthrough",
+    "timeframe": "24h",
+    "confidence": "medium"
+   },
+   {
+    "headline": "Regulators schedule a hearing on the disputed decision",
+    "timeframe": "48h",
+    "confidence": "low"
+   },
+   {
+    "headline": "Rival bid emerges as the deal heads for a shareholder vote",
+    "timeframe": "3d",
+    "confidence": "low"
+   },
+   {
+    "headline": "Weekend deadline passes without a signed agreement",
+    "timeframe": "7d",
+    "confidence": "medium"
+   }
+  ],
+  "sanitize": [
+   {
+    "name": "mixed",
+    "raw": "{\"forecasts\":[{\"headline\":\"Coastal towns brace vote set for Friday after the ruling\",\"why\":\"The story says a decision is due.\",\"timeframe\":\"48h\",\"confidence\":\"medium\",\"basis\":[0]},{\"headline\":\"Shelton sets up US Open final against Alcaraz\",\"why\":\"An echo of the input must be dropped.\",\"timeframe\":\"24h\",\"confidence\":\"low\",\"basis\":[1]},{\"headline\":\"Halden Wolves sign a new striker before the opener\",\"why\":\"Example leak.\",\"timeframe\":\"3d\",\"confidence\":\"low\",\"basis\":[2]},{\"headline\":\"Tensions continue as the situation evolves amid pressure\",\"why\":\"Cliché.\",\"timeframe\":\"7d\",\"confidence\":\"low\",\"basis\":[3]},{\"headline\":\"Supreme Court announces 12% cut on Monday\",\"why\":\"Figures in the story.\",\"timeframe\":\"3d\",\"confidence\":\"high\",\"basis\":[4,4,99]},{\"headline\":\"Federal Reserve faces hearing next week\",\"why\":\"Hearing mentioned.\",\"timeframe\":\"soon\",\"confidence\":\"low\",\"basis\":[5]}]}",
+    "strict": true,
+    "result": [
+     {
+      "headline": "Coastal towns brace vote set for Friday after the ruling",
+      "why": "The story says a decision is due.",
+      "timeframe": "48h",
+      "hours": 48,
+      "dueAt": "2026-09-28T12:00:00.000Z",
+      "confidence": "medium",
+      "basis": [
+       "825452304de0"
+      ]
+     },
+     {
+      "headline": "Supreme Court announces 12% cut on Monday",
+      "why": "Figures in the story.",
+      "timeframe": "3d",
+      "hours": 72,
+      "dueAt": "2026-09-29T12:00:00.000Z",
+      "confidence": "low",
+      "basis": [
+       "b52427f78777"
+      ]
+     },
+     {
+      "headline": "Federal Reserve faces hearing next week",
+      "why": "Hearing mentioned.",
+      "timeframe": "7d",
+      "hours": 168,
+      "dueAt": "2026-10-03T12:00:00.000Z",
+      "confidence": "low",
+      "basis": [
+       "810ee85f3aa9"
+      ]
+     }
+    ]
+   },
+   {
+    "name": "fenced",
+    "raw": "```json\n{\"forecasts\":[{\"headline\":\"Coastal towns brace vote set for Friday after the ruling\",\"why\":\"The story says a decision is due.\",\"timeframe\":\"48h\",\"confidence\":\"medium\",\"basis\":[0]},{\"headline\":\"Shelton sets up US Open final against Alcaraz\",\"why\":\"An echo of the input must be dropped.\",\"timeframe\":\"24h\",\"confidence\":\"low\",\"basis\":[1]},{\"headline\":\"Halden Wolves sign a new striker before the opener\",\"why\":\"Example leak.\",\"timeframe\":\"3d\",\"confidence\":\"low\",\"basis\":[2]},{\"headline\":\"Tensions continue as the situation evolves amid pressure\",\"why\":\"Cliché.\",\"timeframe\":\"7d\",\"confidence\":\"low\",\"basis\":[3]},{\"headline\":\"Supreme Court announces 12% cut on Monday\",\"why\":\"Figures in the story.\",\"timeframe\":\"3d\",\"confidence\":\"high\",\"basis\":[4,4,99]},{\"headline\":\"Federal Reserve faces hearing next week\",\"why\":\"Hearing mentioned.\",\"timeframe\":\"soon\",\"confidence\":\"low\",\"basis\":[5]}]}\n```",
+    "strict": true,
+    "result": [
+     {
+      "headline": "Coastal towns brace vote set for Friday after the ruling",
+      "why": "The story says a decision is due.",
+      "timeframe": "48h",
+      "hours": 48,
+      "dueAt": "2026-09-28T12:00:00.000Z",
+      "confidence": "medium",
+      "basis": [
+       "825452304de0"
+      ]
+     },
+     {
+      "headline": "Supreme Court announces 12% cut on Monday",
+      "why": "Figures in the story.",
+      "timeframe": "3d",
+      "hours": 72,
+      "dueAt": "2026-09-29T12:00:00.000Z",
+      "confidence": "low",
+      "basis": [
+       "b52427f78777"
+      ]
+     },
+     {
+      "headline": "Federal Reserve faces hearing next week",
+      "why": "Hearing mentioned.",
+      "timeframe": "7d",
+      "hours": 168,
+      "dueAt": "2026-10-03T12:00:00.000Z",
+      "confidence": "low",
+      "basis": [
+       "810ee85f3aa9"
+      ]
+     }
+    ]
+   },
+   {
+    "name": "bare-array",
+    "raw": "[{\"headline\":\"Coastal towns brace vote set for Friday after the ruling\",\"why\":\"The story says a decision is due.\",\"timeframe\":\"48h\",\"confidence\":\"medium\",\"basis\":[0]},{\"headline\":\"Shelton sets up US Open final against Alcaraz\",\"why\":\"An echo of the input must be dropped.\",\"timeframe\":\"24h\",\"confidence\":\"low\",\"basis\":[1]},{\"headline\":\"Halden Wolves sign a new striker before the opener\",\"why\":\"Example leak.\",\"timeframe\":\"3d\",\"confidence\":\"low\",\"basis\":[2]},{\"headline\":\"Tensions continue as the situation evolves amid pressure\",\"why\":\"Cliché.\",\"timeframe\":\"7d\",\"confidence\":\"low\",\"basis\":[3]},{\"headline\":\"Supreme Court announces 12% cut on Monday\",\"why\":\"Figures in the story.\",\"timeframe\":\"3d\",\"confidence\":\"high\",\"basis\":[4,4,99]},{\"headline\":\"Federal Reserve faces hearing next week\",\"why\":\"Hearing mentioned.\",\"timeframe\":\"soon\",\"confidence\":\"low\",\"basis\":[5]}]",
+    "strict": true,
+    "result": [
+     {
+      "headline": "Coastal towns brace vote set for Friday after the ruling",
+      "why": "The story says a decision is due.",
+      "timeframe": "48h",
+      "hours": 48,
+      "dueAt": "2026-09-28T12:00:00.000Z",
+      "confidence": "medium",
+      "basis": [
+       "825452304de0"
+      ]
+     },
+     {
+      "headline": "Supreme Court announces 12% cut on Monday",
+      "why": "Figures in the story.",
+      "timeframe": "3d",
+      "hours": 72,
+      "dueAt": "2026-09-29T12:00:00.000Z",
+      "confidence": "low",
+      "basis": [
+       "b52427f78777"
+      ]
+     },
+     {
+      "headline": "Federal Reserve faces hearing next week",
+      "why": "Hearing mentioned.",
+      "timeframe": "7d",
+      "hours": 168,
+      "dueAt": "2026-10-03T12:00:00.000Z",
+      "confidence": "low",
+      "basis": [
+       "810ee85f3aa9"
+      ]
+     }
+    ]
+   },
+   {
+    "name": "broken-json",
+    "raw": "{\"forecasts\": [",
+    "strict": true,
+    "error": "forecast.error"
+   },
+   {
+    "name": "not-a-list",
+    "raw": "{\"foo\": 1}",
+    "strict": true,
+    "error": "forecast.error"
+   },
+   {
+    "name": "all-echoes",
+    "raw": "{\"forecasts\":[{\"headline\":\"Coastal towns brace as Storm Idris nears the Atlantic seaboard\",\"why\":\"x\",\"timeframe\":\"24h\",\"confidence\":\"low\",\"basis\":[0]},{\"headline\":\"Shelton sets up US Open final against Alcaraz\",\"why\":\"x\",\"timeframe\":\"24h\",\"confidence\":\"low\",\"basis\":[1]},{\"headline\":\"Coastal towns brace as Storm Idris nears the Atlantic seaboard\",\"why\":\"x\",\"timeframe\":\"24h\",\"confidence\":\"low\",\"basis\":[2]},{\"headline\":\"Chrome ships on-device AI to every desktop user\",\"why\":\"x\",\"timeframe\":\"24h\",\"confidence\":\"low\",\"basis\":[3]},{\"headline\":\"Supreme Court to hear challenge to sweeping import tariffs\",\"why\":\"x\",\"timeframe\":\"24h\",\"confidence\":\"low\",\"basis\":[4]},{\"headline\":\"Federal Reserve holds rates steady, signals patience\",\"why\":\"x\",\"timeframe\":\"24h\",\"confidence\":\"low\",\"basis\":[5]}]}",
+    "strict": true,
+    "error": "forecast.abstract"
+   },
+   {
+    "name": "one-good",
+    "raw": "{\"forecasts\":[{\"headline\":\"Coastal towns brace vote set for Friday after the ruling\",\"why\":\"The story says a decision is due.\",\"timeframe\":\"48h\",\"confidence\":\"medium\",\"basis\":[0]}]}",
+    "strict": true,
+    "error": "forecast.tooFew"
+   },
+   {
+    "name": "mock-non-strict",
+    "raw": "{\"forecasts\":[{\"headline\":\"Follow-up talks announced after this week’s breakthrough\",\"timeframe\":\"24h\",\"confidence\":\"medium\",\"why\":\"Mock reasoning\",\"basis\":[0]},{\"headline\":\"Regulators schedule a hearing on the disputed decision\",\"timeframe\":\"48h\",\"confidence\":\"low\",\"why\":\"Mock reasoning\",\"basis\":[1]},{\"headline\":\"Rival bid emerges as the deal heads for a shareholder vote\",\"timeframe\":\"3d\",\"confidence\":\"low\",\"why\":\"Mock reasoning\",\"basis\":[2]},{\"headline\":\"Weekend deadline passes without a signed agreement\",\"timeframe\":\"7d\",\"confidence\":\"medium\",\"why\":\"Mock reasoning\",\"basis\":[3]}]}",
+    "strict": false,
+    "result": [
+     {
+      "headline": "Follow-up talks announced after this week’s breakthrough",
+      "why": "Mock reasoning",
+      "timeframe": "24h",
+      "hours": 24,
+      "dueAt": "2026-09-27T12:00:00.000Z",
+      "confidence": "medium",
+      "basis": [
+       "825452304de0"
+      ]
+     },
+     {
+      "headline": "Regulators schedule a hearing on the disputed decision",
+      "why": "Mock reasoning",
+      "timeframe": "48h",
+      "hours": 48,
+      "dueAt": "2026-09-28T12:00:00.000Z",
+      "confidence": "low",
+      "basis": [
+       "cd5d68db7c99"
+      ]
+     },
+     {
+      "headline": "Rival bid emerges as the deal heads for a shareholder vote",
+      "why": "Mock reasoning",
+      "timeframe": "3d",
+      "hours": 72,
+      "dueAt": "2026-09-29T12:00:00.000Z",
+      "confidence": "low",
+      "basis": [
+       "7a54a5577e2a"
+      ]
+     },
+     {
+      "headline": "Weekend deadline passes without a signed agreement",
+      "why": "Mock reasoning",
+      "timeframe": "7d",
+      "hours": 168,
+      "dueAt": "2026-10-03T12:00:00.000Z",
+      "confidence": "medium",
+      "basis": [
+       "1aea45772776"
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}
