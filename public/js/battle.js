@@ -16,6 +16,7 @@ import { relTime } from './time.js';
 import { summarize, translateTexts, toBullets } from './ai.js';
 import { initHoverTip } from './tooltip.js';
 import { buildFlag, countryOf, countryName } from './country.js';
+import { contrastRows as contrastAnalysis } from './battle-brief.js';
 
 const TOPIC_BAND = 44;        // reserved height for the topic label
 const CLUSTER_GAP = 84;       // clearance between clusters
@@ -658,78 +659,14 @@ export function initBattle(options = {}) {
     requestAnimationFrame(() => briefEl.classList.add('is-ready'));
   }
 
-  // Stance detection: the difference that matters is the ATTITUDE — who
-  // attacks the story's subject and who cheers it. Verb/noun lexicons of
-  // hostile vs approving headline language score each side's tone; the
-  // verdict is backed by that side's most polarized headline as evidence.
-  const STANCE_NEG = /\b(slams?|blasts?|rips?|attacks?|fail(?:s|ure|ures)?|dangerous|scandal|crisis|chaos|threats?|disaster|corrupt(?:ion)?|lies?|expos\w+|betray\w*|collaps\w+|worst|warns?|accus\w+|destroy\w*|fears?|blames?|mocks?|fraud|revisionism|problem|debacle|meltdown|dodge\w*|desperate|refus\w+|denies|deny)\b/i;
-  const STANCE_POS = /\b(wins?|won|supports?|backs?|defends?|prais\w+|boosts?|leads?|victory|success|celebrat\w+|flex\w*|triumph\w*|vows?|cheers?|surg\w+|stronger?|record|welcomes?|endors\w+|rall\w+)\b/i;
-
-  function stanceOf(articles) {
-    let score = 0;
-    let evidence = null;
-    let best = 0;
-    for (const a of articles) {
-      let v = 0;
-      if (STANCE_NEG.test(a.title)) v -= 1;
-      if (STANCE_POS.test(a.title)) v += 1;
-      score += v;
-      if (v !== 0 && Math.abs(v) >= Math.abs(best)) {
-        best = v;
-        evidence = a.title;
-      }
-    }
-    return { score, evidence };
-  }
-
-  // Deterministic contrast analysis: what does each side say that the
-  // others DON'T. Tokens (words + capitalized phrases) unique to a lean's
-  // headlines are its distinctive framing — that difference is the row.
-  const CONTRAST_STOP = new Set(
-    ('the a an and or but for with from into over under after before because ' +
-      'says said would could should about their there these those than that this ' +
-      'have has been will more most some what when where which while news update ' +
-      'live breaking report video watch amid').split(' ')
-  );
-
-  function contrastTokens(title) {
-    const words = String(title).split(/[^A-Za-z0-9’']+/).filter(Boolean);
-    const out = new Map(); // lower → display
-    for (let i = 0; i < words.length; i += 1) {
-      const w = words[i];
-      const lower = w.toLowerCase();
-      if (lower.length < 4 || CONTRAST_STOP.has(lower)) continue;
-      const next = words[i + 1];
-      if (/^[A-Z]/.test(w) && next && /^[A-Z]/.test(next)) {
-        out.set(lower + ' ' + next.toLowerCase(), w + ' ' + next);
-      }
-      out.set(lower, /^[A-Z]/.test(w) ? w : lower);
-    }
-    return out;
-  }
-
+  // The deterministic contrast (battle-brief.js): each lean's stance with
+  // its receipt, worded in the reader's UI language here.
   function contrastRows(cluster) {
-    const byLean = {};
-    for (const a of cluster.battle.articles) {
-      const slot = (byLean[a.lean] ??= { articles: [], sources: new Set() });
-      slot.articles.push(a);
-      slot.sources.add(a.source?.name || '');
-    }
     const who = cluster.battle.topic[0] || '';
-    return ['left', 'center', 'right']
-      .filter((l) => byLean[l])
-      .map((lean) => {
-        const { score, evidence } = stanceOf(byLean[lean].articles);
-        const stance = score < 0 ? 'critical' : score > 0 ? 'supportive' : 'neutral';
-        return {
-          lean,
-          source: [...byLean[lean].sources].slice(0, 2).join(', '),
-          stance,
-          stanceText: t('battle.' + stance, { who }),
-          // the receipt: that side's most polarized headline, verbatim
-          evidence,
-        };
-      });
+    return contrastAnalysis(cluster.battle).map((row) => ({
+      ...row,
+      stanceText: t('battle.' + row.stance, { who }),
+    }));
   }
 
   async function translateCluster(cluster) {

@@ -129,13 +129,19 @@ public struct Summarizer: Sendable {
     public var article: @Sendable (_ title: String, _ text: String, _ targetLang: String) async -> SummaryResult
     /// The BRIEF of the stories in view (`topic`: the category's name, "" for all).
     public var brief: @Sendable (_ items: [DigestItem], _ topic: String, _ targetLang: String) async -> SummaryResult
+    /// HOW COVERAGE DIFFERS in a Bubble Battle cluster (web `runClusterBrief`): the headlines carry
+    /// their outlet's lean ("LEFT: …"). Its local rung is empty — the caller shows the deterministic
+    /// contrast (`BattleBrief.contrastRows`) instead.
+    public var contrast: @Sendable (_ items: [DigestItem], _ topic: String, _ targetLang: String) async -> SummaryResult
 
     public init(
         article: @escaping @Sendable (_ title: String, _ text: String, _ targetLang: String) async -> SummaryResult,
-        brief: @escaping @Sendable (_ items: [DigestItem], _ topic: String, _ targetLang: String) async -> SummaryResult
+        brief: @escaping @Sendable (_ items: [DigestItem], _ topic: String, _ targetLang: String) async -> SummaryResult,
+        contrast: @escaping @Sendable (_ items: [DigestItem], _ topic: String, _ targetLang: String) async -> SummaryResult
     ) {
         self.article = article
         self.brief = brief
+        self.contrast = contrast
     }
 }
 
@@ -168,6 +174,15 @@ public extension Summarizer {
                 let headlines = items.prefix(30).map { SummarizeRequest.Headline(title: $0.title, description: $0.description, source: $0.source) }
                 if let result = await server(.brief(Array(headlines), targetLang: targetLang)) { return result }
                 return SummaryResult(summary: LocalDigest.brief(items).joined(separator: "\n"), provider: "local")
+            },
+            contrast: { items, topic, targetLang in
+                let corpus = items.map { "\($0.title) \u{2014} \($0.description) (\($0.source))" }.joined(separator: "\n")
+                let task = "You compare how news outlets on the left, in the center and on the right cover the same story (\(topic)). "
+                    + "Each headline starts with its outlet's lean. Write 3 key points on how their coverage DIFFERS"
+                if let result = await model(task, corpus: corpus, targetLang: targetLang) { return result }
+                let headlines = items.prefix(30).map { SummarizeRequest.Headline(title: $0.title, description: $0.description, source: $0.source) }
+                if let result = await server(.brief(Array(headlines), targetLang: targetLang)) { return result }
+                return SummaryResult(summary: "", provider: "local")
             }
         )
     }

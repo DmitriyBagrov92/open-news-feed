@@ -309,6 +309,12 @@ targets:
       - target: CoreModels
       - target: TestSupport
 
+  BattleFeatureTests:
+    templates: [UnitTests]
+    dependencies:
+      - target: BattleFeature
+      - target: CoreModels
+
   AppFeatureTests:
     templates: [UnitTests]
     dependencies:
@@ -325,6 +331,7 @@ targets:
       - target: FeedFeature
       - target: StoryFeature
       - target: YourFeedFeature
+      - target: BattleFeature
       - target: ArticleKit
       - target: DesignSystem
       - target: CoreModels
@@ -399,6 +406,7 @@ schemes:
         DesignSystemTests: [test]
         ArticleKitTests: [test]
         StoryFeatureTests: [test]
+        BattleFeatureTests: [test]
         AppFeatureTests: [test]
     test:
       gatherCoverageData: true
@@ -410,6 +418,7 @@ schemes:
         - DesignSystemTests
         - ArticleKitTests
         - StoryFeatureTests
+        - BattleFeatureTests
         - AppFeatureTests
 
   Meridian-Integration:

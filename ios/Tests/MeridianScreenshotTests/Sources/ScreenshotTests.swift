@@ -163,6 +163,23 @@ final class ScreenshotTests: XCTestCase {
         shoot(ranked, "\(device)-\(appearance)-yourfeed-2-ranked")
     }
 
+    func testBattleLight() throws { try captureBattle(appearance: "light") }
+
+    func testBattleDark() throws { try captureBattle(appearance: "dark") }
+
+    /// Bubble Battle: the arena on iPad, the lanes on iPhone, once the briefs are in.
+    private func captureBattle(appearance: String) throws {
+        try XCTSkipIf(live, "the fixture newsroom")
+        let device = isPad ? "ipad" : "iphone"
+        let app = fixtureApp(appearance, ["INITIAL_ROUTE": "battle"])
+        _ = app.descendants(matching: .any).matching(identifier: "battle-brief").firstMatch.waitForExistence(timeout: 30)
+        pause(3)
+        shoot(app, "\(device)-\(appearance)-battle-1-top")
+        app.swipeUp(velocity: .slow)
+        pause(2.5)
+        shoot(app, "\(device)-\(appearance)-battle-2-scrolled")
+    }
+
     func testAheadLight() throws { try captureAhead(appearance: "light") }
 
     func testAheadDark() throws { try captureAhead(appearance: "dark") }

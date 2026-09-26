@@ -33,6 +33,7 @@ const { hashHue } = await web('cards.js');
 const { registerSources, countryOf, countryName } = await web('country.js');
 const ai = await web('ai.js');
 const { applyRating, pickOnboardingCandidates, rankForYou } = await web('recommend.js');
+const { stanceOf, contrastRows } = await web('battle-brief.js');
 const { STRINGS_EN, LANGUAGES } = await web('i18n.js');
 const { RSS_SOURCES, API_SOURCES, CATEGORIES } = await import(pathToFileURL(path.join(ROOT, 'config/sources.js')).href);
 
@@ -304,6 +305,47 @@ function recommendVectors() {
   return { now: iso(NOW), pool, ratings: trace, onboarding, ranking };
 }
 
+// ── battle-brief.js ──────────────────────────────────────────────────────────
+
+// Inputs: the battles the fixture server serves (captured by capture-fixtures.mjs) and
+// headlines that hit every lexicon form, plus the edges of a non-`u` regex: ASCII word
+// boundaries (an accented letter is not a word character), case, apostrophes, suffixes.
+const STANCE_TITLES = [
+  'Senate slams plan', 'Critic slam', 'Mayor blasts council', 'Blast from rivals', 'Union rips deal', 'Rip into it',
+  'Rebels attack convoy', 'Troll attacks', 'Banks fail tests', 'Reform fails', 'Grid failure', 'Many failures',
+  'A dangerous game', 'Budget scandal', 'Housing crisis', 'Airport chaos', 'New threat', 'Threats mount',
+  'Flood disaster', 'Corrupt officials', 'Corruption trial', 'Big lie', 'Lies and more', 'Report exposes ring',
+  'Exposé lands', 'Allies betray', 'Betrayal claims', 'Talks collapse', 'Bridge collapsed', 'Worst week',
+  'Experts warn', 'Agency warns', 'Minister accused', 'She accuses him', 'Storm destroyed homes', 'Fear grows',
+  'Fears rise', 'Blame game', 'Rival blames aide', 'Late shows mock', 'Crowd mocks', 'Tax fraud',
+  'Historical revisionism', 'A problem', 'Launch debacle', 'Market meltdown', 'Senator dodges', 'Desperate move',
+  'Court refuses', 'Firm refused', 'Kremlin denies', 'Deny everything',
+  'Team wins', 'Big win', 'Party won', 'Crowd supports', 'Support grows', 'Union backs bill', 'Back the plan',
+  'Coach defends pick', 'Defend it', 'Critics praise film', 'Praised widely', 'Rate cut boosts shares', 'A boost',
+  'Poll leads', 'She leads race', 'Victory lap', 'Success story', 'Fans celebrate', 'Celebrated author',
+  'Flexes muscles', 'Flex on rivals', 'Triumphant return', 'Triumph for all', 'Leader vows reform', 'A vow',
+  'Crowd cheers', 'Cheer squad', 'Shares surge', 'Sales surged', 'Strong jobs data', 'Stronger dollar',
+  'Record high', 'City welcomes team', 'Welcome back', 'Paper endorses', 'Endorsed by union', 'Rally in capital',
+  'Stocks rallied',
+  'SENATE SLAMS PLAN', 'Slamdance opens', 'A winsome debut', 'Backstage pass', 'Leadership race', 'Problematic',
+  'Records tumble', 'He won\'t go', 'Clichéwins the day', 'Naïve backs', 'Senate slams plan as team wins',
+  'slams, wins, backs', 'Ex-rival slams—and wins', '', 'Nothing to see here',
+];
+
+function battleVectors(captured) {
+  const titles = [...captured.flatMap((b) => b.articles.map((a) => a.title)), ...STANCE_TITLES];
+  const stance = [
+    ...titles.map((title) => ({ titles: [title], ...stanceOf([{ title }]) })),
+    ...captured.map((b) => ({ titles: b.articles.map((a) => a.title), ...stanceOf(b.articles) })),
+    ...[[0, 6], [6, 12], [52, 58], [40, 60]].map(([from, to]) => {
+      const list = STANCE_TITLES.slice(from, to);
+      return { titles: list, ...stanceOf(list.map((title) => ({ title }))) };
+    }),
+  ];
+  const rows = captured.map((b) => ({ id: b.id, rows: contrastRows(b) }));
+  return { stance, rows };
+}
+
 // ── prefs.js sanitize (the module reads storage at import: cache-bust per case)
 
 async function prefsVectors() {
@@ -386,6 +428,9 @@ const files = {
   'ai.json': aiVectors(),
   'recommend.json': recommendVectors(),
   'prefs.json': await prefsVectors(),
+  'battle.json': battleVectors(
+    JSON.parse(await readFile(path.join(ROOT, 'ios/Tests/Fixtures/api/battles.json'), 'utf8')).body.battles
+  ),
   'strings.json': stringVectors(),
 };
 

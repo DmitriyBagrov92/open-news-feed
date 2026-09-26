@@ -39,7 +39,7 @@ Generated data (commit the outputs; the gate fails on drift):
 | CoreModels | Codable wire types (tolerant decoding), `Timestamp` (epoch ms like `Date.parse`), `RelativeTime`, `SourceHue`, `Provenance` + `CountryNames`, `L10n.t(key, vars)`, `Preferences`, `TasteProfile`, JS-compat helpers (`stableSorted`) |
 | Networking | API client, `APIError`, request budget, Keychain author id, reachability |
 | Persistence | `PreferencesStore`, SwiftData library (saved + onboarding likes; each keeps its extracted text so it reads offline — never fetched with the list) |
-| Intelligence | `Translator` / `Summarizer` ladders (on-device → server → local), `LanguageModelClient` (the on-device model as a dependency), `Forecaster` + `ForecastKit` (ai.js forecast: prompts, pool order, sanitizer), `TasteEngine` (recommend.js), local ports (brief digest, extractive) — no Apple AI imports |
+| Intelligence | `Translator` / `Summarizer` ladders (on-device → server → local; `contrast` for Battle), `LanguageModelClient` (the on-device model as a dependency), `Forecaster` + `ForecastKit` (ai.js forecast: prompts, pool order, sanitizer), `TasteEngine` (recommend.js), `BattleBrief` (battle-brief.js), local ports (brief digest, extractive) — no Apple AI imports |
 | AppleAI | the only importer of FoundationModels + Translation: `LanguageModelClient.apple()` (+ `ModelGate`), `OnDeviceTranslation.apple(broker:)`, `TranslationHost` |
 | DesignSystem | tokens, glass components, image pipeline, flags, avatars, ambient background |
 | ArticleKit | `ArticleStateStore`, cards, `FeedLayout`, swipe, `StoryRoute` / `openStory` / `storyList`, `ExtractionCache` (the session's extractions, shared by the story view and saving) |
@@ -88,7 +88,8 @@ answers summaries with "On-device: …" lines, `slow` the same after 1.5 s, `ref
 brief is the local digest, the fixture server's summarize answers 501), `FORCE_NO_AI=1` (no model even
 with `FAKE_MODEL`). `INITIAL_ROUTE=ahead` opens Today's forecast once the feed is in; `yourFeed` opens Your
 Feed (the onboarding deck on a fresh profile; seed `{"taste":{"count":5,…}}` for the ranked feed — the
-taste maps encode as `[key, value, …]` arrays).
+taste maps encode as `[key, value, …]` arrays); `battle` opens Bubble Battle (the arena on iPad, lanes on
+iPhone; fixture cluster `36fe6a64a99a` "Supreme Court": left The Guardian `b52427f78777` …).
 Fixture stories: the hero `825452304de0` is story-a (rich blocks), `b52427f78777` story-b (paragraphs),
 `15eeca76f28c` story-c (paywall stub); every other extraction fails with 422 (the note). Story-a carries
 the three captured comments (`cc…01` is the reader's own — the reader is the fixtures' "amber" author,
@@ -102,7 +103,8 @@ translate,open}`, `chip-<category>`, `new-stories-pill`, `offline-banner`, `time
 `comments`, `comments-{compose,sort,total,empty,more,rules}`, `comment-<id>` (+ `-menu`, `-up`,
 `-down`, `-body`), the composer sheet `comments-{input,post,cancel}`, the rules `rules`, `rules-agree`;
 the brief `brief` (+ `brief-toggle`); Your Feed: `onboard`, `onboard-card`, `onboard-progress` ("n / 5"),
-`onboard-{like,skip,empty}`, `tune-more`; Ahead: `forecast-open` (✦), the sheet `forecast`,
+`onboard-{like,skip,empty}`, `tune-more`; Battle: `battle-legend`, `battle-brief`, `battle-<battleID>` (a lane
+section), `battle-arena`, `battle-lanes`, `battle-empty`, tiles `bubble-<articleID>`; Ahead: `forecast-open` (✦), the sheet `forecast`,
 `forecast-{close,regenerate,status,badge,note,retry}`, cards `fcard` (+ `fcard-title`, `fcard-why`,
 `fcard-basis-<articleID>`);
 toasts `toast` (match the text on the label — `toast(app, text)`). Pages of the pager coexist: scope
@@ -137,6 +139,12 @@ end thinking states that wait off screen.
   unavailability hides ✦. `ModelGate` serialises generations and refuses in the background.
 - The brief runs itself like the web's (300 ms after a load, 800 ms after new stories, 400 ms after
   a language change, 0 for ↻, 2 s after coming back to a screen it skipped while away).
+- Bubble Battle's arena (regular width, motion allowed) is a small position-based Verlet solver
+  (`BattlePhysics`, unit-tested: no overlaps, sleeps, drag, fights) instead of the web's Matter.js;
+  tiles are axis-aligned rounded squares. Rest is judged over a 30-step window (contacts and springs
+  trade a tenth of a point forever); a resting contact must not bounce (restitution only above
+  1 pt/step) or the cluster never settles. The display link runs only while a mounted cluster is
+  awake. Phones and Reduce Motion get the lanes instead of the arena.
 - `tabViewBottomAccessory(isEnabled:content:)` is iOS 26.1 (plain variant 26.0 shows on every tab).
 - `OpenURLAction.Result.systemAction(_:prefersInApp:)` (26.0) opens links in the in-app browser.
 - `TranslationSession(installedSource:target:)` (26.0) works outside SwiftUI for installed pairs only;

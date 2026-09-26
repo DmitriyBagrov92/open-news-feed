@@ -1,4 +1,5 @@
 import ArticleKit
+import BattleFeature
 import CoreModels
 import Dependencies
 import DesignSystem
@@ -109,6 +110,7 @@ final class AppModel {
     let search: FeedStore
     let categories: [NewsCategory: FeedStore]
     let yourFeed: YourFeedStore
+    let battle: BattleStore
 
     init() {
         states = ArticleStateStore(library: library, preferences: preferences, toasts: toasts)
@@ -120,6 +122,7 @@ final class AppModel {
             ($0, FeedStore(category: $0, locked: true, preferences: preferences, sources: sources, states: states, toasts: toasts))
         })
         yourFeed = YourFeedStore(preferences: preferences, library: library, sources: sources, states: states, toasts: toasts)
+        battle = BattleStore(preferences: preferences, states: states)
     }
 
     var feeds: [FeedStore] { [today, search] + Array(categories.values) }
@@ -143,6 +146,7 @@ public struct RootView: View {
         let parts = (initialRoute ?? "").split(separator: "/", maxSplits: 1).map(String.init)
         let tab: AppTab = switch parts.first {
         case "yourFeed": .yourFeed
+        case "battle": .battle
         case "saved": .saved
         case "search": .search
         default: .today
@@ -205,6 +209,7 @@ public struct RootView: View {
             .onChange(of: preferences.value.targetLang) { _, _ in
                 model.states.languageChanged()
                 model.forecast.languageChanged()
+                model.battle.languageChanged()
                 // the language decides the `lang` parameter when it has native feeds (web setLanguage);
                 // a reload re-runs the brief, otherwise the brief alone follows the language
                 if !model.sources.nativeLanguages.isEmpty {
@@ -216,10 +221,12 @@ public struct RootView: View {
             }
             .onChange(of: preferences.value.autoTranslate) { _, _ in
                 model.states.autoTranslateChanged()
+                model.battle.languageChanged()
             }
             .onChange(of: preferences.value.hiddenSources) { _, _ in
                 model.feeds.forEach { $0.invalidate() }
                 model.yourFeed.invalidate()
+                model.battle.invalidate()
             }
             .onChange(of: model.sources.nativeLanguages) { _, _ in
                 // native feeds for the chosen language became known: the `lang` parameter changes
@@ -253,7 +260,7 @@ public struct RootView: View {
             }
 
             Tab(L10n.t("nav.battle"), systemImage: "bubbles.and.sparkles", value: AppTab.battle) {
-                NavigationStack { Placeholder(title: L10n.t("cat.battle"), symbol: "bubbles.and.sparkles", text: L10n.t("ios.soon.battle")) }
+                StoryStack(.battle, router: router) { BattleView(store: model.battle).toolbar { toolbar(nil) } }
             }
 
             Tab(L10n.t("nav.saved"), systemImage: "bookmark", value: AppTab.saved) {
