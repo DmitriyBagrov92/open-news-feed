@@ -10,7 +10,7 @@ public enum LaunchContract {
     public enum Env {
         /// Absolute host path of ios/Tests/Fixtures (the simulator reads the Mac's filesystem).
         public static let fixturesDir = "FIXTURES_DIR"
-        /// Where the app starts, e.g. `today`, `today/world`, `story/<articleID>`, `settings`.
+        /// Where the app starts: `today`, `saved`, `search`, `story/<articleID>`, `ahead` (the forecast).
         public static let initialRoute = "INITIAL_ROUTE"
         /// ISO 8601 instant the fake clock is pinned to (defaults to the fixtures' capture time).
         public static let fixedNow = "FIXED_NOW"

@@ -27,6 +27,7 @@ struct MeridianApp: App {
         #endif
         prepareDependencies {
             $0.onDeviceTranslation = .apple(broker: translations)
+            $0.languageModel = .apple()
             #if DEBUG
             configuration?.apply(to: &$0) // fakes everywhere, the on-device translator included
             #endif

@@ -103,6 +103,7 @@ final class AppModel {
     let sources = SourcesModel()
     let connectivity = ConnectivityModel()
     let clock = AppClock()
+    let forecast = ForecastStore()
     let states: ArticleStateStore
     let today: FeedStore
     let search: FeedStore
@@ -125,12 +126,17 @@ final class AppModel {
 public struct RootView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.openURL) private var openURL
+    @Environment(\.scenePhase) private var scenePhase
     @State private var model = AppModel()
     @State private var router: AppRouter
+    /// The feed whose Ahead sheet is open.
+    @State private var forecastFeed: FeedStore?
     private let initialStoryID: String?
+    private let opensAhead: Bool
 
     /// - Parameter initialRoute: UI tests / screenshots (`LaunchContract.Env.initialRoute`):
-    ///   `today`, `saved`, `search` or `story/<articleID>` (a Today story, opened once it loads).
+    ///   `today`, `saved`, `search`, `story/<articleID>` (a Today story, opened once it loads) or
+    ///   `ahead` (Today's forecast, once the feed is in).
     public init(initialRoute: String? = nil) {
         let parts = (initialRoute ?? "").split(separator: "/", maxSplits: 1).map(String.init)
         let tab: AppTab = switch parts.first {
@@ -140,12 +146,22 @@ public struct RootView: View {
         }
         _router = State(initialValue: AppRouter(tab: tab))
         initialStoryID = parts.first == "story" && parts.count == 2 ? parts[1] : nil
+        opensAhead = parts.first == "ahead"
     }
 
     public var body: some View {
         let model = model
         let preferences = model.preferences
         tabs
+            .sheet(isPresented: Binding(get: { forecastFeed != nil }, set: { if !$0 { forecastFeed = nil } })) {
+                if let feed = forecastFeed {
+                    ForecastSheet(store: model.forecast, feed: feed, isRegular: horizontalSizeClass == .regular) { article in
+                        // the REAL story the forecast builds on, where stories open on this tab
+                        router.open(StoryRoute(article: article, context: feed.storyList), on: router.tab,
+                                    regular: horizontalSizeClass == .regular)
+                    }
+                }
+            }
             .modifier(TimeAccessory(
                 // the chip belongs to the feed: not over a pushed story's dock
                 isEnabled: router.tab == .today && horizontalSizeClass != .regular && (router.paths[.today] ?? []).isEmpty,
@@ -172,6 +188,7 @@ public struct RootView: View {
                 model.states.syncSaved()
             }
             .task { await openInitialStory() }
+            .task { await openInitialForecast() }
             .onAppear {
                 guard initialStoryID == nil else { return }
                 if let saved = AppTab(storageKey: preferences.value.lastTab), router.tab == .today { router.tab = saved }
@@ -184,8 +201,14 @@ public struct RootView: View {
             }
             .onChange(of: preferences.value.targetLang) { _, _ in
                 model.states.languageChanged()
-                // the language decides the `lang` parameter when it has native feeds (web setLanguage)
-                if !model.sources.nativeLanguages.isEmpty { model.feeds.forEach { $0.invalidate() } }
+                model.forecast.languageChanged()
+                // the language decides the `lang` parameter when it has native feeds (web setLanguage);
+                // a reload re-runs the brief, otherwise the brief alone follows the language
+                if !model.sources.nativeLanguages.isEmpty {
+                    model.feeds.forEach { $0.invalidate() }
+                } else {
+                    model.feeds.forEach { $0.languageChanged() }
+                }
             }
             .onChange(of: preferences.value.autoTranslate) { _, _ in
                 model.states.autoTranslateChanged()
@@ -196,6 +219,10 @@ public struct RootView: View {
             .onChange(of: model.sources.nativeLanguages) { _, _ in
                 // native feeds for the chosen language became known: the `lang` parameter changes
                 if preferences.value.targetLang != "en" { model.feeds.forEach { $0.invalidate() } }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                // Apple Intelligence may have been switched on in Settings meanwhile
+                if phase == .active { model.forecast.refreshAvailability() }
             }
             .onChange(of: horizontalSizeClass) { _, size in
                 router.adapt(regular: size == .regular)
@@ -210,7 +237,7 @@ public struct RootView: View {
     private var tabs: some View {
         TabView(selection: $router.tab) {
             Tab(L10n.t("nav.today"), systemImage: "newspaper", value: AppTab.today) {
-                StoryStack(.today, router: router) { TodayView(store: model.today).toolbar { toolbar } }
+                StoryStack(.today, router: router) { TodayView(store: model.today).toolbar { toolbar(model.today) } }
             }
 
             Tab(L10n.t("cat.saved"), systemImage: "person.crop.circle", value: AppTab.yourFeed) {
@@ -222,7 +249,7 @@ public struct RootView: View {
             }
 
             Tab(L10n.t("nav.saved"), systemImage: "bookmark", value: AppTab.saved) {
-                StoryStack(.saved, router: router) { SavedView().toolbar { toolbar } }
+                StoryStack(.saved, router: router) { SavedView().toolbar { toolbar(nil) } }
             }
 
             if horizontalSizeClass == .regular {
@@ -231,7 +258,7 @@ public struct RootView: View {
                         Tab(category.label, systemImage: category.symbol, value: AppTab.category(category)) {
                             StoryStack(.category(category), router: router) {
                                 if let store = model.categories[category] {
-                                    TodayView(store: store).toolbar { toolbar }
+                                    TodayView(store: store).toolbar { toolbar(store) }
                                 }
                             }
                         }
@@ -246,6 +273,15 @@ public struct RootView: View {
         }
         .tabViewStyle(.sidebarAdaptable)
         .tabBarMinimizeBehavior(.onScrollDown)
+    }
+
+    private func openInitialForecast() async {
+        guard opensAhead else { return }
+        for _ in 0..<200 where model.today.phase != .loaded {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        model.forecast.open(model.today)
+        forecastFeed = model.today
     }
 
     private func openInitialStory() async {
@@ -268,18 +304,24 @@ public struct RootView: View {
         return actions
     }
 
+    /// ✦ Ahead (feeds only, where Apple Intelligence exists and the reader has not switched it
+    /// off), then the language and Settings.
     @ToolbarContentBuilder
-    private var toolbar: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                // P7: the Ahead forecast (shown only where Apple Intelligence is available)
-            } label: {
-                Image(systemName: "sparkles")
+    private func toolbar(_ feed: FeedStore?) -> some ToolbarContent {
+        if let feed, model.forecast.isSupported, model.preferences.value.forecast {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    model.forecast.open(feed)
+                    forecastFeed = feed
+                } label: {
+                    Image(systemName: "sparkles")
+                }
+                .tint(Tokens.Palette.ai)
+                .accessibilityLabel(L10n.t("ios.ahead.open"))
+                .accessibilityIdentifier("forecast-open")
             }
-            .tint(Tokens.Palette.ai)
-            .accessibilityLabel(L10n.t("ios.ahead.open"))
+            ToolbarSpacer(.fixed, placement: .topBarTrailing)
         }
-        ToolbarSpacer(.fixed, placement: .topBarTrailing)
         ToolbarItemGroup(placement: .topBarTrailing) {
             LanguageMenu()
             Button {

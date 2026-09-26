@@ -10,7 +10,7 @@ import Persistence
 
 /// One feed — Today, a category, or search results (web `loadFeed` / `pollNew` /
 /// `refreshReactions`, app.js:349-696): pages of 30 without duplicates, new stories buffered
-/// behind the pill, counters refreshed for what is on screen, the local brief, the ambient hues.
+/// behind the pill, counters refreshed for what is on screen, the brief, the ambient hues.
 @MainActor
 @Observable
 public final class FeedStore {
@@ -22,8 +22,20 @@ public final class FeedStore {
     public private(set) var items: [FeedItem] = []
     public private(set) var phase: Phase = .idle
     public private(set) var hues: [Int] = AmbientPalette.defaults
-    /// LOCAL DIGEST lines (the on-device model joins in P7).
+    /// The BRIEF of the stories in view (web `runBrief`): up to 7 key points.
     public private(set) var brief: [String] = []
+    /// Who wrote it: "on-device" (Apple Intelligence), a server provider, or "local" (the digest).
+    public private(set) var briefProvider = "local"
+    /// A run is pending or in flight: the card shows its thinking bars.
+    public private(set) var isBriefThinking = false
+    /// The view could not be loaded, so there is nothing to summarize (web `brief.error`).
+    public private(set) var isBriefFailed = false
+    /// Off screen or in the background the brief waits (web: `document.hidden` defers it).
+    @ObservationIgnored public var isOnScreen = true {
+        didSet {
+            if isOnScreen, !oldValue, briefDeferred { scheduleBrief(after: .seconds(2)) }
+        }
+    }
     public private(set) var category: NewsCategory
     /// The query in search mode (≥ 2 characters), else `nil`.
     public private(set) var search: String?
@@ -52,6 +64,9 @@ public final class FeedStore {
     @ObservationIgnored private var loadMoreFailures = 0
     @ObservationIgnored private var retryAfter: Date?
     @ObservationIgnored private var freshTask: Task<Void, Never>?
+    @ObservationIgnored private var briefTask: Task<Void, Never>?
+    @ObservationIgnored private var briefGeneration = 0
+    @ObservationIgnored private var briefDeferred = false
 
     @ObservationIgnored private let preferences: PreferencesStore
     @ObservationIgnored private let sources: SourcesModel
@@ -61,6 +76,8 @@ public final class FeedStore {
     @ObservationIgnored @Dependency(\.date) private var date
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
     @ObservationIgnored @Dependency(\.polling) private var polling
+    @ObservationIgnored @Dependency(\.summarizer) private var summarizer
+    @ObservationIgnored @Dependency(\.translator) private var translator
 
     public init(category: NewsCategory = .all, locked: Bool = false, search: Bool = false,
                 preferences: PreferencesStore, sources: SourcesModel, states: ArticleStateStore, toasts: ToastCenter) {
@@ -133,6 +150,13 @@ public final class FeedStore {
         loadMoreFailures = 0
         retryAfter = nil
         if items.isEmpty { phase = .loading }
+        // the brief belongs to the view: thinking at once, the run once the stories are in (web
+        // clearPending); a run still busy with the previous view is dropped
+        if !isSearch {
+            briefTask?.cancel()
+            briefGeneration += 1
+            isBriefThinking = true
+        }
         do {
             let result = try await api.news(query(page: 1))
             guard current == generation else { return }
@@ -145,11 +169,18 @@ public final class FeedStore {
             feedCounters(visible)
             repaint()
             phase = items.isEmpty ? .empty : .loaded
+            scheduleBrief(after: .milliseconds(300))
         } catch is CancellationError {
             return
         } catch {
             guard current == generation else { return }
             phase = .failed(offline: (error as? APIError)?.isOffline ?? false)
+            briefTask?.cancel()
+            isBriefThinking = false
+            if items.isEmpty {
+                brief = []
+                isBriefFailed = !isSearch
+            }
         }
     }
 
@@ -216,6 +247,7 @@ public final class FeedStore {
         shown.formUnion(added.map(\.id))
         feedCounters(added.map(\.article))
         repaint()
+        scheduleBrief(after: .milliseconds(800)) // fresh stories just landed — re-summarize them
         fresh = Set(added.map(\.id))
         freshTask?.cancel()
         freshTask = Task { [weak self] in
@@ -293,14 +325,83 @@ public final class FeedStore {
     }
 
     private func repaint() {
-        let articles = items.map(\.article)
-        hues = AmbientPalette.hues(for: articles) ?? hues
-        // the brief's pool is newest first (the web asks the server for pageSize=20), not the
-        // mosaic order with its hoisted hero
-        let newestFirst = articles.enumerated()
+        hues = AmbientPalette.hues(for: items.map(\.article)) ?? hues
+    }
+
+    /// What the forecast of this view is cached under (web `viewKey`): the view, the hidden
+    /// sources, the language and the newest story — news that lands makes a new forecast due.
+    public var forecastKey: String {
+        [category.rawValue, search ?? "", preferences.value.hiddenSources.joined(separator: ","),
+         preferences.value.targetLang, newestAt.map { String($0.milliseconds) } ?? ""].joined(separator: "|")
+    }
+
+    /// The reader's language (translation target, AI output).
+    public var targetLanguage: String { preferences.value.targetLang }
+
+    /// The view's stories newest first — the brief's and the forecast's pool (the web asks the
+    /// server for the first page), not the mosaic order with its hoisted hero.
+    public var newestFirst: [Article] {
+        items.map(\.article).enumerated()
             .sorted { $0.element.publishedAt != $1.element.publishedAt ? $0.element.publishedAt > $1.element.publishedAt : $0.offset < $1.offset }
             .map(\.element)
-        brief = LocalDigest.brief(newestFirst.prefix(20).map(DigestItem.init))
+    }
+
+    // MARK: Brief
+
+    /// Debounced (web `scheduleBrief`): the thinking state shows at once, the run follows —
+    /// 300 ms after a load, 800 ms after new stories, 400 ms after a language change, 0 for the
+    /// refresh button, 2 s after coming back.
+    public func scheduleBrief(after delay: Duration) {
+        guard !isSearch else { return }
+        isBriefThinking = true
+        briefTask?.cancel()
+        briefTask = Task { [weak self, clock] in
+            if delay > .zero { try? await clock.sleep(for: delay) }
+            guard !Task.isCancelled else { return }
+            await self?.runBrief()
+        }
+    }
+
+    /// The language changed: the brief follows it.
+    public func languageChanged() {
+        guard phase == .loaded || phase == .empty else { return }
+        scheduleBrief(after: .milliseconds(400))
+    }
+
+    /// The summarize ladder over the 20 freshest stories in view; the local digest quotes English
+    /// headlines, so its lines go through the translate ladder for another reader language.
+    public func runBrief() async {
+        guard isOnScreen else {
+            // summarizing costs battery — wait for the reader; nobody sees the thinking bars meanwhile
+            // (a forever-repeating animation under a pushed story would keep the app from idling)
+            briefDeferred = true
+            isBriefThinking = false
+            return
+        }
+        briefDeferred = false
+        briefGeneration += 1
+        let current = briefGeneration
+        let pool = Array(newestFirst.prefix(20))
+        guard !pool.isEmpty else {
+            brief = []
+            briefProvider = "local"
+            isBriefThinking = false
+            return
+        }
+        let target = preferences.value.targetLang
+        let topic = category == .all ? "" : category.label
+        let result = await summarizer.brief(pool.map(DigestItem.init), topic, target)
+        guard current == briefGeneration else { return }
+        var lines = TextKit.toBullets(result.summary, max: 7)
+        if target != "en", result.provider == "local",
+           let translated = await translator.translate(lines, target, "en", false), translated.texts.count == lines.count {
+            guard current == briefGeneration else { return }
+            lines = translated.texts
+        }
+        brief = lines
+        briefProvider = result.provider
+        isBriefThinking = false
+        isBriefFailed = false
     }
 }
 

@@ -1,6 +1,7 @@
 import ArticleKit
 import CoreModels
 import DesignSystem
+import GameController
 import Intelligence
 import Persistence
 import SwiftUI
@@ -28,6 +29,10 @@ public struct StoryPager: View {
     /// keyboard the focus system takes arrows before key commands, so the pager keeps the focus and
     /// handles them itself; without it (no focus system) the ‹ › buttons' shortcuts answer.
     @FocusState private var hasKeyboardFocus: Bool
+    /// The pager takes the focus only in the iPad pane (the one with ‹ ›; a phone swipes) and only
+    /// with a hardware keyboard attached: a focused view makes iOS raise the software keyboard
+    /// whenever a menu opens (the comment menus — found in P7).
+    @State private var hasHardwareKeyboard = GCKeyboard.coalesced != nil
     @Environment(PreferencesStore.self) private var preferences
     @Environment(ToastCenter.self) private var toasts
     @Environment(ArticleStateStore.self) private var states
@@ -75,7 +80,7 @@ public struct StoryPager: View {
             .accessibilityIdentifier("story")
         }
         .ignoresSafeArea(edges: .vertical)
-        .focusable()
+        .focusable(presentation.isPane && hasHardwareKeyboard)
         .focused($hasKeyboardFocus)
         .focusEffectDisabled()
         // the focus system may start only with the first key press: be its default then
@@ -83,6 +88,13 @@ public struct StoryPager: View {
         .onKeyPress(.leftArrow) { go(-1) ? .handled : .ignored }
         .onKeyPress(.rightArrow) { go(1) ? .handled : .ignored }
         .onAppear { hasKeyboardFocus = true }
+        .onReceive(NotificationCenter.default.publisher(for: .GCKeyboardDidConnect)) { _ in
+            hasHardwareKeyboard = true
+            hasKeyboardFocus = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .GCKeyboardDidDisconnect)) { _ in
+            hasHardwareKeyboard = GCKeyboard.coalesced != nil
+        }
         .background(Color(.systemBackground))
         .toolbarTitleDisplayMode(.inline)
         .toolbar { toolbar }
@@ -188,23 +200,31 @@ struct StoryDock: View {
 
     var body: some View {
         GlassEffectContainer(spacing: 10) {
-            HStack(spacing: 10) {
-                SummarizeButton(store: store, showsTitle: true)
-                Spacer(minLength: 0)
-                HStack(spacing: 2) {
-                    TranslateButton(store: store)
-                    SourceButton(article: article)
-                }
-                .buttonStyle(DockIconStyle())
-                .glassEffect(.regular, in: .capsule)
-                HStack(spacing: 2) {
-                    VoteButton(article: article, vote: .up, live: live)
-                    VoteButton(article: article, vote: .down, live: live)
-                    CommentsButton(store: store, live: live)
-                }
-                .buttonStyle(DockIconStyle())
-                .glassEffect(.regular, in: .capsule)
+            // "Summarize" spelled out where the pane has room, the sparkle alone where it has not
+            ViewThatFits(in: .horizontal) {
+                row(showsTitle: true)
+                row(showsTitle: false)
             }
+        }
+    }
+
+    private func row(showsTitle: Bool) -> some View {
+        HStack(spacing: 10) {
+            SummarizeButton(store: store, showsTitle: showsTitle)
+            Spacer(minLength: 0)
+            HStack(spacing: 2) {
+                TranslateButton(store: store)
+                SourceButton(article: article)
+            }
+            .buttonStyle(DockIconStyle())
+            .glassEffect(.regular, in: .capsule)
+            HStack(spacing: 2) {
+                VoteButton(article: article, vote: .up, live: live)
+                VoteButton(article: article, vote: .down, live: live)
+                CommentsButton(store: store, live: live)
+            }
+            .buttonStyle(DockIconStyle())
+            .glassEffect(.regular, in: .capsule)
         }
     }
 }

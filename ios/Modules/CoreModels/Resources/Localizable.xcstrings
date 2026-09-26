@@ -1376,6 +1376,17 @@
         }
       }
     },
+    "ios.ahead.notReady" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence is still getting ready on this device. Try again in a little while."
+          }
+        }
+      }
+    },
     "ios.ahead.open" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1383,6 +1394,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ahead · AI forecast"
+          }
+        }
+      }
+    },
+    "ios.ahead.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahead"
           }
         }
       }

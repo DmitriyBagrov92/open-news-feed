@@ -39,8 +39,8 @@ Generated data (commit the outputs; the gate fails on drift):
 | CoreModels | Codable wire types (tolerant decoding), `Timestamp` (epoch ms like `Date.parse`), `RelativeTime`, `SourceHue`, `Provenance` + `CountryNames`, `L10n.t(key, vars)`, `Preferences`, `TasteProfile`, JS-compat helpers (`stableSorted`) |
 | Networking | API client, `APIError`, request budget, Keychain author id, reachability |
 | Persistence | `PreferencesStore`, SwiftData `LibraryStore` (saved/liked, offline bodies) |
-| Intelligence | `Translator` / `Summarizer` ladders (dependencies; on-device rungs join in P6/P7), forecast, local ports (brief digest, extractive, sanitizer, taste engine) — no Apple AI imports |
-| AppleAI | the only importer of FoundationModels + Translation |
+| Intelligence | `Translator` / `Summarizer` ladders (on-device → server → local), `LanguageModelClient` (the on-device model as a dependency), `Forecaster` + `ForecastKit` (ai.js forecast: prompts, pool order, sanitizer), local ports (brief digest, extractive, taste engine) — no Apple AI imports |
+| AppleAI | the only importer of FoundationModels + Translation: `LanguageModelClient.apple()` (+ `ModelGate`), `OnDeviceTranslation.apple(broker:)`, `TranslationHost` |
 | DesignSystem | tokens, glass components, image pipeline, flags, avatars, ambient background |
 | ArticleKit | `ArticleStateStore`, cards, `FeedLayout`, swipe, `StoryRoute` / `openStory` / `storyList` |
 | Feed / Story / YourFeed / Battle / Settings features | screens; features never import each other |
@@ -82,7 +82,11 @@ otherwise every launch starts clean), `SEED_PREFS` (JSON `Preferences`), `APPEAR
 `INITIAL_ROUTE` (`today` | `saved` | `search` | `story/<articleID>` — a Today story, opened once it loads),
 `FAKE_TRANSLATION` (`installed`: the fake device translates every pair as "[on-device de] …";
 `downloadable`: installed once the reader asks — the system sheet is simulated; unset: no on-device
-translator, the fixture server answers "[de] …").
+translator, the fixture server answers "[de] …"), `FAKE_MODEL` (the fake Apple Intelligence: `points`
+answers summaries with "On-device: …" lines, `slow` the same after 1.5 s, `refusal` refuses in prose,
+`error` throws; its forecast shows the web's mock drafts, badge MOCK; unset: no model — no ✦, the
+brief is the local digest, the fixture server's summarize answers 501), `FORCE_NO_AI=1` (no model even
+with `FAKE_MODEL`). `INITIAL_ROUTE=ahead` opens Today's forecast once the feed is in.
 Fixture stories: the hero `825452304de0` is story-a (rich blocks), `b52427f78777` story-b (paragraphs),
 `15eeca76f28c` story-c (paywall stub); every other extraction fails with 422 (the note). Story-a carries
 the three captured comments (`cc…01` is the reader's own — the reader is the fixtures' "amber" author,
@@ -95,6 +99,9 @@ translate,open}`, `chip-<category>`, `new-stories-pill`, `offline-banner`, `time
 `story-{prev,next,close}` (the iPad pane), `story-{chip,note,summary,skeleton,comments}`; comments:
 `comments`, `comments-{compose,sort,total,empty,more,rules}`, `comment-<id>` (+ `-menu`, `-up`,
 `-down`, `-body`), the composer sheet `comments-{input,post,cancel}`, the rules `rules`, `rules-agree`;
+the brief `brief` (+ `brief-toggle`); Ahead: `forecast-open` (✦), the sheet `forecast`,
+`forecast-{close,regenerate,status,badge,note,retry}`, cards `fcard` (+ `fcard-title`, `fcard-why`,
+`fcard-basis-<articleID>`);
 toasts `toast` (match the text on the label — `toast(app, text)`). Pages of the pager coexist: scope
 queries to `story-<id>`.
 Suites derive from `AcceptanceTestCase` (`@MainActor`: XCUI APIs are main-actor isolated).
@@ -107,13 +114,26 @@ selectable story text is not always a `staticText` — query by label predicate;
 `eventually`; an element with an identifier is not found by its label through `query["text"]`. A UI test failing with "main thread busy for 30 s" is a
 real hang: profile the simulator app while the test runs — `sample <pid> 2` (the pid from `ps -axo
 pid,command | grep <device UDID> | grep Meridian.app/Meridian`) — and compare with the previous commit
-built in a `git worktree` under the same two-simulator load.
+built in a `git worktree` under the same two-simulator load. A forever-repeating animation that stays
+on after nobody can see it (the brief's `ThinkingBars` under a pushed story) keeps XCUITest from ever
+seeing the app idle: every query waits it out and a phone-only test fails at ~45 s (found in P7) —
+end thinking states that wait off screen.
 
 ## Verified API notes (iOS 26.4 SDK)
 
 - `Guardrails.permissiveContentTransformations` suppresses `guardrailViolation` **only for String
   generation**; `@Generable` output behaves like `.default`. Brief/summary/battle brief → String +
-  `toBullets`; only the forecast is `@Generable`.
+  `toBullets` (+ `Refusal.isRefusal` for prose refusals); only the forecast is `@Generable`
+  (`@Guide(.count(6))` candidates, `.anyOf` timeframe / confidence), sanitized like the web's.
+- The model's context is 4096 tokens for instructions + worked example + stories + schema + answer:
+  the forecast trims its pool to `Forecaster.promptCharacterBudget` (8000 characters) and the
+  summaries cut their input at 6000 UTF-16 units (the web's cut). The worked example rides in the
+  instructions (a small model copies the shape it is shown).
+- `SystemLanguageModel.default.availability` is `.unavailable(.modelNotReady)` while Apple
+  Intelligence downloads: ✦ stays, the sheet says so (`ios.ahead.notReady`); any other
+  unavailability hides ✦. `ModelGate` serialises generations and refuses in the background.
+- The brief runs itself like the web's (300 ms after a load, 800 ms after new stories, 400 ms after
+  a language change, 0 for ↻, 2 s after coming back to a screen it skipped while away).
 - `tabViewBottomAccessory(isEnabled:content:)` is iOS 26.1 (plain variant 26.0 shows on every tab).
 - `OpenURLAction.Result.systemAction(_:prefersInApp:)` (26.0) opens links in the in-app browser.
 - `TranslationSession(installedSource:target:)` (26.0) works outside SwiftUI for installed pairs only;
@@ -129,6 +149,10 @@ built in a `git worktree` under the same two-simulator load.
   — switch it off while a story is pushed.
 - An `.inspector` column draws `.bottomBar` toolbar items flat (no glass) and clips them; the story pane
   uses its own `safeAreaBar(edge: .bottom)` dock instead. Its top bar items render without glass too.
+- A focused `.focusable()` view (the pager, for ←/→) makes iOS raise the **software keyboard whenever a
+  menu opens** when no hardware keyboard is attached. The pager is focusable only in the iPad pane and
+  only while `GCKeyboard.coalesced` reports a keyboard. In the simulator GameController sees the Mac's
+  keyboard even when the device is in software-keyboard mode, so the phone path must not rely on it.
 - A `@DependencyClient`'s memberwise init is not public: stub a client with `var c = MeridianAPIClient()`
   and assign endpoints (unset ones report an unimplemented call).
 - A dependency whose live value uses another one (the ladders read `meridianAPI`) resolves it inside the

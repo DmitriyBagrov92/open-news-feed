@@ -83,6 +83,99 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    func testConversationLight() throws { try captureConversation(appearance: "light") }
+
+    func testConversationDark() throws { try captureConversation(appearance: "dark") }
+
+    /// Story-a's comments, a commenter's menu (report / block) and the community rules that come
+    /// before the first comment.
+    private func captureConversation(appearance: String) throws {
+        try XCTSkipIf(live, "the fixture conversation")
+        let app = fixtureApp(appearance, ["INITIAL_ROUTE": "story/825452304de0"])
+        let page = app.descendants(matching: .any)["story-825452304de0"]
+        _ = app.staticTexts["story-825452304de0-title"].waitForExistence(timeout: 30)
+        pause(1.5)
+        app.buttons["story-comments"].tap()
+        _ = page.descendants(matching: .any)["comment-cc00000000000002"].waitForExistence(timeout: 10)
+        pause(1.5)
+        let device = isPad ? "ipad" : "iphone"
+        shoot(app, "\(device)-\(appearance)-conversation-1-comments")
+        page.buttons["comment-cc00000000000002-menu"].tap()
+        pause(1.2)
+        shoot(app, "\(device)-\(appearance)-conversation-2-menu")
+        app.buttons["Report"].firstMatch.tap()
+        pause(1.2)
+        shoot(app, "\(device)-\(appearance)-conversation-3-report")
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.04, dy: 0.3)).tap() // outside: the menu closes
+        pause(1)
+        page.buttons["comments-compose"].tap()
+        _ = app.buttons["rules-agree"].waitForExistence(timeout: 5)
+        pause(1.2)
+        shoot(app, "\(device)-\(appearance)-conversation-4-rules")
+    }
+
+    func testTranslatedFeed() throws {
+        try XCTSkipIf(live, "the fake on-device translator")
+        let app = fixtureApp("light", [
+            "SEED_PREFS": #"{"targetLang":"de","autoTranslate":true}"#,
+            "FAKE_TRANSLATION": "installed",
+        ])
+        _ = app.staticTexts["BRIEF"].waitForExistence(timeout: 30)
+        pause(3)
+        shoot(app, "\(isPad ? "ipad" : "iphone")-light-feed-translated")
+    }
+
+    /// The app on the fixture newsroom (landscape on iPad).
+    private func fixtureApp(_ appearance: String, _ environment: [String: String]) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = [LaunchContract.uiTestMode]
+        app.launchEnvironment[LaunchContract.Env.fixturesDir] = LaunchContract.fixturesDirectory()
+        app.launchEnvironment[LaunchContract.Env.appearance] = appearance
+        for (key, value) in environment { app.launchEnvironment[key] = value }
+        app.launch()
+        if isPad {
+            XCUIDevice.shared.orientation = .landscapeLeft
+            pause(2)
+        }
+        return app
+    }
+
+    func testAheadLight() throws { try captureAhead(appearance: "light") }
+
+    func testAheadDark() throws { try captureAhead(appearance: "dark") }
+
+    /// The Ahead sheet and the on-device brief with the fake model (the simulator has no Apple
+    /// Intelligence, so there is no live variant).
+    private func captureAhead(appearance: String) throws {
+        try XCTSkipIf(live, "the simulator has no on-device model")
+        let app = XCUIApplication()
+        app.launchArguments = [LaunchContract.uiTestMode]
+        app.launchEnvironment[LaunchContract.Env.fixturesDir] = LaunchContract.fixturesDirectory()
+        app.launchEnvironment[LaunchContract.Env.fakeModel] = "points"
+        app.launchEnvironment[LaunchContract.Env.initialRoute] = "ahead"
+        app.launchEnvironment[LaunchContract.Env.appearance] = appearance
+        app.launch()
+        if isPad {
+            XCUIDevice.shared.orientation = .landscapeLeft
+            pause(2)
+        }
+        let sheet = app.descendants(matching: .any)["forecast"]
+        _ = sheet.descendants(matching: .any).matching(identifier: "fcard").element(boundBy: 3).waitForExistence(timeout: 30)
+        pause(1.5)
+        let device = isPad ? "ipad" : "iphone"
+        shoot(app, "\(device)-\(appearance)-ahead-1-sheet")
+        if !isPad {
+            sheet.swipeUp()
+            pause(1.5)
+        }
+        sheet.descendants(matching: .any).matching(identifier: "fcard-title").firstMatch.tap()
+        pause(1)
+        shoot(app, "\(device)-\(appearance)-ahead-2-open")
+        app.buttons["forecast-close"].tap()
+        pause(1.5)
+        shoot(app, "\(device)-\(appearance)-ahead-3-brief")
+    }
+
     private func pause(_ seconds: TimeInterval) {
         Thread.sleep(forTimeInterval: seconds)
     }

@@ -121,39 +121,82 @@ extension Translator: DependencyKey {
     public static var testValue: Translator { .ladder() }
 }
 
-/// The summarize ladder (web ai.js:123-178): [on-device model — P7] → `POST /api/summarize` (a 501
-/// means the free server has no model: remembered, never asked again this session) → the local
-/// extractive port. Never fails.
+/// The summarize ladder (web ai.js:123-178): the on-device model (Apple Intelligence) → `POST
+/// /api/summarize` (a 501 means the free server has no model: remembered, never asked again this
+/// session) → the local port (extractive key points, the entity-grouped brief). Never fails.
 public struct Summarizer: Sendable {
+    /// KEY POINTS of one story.
     public var article: @Sendable (_ title: String, _ text: String, _ targetLang: String) async -> SummaryResult
+    /// The BRIEF of the stories in view (`topic`: the category's name, "" for all).
+    public var brief: @Sendable (_ items: [DigestItem], _ topic: String, _ targetLang: String) async -> SummaryResult
 
-    public init(article: @escaping @Sendable (_ title: String, _ text: String, _ targetLang: String) async -> SummaryResult) {
+    public init(
+        article: @escaping @Sendable (_ title: String, _ text: String, _ targetLang: String) async -> SummaryResult,
+        brief: @escaping @Sendable (_ items: [DigestItem], _ topic: String, _ targetLang: String) async -> SummaryResult
+    ) {
         self.article = article
+        self.brief = brief
     }
 }
 
 public extension Summarizer {
     static func ladder() -> Summarizer {
         let serverUnavailable = LockedValue(false)
-        return Summarizer { title, text, targetLang in
+        @Sendable func server(_ request: SummarizeRequest) async -> SummaryResult? {
+            guard !serverUnavailable.value else { return nil }
             @Dependency(\.meridianAPI) var api
-            if !serverUnavailable.value {
-                do {
-                    let response = try await api.summarize(.article(title: title, text: text, targetLang: targetLang))
-                    if !response.summary.isEmpty {
-                        return SummaryResult(summary: response.summary, provider: response.provider ?? "server")
-                    }
-                } catch {
-                    if (error as? APIError)?.status == 501 { serverUnavailable.update { $0 = true } }
-                }
+            do {
+                let response = try await api.summarize(request)
+                return response.summary.isEmpty ? nil : SummaryResult(summary: response.summary, provider: response.provider ?? "server")
+            } catch {
+                if (error as? APIError)?.status == 501 { serverUnavailable.update { $0 = true } }
+                return nil
             }
-            return local(text)
         }
+        return Summarizer(
+            article: { title, text, targetLang in
+                let task = "You summarize a news article titled \"\(title.jsPrefix(160))\" for a busy reader. Write 3 to 5 key points"
+                if let result = await model(task, corpus: text, targetLang: targetLang) { return result }
+                if let result = await server(.article(title: title, text: text, targetLang: targetLang)) { return result }
+                return local(text)
+            },
+            brief: { items, topic, targetLang in
+                let corpus = items.map { "\($0.title) \u{2014} \($0.description) (\($0.source))" }.joined(separator: "\n")
+                let task = "You write a news brief from independent \(topic.isEmpty ? "" : topic + " ")news headlines from many sources. "
+                    + "Extract the most important stories as 5 to 7 key points"
+                if let result = await model(task, corpus: corpus, targetLang: targetLang) { return result }
+                let headlines = items.prefix(30).map { SummarizeRequest.Headline(title: $0.title, description: $0.description, source: $0.source) }
+                if let result = await server(.brief(Array(headlines), targetLang: targetLang)) { return result }
+                return SummaryResult(summary: LocalDigest.brief(items).joined(separator: "\n"), provider: "local")
+            }
+        )
     }
 
     /// The last rung: the article's own most representative sentences.
     static func local(_ text: String) -> SummaryResult {
         SummaryResult(summary: TextKit.extractive(TextKit.splitSentences(text), max: 5).joined(separator: "\n"), provider: "local")
+    }
+
+    /// The on-device rung: the model writes in the reader's language when it can, otherwise in
+    /// English and the bullets go through the translate ladder. Nil on anything short of a clean
+    /// answer (no model, refusal, timeout) — the next rung takes over.
+    private static func model(_ task: String, corpus: String, targetLang: String) async -> SummaryResult? {
+        @Dependency(\.languageModel) var model
+        guard model.availability() == .available else { return nil }
+        let language = model.outputLanguage(for: targetLang)
+        let name = Locale(identifier: "en").localizedString(forLanguageCode: language) ?? "English"
+        let instructions = task + " in \(name), one per line, each starting with \"- \". "
+            + "Use only facts stated in the text. No introduction and no conclusion."
+        let prompt = corpus.jsPrefix(6000) // on-device inference over huge inputs takes ages (web)
+        guard let answer = try? await withDeadline(35, { try await model.respond(instructions, prompt) }) else { return nil }
+        let text = TextKit.jsTrim(answer)
+        guard !text.isEmpty, !Refusal.isRefusal(text) else { return nil }
+        guard language != targetLang else { return SummaryResult(summary: text, provider: "on-device") }
+        @Dependency(\.translator) var translator
+        let bullets = TextKit.toBullets(text)
+        guard let translated = await translator.translate(bullets, targetLang, language, false),
+              translated.texts.count == bullets.count else { return SummaryResult(summary: text, provider: "on-device") }
+        return SummaryResult(summary: translated.texts.joined(separator: "\n"), provider: "on-device")
     }
 }
 

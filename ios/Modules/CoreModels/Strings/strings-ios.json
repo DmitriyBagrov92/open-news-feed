@@ -8,6 +8,8 @@
   "ios.wire.losAngeles": "Los Angeles",
   "ios.time.now": "NOW",
   "ios.ahead.open": "Ahead · AI forecast",
+  "ios.ahead.title": "Ahead",
+  "ios.ahead.notReady": "Apple Intelligence is still getting ready on this device. Try again in a little while.",
   "ios.soon.title": "Coming next",
   "ios.soon.yourFeed": "Your Feed — taste onboarding and recommendations — arrives in a later build.",
   "ios.soon.battle": "Bubble Battle arrives in a later build.",

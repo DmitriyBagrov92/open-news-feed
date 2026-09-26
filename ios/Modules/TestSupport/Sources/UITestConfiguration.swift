@@ -18,6 +18,8 @@ public struct UITestConfiguration: Sendable {
     public let keepState: Bool
     public let seedPreferences: Preferences?
     public let fakeTranslation: String?
+    public let fakeModel: String?
+    public let forceNoAI: Bool
 
     /// `nil` unless the process was launched with `-UITestMode`.
     public static func fromProcess(_ info: ProcessInfo = .processInfo) -> UITestConfiguration? {
@@ -34,7 +36,9 @@ public struct UITestConfiguration: Sendable {
             offline: env[LaunchContract.Env.offline] == "1",
             keepState: env[LaunchContract.Env.keepState] == "1",
             seedPreferences: env[LaunchContract.Env.seedPrefs].flatMap { try? JSONDecoder().decode(Preferences.self, from: Data($0.utf8)) },
-            fakeTranslation: env[LaunchContract.Env.fakeTranslation]
+            fakeTranslation: env[LaunchContract.Env.fakeTranslation],
+            fakeModel: env[LaunchContract.Env.fakeModel],
+            forceNoAI: env[LaunchContract.Env.forceNoAI] == "1"
         )
     }
 
@@ -58,6 +62,8 @@ public struct UITestConfiguration: Sendable {
         case "downloadable": .fake(installed: false)
         default: .unavailable // the real translator is never called from tests
         }
+        // the real model is never called from tests either: a fake only when asked for
+        values.languageModel = forceNoAI ? .unavailable : fakeModel.map { LanguageModelClient.fake($0) } ?? .unavailable
         if let pollInterval { values.polling = PollingConfiguration(interval: pollInterval, resumeDelay: .milliseconds(300)) }
 
         // Preferences persist in their own suite so a test can relaunch and find them; every other

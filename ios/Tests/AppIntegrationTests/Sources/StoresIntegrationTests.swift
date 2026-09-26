@@ -35,6 +35,7 @@ struct StoresIntegrationTests {
         try await withDependencies {
             $0.meridianAPI = api?(server.client) ?? server.client
             $0.date = .constant(server.capturedAt.date)
+            $0.continuousClock = ContinuousClock() // the brief's debounce
             $0.library = .swiftData(inMemory: true)
             $0.preferences = .inMemory()
         } operation: {
@@ -63,7 +64,6 @@ struct StoresIntegrationTests {
             #expect(!feed.hasMore)
             #expect(Set(feed.items.map(\.id)).count == feed.items.count)
             #expect(feed.items.dropFirst(30).allSatisfy { $0.variant != .hero }, "later pages have no hero")
-            #expect(!feed.brief.isEmpty)
         }
     }
 

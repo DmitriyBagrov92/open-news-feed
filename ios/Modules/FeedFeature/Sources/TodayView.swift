@@ -32,8 +32,9 @@ public struct TodayView: View {
                 .padding(.horizontal, FeedMetrics.gutter(columns))
                 .padding(.top, 2)
                 .padding(.bottom, 12)
-            BriefCard(lines: store.brief, provider: "local", isThinking: store.phase == .loading) {
-                Task { await store.reload() }
+            BriefCard(lines: store.brief, provider: store.briefProvider, isThinking: store.isBriefThinking,
+                      failed: store.isBriefFailed) {
+                store.scheduleBrief(after: .zero)
             }
             .padding(.horizontal, FeedMetrics.gutter(columns))
             .padding(.bottom, 6)
@@ -55,8 +56,18 @@ public struct TodayView: View {
         }
         .navigationTitle(store.title)
         .navigationSubtitle(Self.dateline(now))
-        .onAppear { isVisible = true }
-        .onDisappear { isVisible = false }
+        .onAppear {
+            isVisible = true
+            // like the web's `document.hidden`: only the background hides the feed
+            store.isOnScreen = scenePhase != .background
+        }
+        .onDisappear {
+            isVisible = false
+            store.isOnScreen = false
+        }
+        .onChange(of: scenePhase) { _, phase in
+            store.isOnScreen = phase != .background && isVisible
+        }
         .task { await store.appear() }
         .task(id: PollGate(active: scenePhase == .active, online: isOnline, visible: isVisible)) {
             guard scenePhase == .active, isOnline, isVisible else { return }
@@ -300,6 +311,7 @@ struct BriefCard: View {
     let lines: [String]
     let provider: String
     let isThinking: Bool
+    var failed = false
     let refresh: () -> Void
     @State private var expanded = false
     private static let folded = 3
@@ -330,7 +342,7 @@ struct BriefCard: View {
             if isThinking {
                 ThinkingBars()
             } else if lines.isEmpty {
-                Text(L10n.t("brief.empty")).font(.subheadline).foregroundStyle(.secondary)
+                Text(L10n.t(failed ? "brief.error" : "brief.empty")).font(.subheadline).foregroundStyle(.secondary)
             } else {
                 let visible = expanded ? lines : Array(lines.prefix(Self.folded))
                 VStack(alignment: .leading, spacing: 9) {
