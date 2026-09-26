@@ -10,12 +10,15 @@ import TestSupport
 @main
 struct MeridianApp: App {
     private let colorScheme: ColorScheme?
+    private let initialRoute: String?
 
     init() {
         var scheme: ColorScheme?
+        var route: String?
         #if DEBUG
         if let configuration = UITestConfiguration.fromProcess() {
             prepareDependencies { configuration.apply(to: &$0) }
+            route = configuration.initialRoute
         }
         switch ProcessInfo.processInfo.environment[LaunchContract.Env.appearance] {
         case "dark": scheme = .dark
@@ -24,11 +27,12 @@ struct MeridianApp: App {
         }
         #endif
         colorScheme = scheme
+        initialRoute = route
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            RootView(initialRoute: initialRoute)
                 .preferredColorScheme(colorScheme)
         }
     }

@@ -11,6 +11,7 @@ public struct SavedView: View {
     @Environment(LibraryModel.self) private var library
     @Environment(\.cardSizing) private var sizing
     @State private var query = ""
+    @State private var list = StoryList()
 
     public init() {}
 
@@ -20,6 +21,7 @@ public struct SavedView: View {
         GeometryReader { geometry in
             let columns = FeedLayout.columns(forWidth: geometry.size.width, cardMin: sizing.cardMin)
             let gutter: CGFloat = columns == 1 ? Tokens.Space.page : 24
+            let blocks = FeedLayout.blocks(items, columns: columns)
             ScrollView {
                 LazyVStack(spacing: 0) {
                     if !library.isLoaded {
@@ -36,7 +38,7 @@ public struct SavedView: View {
                                 .accessibilityIdentifier("empty-saved")
                         }
                     } else {
-                        ForEach(FeedLayout.blocks(items, columns: columns)) { block in
+                        ForEach(blocks) { block in
                             FeedBlockView(block: block, columns: columns, width: geometry.size.width, gutter: gutter)
                                 .id(block.id)
                         }
@@ -45,7 +47,9 @@ public struct SavedView: View {
                 .padding(.bottom, 24)
                 .animation(.snappy, value: library.articles.map(\.id))
             }
+            .environment(\.storyList, StoryListRef(list))
         }
+        .onChange(of: filtered.map(\.id), initial: true) { list.storyList = filtered }
         .background { AmbientBackground(hues: AmbientPalette.hues(for: library.articles) ?? AmbientPalette.defaults) }
         .navigationTitle(L10n.t("nav.saved"))
         .searchable(text: $query, prompt: L10n.t("search.placeholder"))

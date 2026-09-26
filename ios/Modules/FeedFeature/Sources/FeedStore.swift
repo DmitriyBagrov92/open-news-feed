@@ -303,3 +303,7 @@ public final class FeedStore {
         brief = LocalDigest.brief(newestFirst.prefix(20).map(DigestItem.init))
     }
 }
+
+extension FeedStore: StoryListSource {
+    public var storyList: [Article] { items.map(\.article) }
+}

@@ -254,6 +254,11 @@ public enum ArticleBlock: Sendable, Hashable, Codable {
         case .list(_, let items): return items.isEmpty
         }
     }
+
+    /// Nothing but whitespace — the web skips such blocks (`textContent.trim()`).
+    public var isBlank: Bool {
+        plainText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 }
 
 /// One formatted run of text. `href` is an absolute http(s) URL resolved server-side.

@@ -118,6 +118,8 @@ struct FeedList<Header: View>: View {
                 .padding(.bottom, 24)
             }
             .scrollPosition($position)
+            // prev/next in the story walk the feed (web getAdjacent: the grid's order)
+            .environment(\.storyList, StoryListRef(store))
             .onScrollTargetVisibilityChange(idType: String.self, threshold: 0.25) { ids in
                 visibleBlocks = ids
                 let lookup = Dictionary(uniqueKeysWithValues: blocks.map { ($0.id, $0.items.map(\.id)) })
@@ -167,7 +169,8 @@ struct FeedList<Header: View>: View {
         switch store.phase {
         case .idle where store.isSearch && store.search == nil:
             EmptyView()
-        case .idle, .loading where store.items.isEmpty:
+        case .idle,
+             .loading where store.items.isEmpty:
             ForEach(0..<6, id: \.self) { _ in SkeletonRow().padding(.horizontal, FeedMetrics.gutter(columns)) }
         case .failed(let offline) where store.items.isEmpty:
             ContentUnavailableView {

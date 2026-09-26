@@ -2,6 +2,7 @@ import CoreModels
 import Dependencies
 import DesignSystem
 import Foundation
+import Intelligence
 import Networking
 import Observation
 import Persistence
@@ -43,6 +44,7 @@ public final class ArticleStateStore {
     @ObservationIgnored private let preferences: PreferencesStore
     @ObservationIgnored private let toasts: ToastCenter
     @ObservationIgnored @Dependency(\.meridianAPI) private var api
+    @ObservationIgnored @Dependency(\.translator) private var translator
 
     public init(library: LibraryModel, preferences: PreferencesStore, toasts: ToastCenter) {
         self.library = library
@@ -115,8 +117,7 @@ public final class ArticleStateStore {
         state.isSaved = saved
     }
 
-    /// Translate / show the original (web card translate). P2 uses the server rung; the full
-    /// ladder (on-device first) replaces it in P6.
+    /// Translate / show the original (web card translate) through the translate ladder.
     public func toggleTranslation(_ article: Article) async {
         let state = live(article)
         if state.translation != nil {
@@ -130,13 +131,12 @@ public final class ArticleStateStore {
         }
         state.isTranslating = true
         defer { state.isTranslating = false }
-        do {
-            let response = try await api.translate([article.title, article.description], target, article.language)
-            guard response.translations.count == 2 else { throw APIError.decoding("translation count") }
-            state.translation = .init(language: target, title: response.translations[0], description: response.translations[1])
-        } catch {
+        guard let result = await translator.translate([article.title, article.description], target, article.language),
+              result.texts.count == 2 else {
             toasts.show(L10n.t("lang.unavailable"))
+            return
         }
+        state.translation = .init(language: target, title: result.texts[0], description: result.texts[1])
     }
 
     /// Keeps saved flags right after the library changes elsewhere (e.g. the Saved tab).

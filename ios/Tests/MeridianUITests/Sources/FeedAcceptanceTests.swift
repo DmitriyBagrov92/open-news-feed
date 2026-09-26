@@ -3,72 +3,11 @@ import XCTest
 /// P2 acceptance: the live Today feed on the fixture newsroom — the iOS counterparts of the web's
 /// feed, infinite-scroll, new-stories, tabs, search, card-actions, gestures, offline and
 /// timescale specs (test/e2e/*.spec.js).
-final class FeedAcceptanceTests: XCTestCase {
+final class FeedAcceptanceTests: AcceptanceTestCase {
     // fixture ids (ios/Tests/Fixtures/api): page 1 = hero, row (sports), row, wide …
-    private let hero = "825452304de0"
-    private let row = "cd5d68db7c99"
     private let pageTwoFirst = "1a42b80e1f2b"
     private let pageThreeFirst = "f5a5c8c18f5c"
     private let breaking = "0bd99f751628"
-
-    private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
-
-    override func setUp() {
-        continueAfterFailure = false
-    }
-
-    @discardableResult
-    private func launch(_ environment: [String: String] = [:]) -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = [LaunchContract.uiTestMode]
-        app.launchEnvironment[LaunchContract.Env.fixturesDir] = LaunchContract.fixturesDirectory()
-        for (key, value) in environment { app.launchEnvironment[key] = value }
-        app.launch()
-        XCTAssertTrue(card(app, hero).waitForExistence(timeout: 20), "the feed opens on the fixture newsroom")
-        return app
-    }
-
-    private func card(_ app: XCUIApplication, _ id: String) -> XCUIElement {
-        app.descendants(matching: .any)["card-\(id)"].firstMatch
-    }
-
-    private func scroll(_ app: XCUIApplication, until element: XCUIElement, maxSwipes: Int = 40) -> Bool {
-        for _ in 0..<maxSwipes {
-            if element.exists && element.isHittable { return true }
-            app.swipeUp(velocity: .fast)
-        }
-        return element.exists
-    }
-
-    /// Waits for a predicate on an element (XCTWaiter keeps the test case out of the closure).
-    private func eventually(_ format: String, _ element: XCUIElement, timeout: TimeInterval = 10) -> Bool {
-        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: format), object: element)
-        return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
-    }
-
-    /// Taps a tab — on iPhone the bar may be minimised after scrolling, so scroll back up first
-    /// (the bar expands again); on iPad the tabs are sidebar rows.
-    /// Makes sure a text field has keyboard focus (tap its text area, not a clear/mic button).
-    private func focus(_ field: XCUIElement) {
-        for _ in 0..<3 {
-            if (field.value(forKey: "hasKeyboardFocus") as? Bool) == true { return }
-            field.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.5)).tap()
-            Thread.sleep(forTimeInterval: 0.6)
-        }
-    }
-
-    private func openTab(_ app: XCUIApplication, _ label: String) {
-        for _ in 0..<6 where !app.tabBars.buttons[label].exists && !app.buttons[label].firstMatch.exists {
-            app.swipeDown(velocity: .fast)
-        }
-        let tab = app.tabBars.buttons[label]
-        if tab.exists {
-            tab.tap()
-        } else {
-            XCTAssertTrue(app.buttons[label].firstMatch.waitForExistence(timeout: 5), "tab \(label)")
-            app.buttons[label].firstMatch.tap()
-        }
-    }
 
     // MARK: Feed
 

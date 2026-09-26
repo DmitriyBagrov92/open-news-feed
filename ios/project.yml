@@ -281,9 +281,12 @@ targets:
     dependencies:
       - target: Intelligence
       - target: CoreModels
+      - target: Networking
       - target: TestSupport
       - package: Collections
         product: OrderedCollections
+      - package: Dependencies
+        product: Dependencies
 
   DesignSystemTests:
     templates: [UnitTests]
@@ -298,10 +301,18 @@ targets:
       - target: CoreModels
       - target: TestSupport
 
+  StoryFeatureTests:
+    templates: [UnitTests]
+    dependencies:
+      - target: StoryFeature
+      - target: CoreModels
+      - target: TestSupport
+
   AppFeatureTests:
     templates: [UnitTests]
     dependencies:
       - target: AppFeature
+      - target: ArticleKit
       - target: CoreModels
       - target: TestSupport
 
@@ -311,6 +322,7 @@ targets:
     dependencies:
       - target: AppFeature
       - target: FeedFeature
+      - target: StoryFeature
       - target: ArticleKit
       - target: DesignSystem
       - target: CoreModels
@@ -382,6 +394,7 @@ schemes:
         IntelligenceTests: [test]
         DesignSystemTests: [test]
         ArticleKitTests: [test]
+        StoryFeatureTests: [test]
         AppFeatureTests: [test]
     test:
       gatherCoverageData: true
@@ -392,6 +405,7 @@ schemes:
         - IntelligenceTests
         - DesignSystemTests
         - ArticleKitTests
+        - StoryFeatureTests
         - AppFeatureTests
 
   Meridian-Integration:

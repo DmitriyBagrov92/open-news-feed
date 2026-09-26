@@ -3,14 +3,44 @@ import DesignSystem
 import SwiftUI
 import UIKit
 
-/// What a card does when tapped or asked to open its source. Surfaces inject handlers through the
-/// environment; unset handlers are no-ops, so a card renders anywhere (previews, screenshots).
-/// Saving, translating and voting go through `ArticleStateStore`.
-public struct CardActions {
-    public var open: @MainActor (Article) -> Void = { _ in }
+/// What a card does when asked to open its source (the in-app browser). Opening the story itself
+/// goes through `openStory` with the surface's `storyList`; saving, translating and voting go
+/// through `ArticleStateStore`. Unset handlers are no-ops, so a card renders anywhere.
+public struct CardActions: Equatable {
     public var openOriginal: @MainActor (Article) -> Void = { _ in }
+    /// Equal ids promise the same behaviour, so a new value from a parent update does not update
+    /// every card (see `OpenStoryAction`).
+    private let id: AnyHashable
 
-    public init() {}
+    public init(id: AnyHashable = "none") {
+        self.id = id
+    }
+
+    public static func == (lhs: CardActions, rhs: CardActions) -> Bool { lhs.id == rhs.id }
+}
+
+/// Tapping a card: the story view with the surface's list as prev/next context.
+struct OpenCard: ViewModifier {
+    let article: Article
+    @Environment(\.openStory) private var openStory
+    @Environment(\.storyList) private var list
+    @Environment(\.cardActions) private var actions
+
+    func body(content: Content) -> some View {
+        content.onTapGesture {
+            openCard(article, openStory: openStory, list: list, actions: actions)
+        }
+    }
+}
+
+/// Opens the story in its list, or — where no surface handles stories — the original.
+@MainActor
+func openCard(_ article: Article, openStory: OpenStoryAction?, list: StoryListRef?, actions: CardActions) {
+    if let openStory {
+        openStory(article, in: list?.source.storyList ?? [article])
+    } else {
+        actions.openOriginal(article)
+    }
 }
 
 public extension EnvironmentValues {
@@ -33,6 +63,7 @@ public struct ArticleCard: View {
     @Environment(ArticleStateStore.self) private var store: ArticleStateStore?
     @Environment(\.cardActions) private var actions
     @Environment(\.freshStoryIDs) private var fresh
+    @Environment(\.storyZoomNamespace) private var zoom
 
     /// - Parameters:
     ///   - height: fixed height in the regular-width mosaic; `nil` = natural (compact).
@@ -76,6 +107,7 @@ public struct ArticleCard: View {
                     .allowsHitTesting(false)
             }
         }
+        .storyZoomSource(id: article.id, namespace: zoom)
         .contextMenu {
             CardMenu(article: article, snapshot: snapshot)
         } preview: {
@@ -202,7 +234,7 @@ struct PosterCard: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                .cardHeadlineAccessibility(article: article, title: snapshot.title) { actions.open(article) }
+                .cardHeadlineAccessibility(article: article, title: snapshot.title)
                 CardFooter(article: article, snapshot: snapshot, onPhoto: true)
                     .padding(.top, 6)
             }
@@ -227,7 +259,7 @@ struct PosterCard: View {
         .clipShape(shape)
         .contentShape(.contextMenuPreview, shape)
         .contentShape(shape)
-        .onTapGesture { actions.open(article) }
+        .modifier(OpenCard(article: article))
         .shadow(color: .black.opacity(scheme == .dark ? 0.5 : 0.18), radius: 15, y: 12)
     }
 }
@@ -269,25 +301,39 @@ struct RowCard: View {
                     .clipShape(RoundedRectangle(cornerRadius: Tokens.Radius.thumb, style: .continuous))
                 }
             }
-            .cardHeadlineAccessibility(article: article, title: snapshot.title) { actions.open(article) }
+            .cardHeadlineAccessibility(article: article, title: snapshot.title)
             CardFooter(article: article, snapshot: snapshot, onPhoto: false)
         }
         .padding(.vertical, Tokens.Space.row)
         .background(Color(.systemBackground).opacity(0.001))
         .contentShape(Rectangle())
-        .onTapGesture { actions.open(article) }
+        .modifier(OpenCard(article: article))
     }
 }
 
 extension View {
     /// The headline block of a card reads as one button ("Preview: <title>") for VoiceOver and
     /// UI tests; the footer's own buttons stay separate (no buttons nested in a button).
-    func cardHeadlineAccessibility(article: Article, title: String, open: @escaping @MainActor () -> Void) -> some View {
+    func cardHeadlineAccessibility(article: Article, title: String) -> some View {
         accessibilityElement(children: .combine)
             .accessibilityLabel(L10n.t("card.preview", ["title": title]))
             .accessibilityAddTraits(.isButton)
-            .accessibilityAction { open() }
+            .modifier(CardDefaultAction(article: article))
             .accessibilityIdentifier("card-\(article.id)")
+    }
+}
+
+/// VoiceOver's activate on a card's headline opens the story, like a tap.
+struct CardDefaultAction: ViewModifier {
+    let article: Article
+    @Environment(\.openStory) private var openStory
+    @Environment(\.storyList) private var list
+    @Environment(\.cardActions) private var actions
+
+    func body(content: Content) -> some View {
+        content.accessibilityAction {
+            openCard(article, openStory: openStory, list: list, actions: actions)
+        }
     }
 }
 

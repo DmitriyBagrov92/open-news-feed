@@ -50,6 +50,12 @@ public enum RelativeTime {
     public static func relTime(_ published: Timestamp, now: Int64) -> String {
         relTime(published.milliseconds, now: now)
     }
+
+    /// The story's dateline (web `absTime`: medium date, short time). The web pins English; the app
+    /// follows the reader's region (24-hour clock, date order) in its English UI.
+    public static func absTime(_ published: Timestamp) -> String {
+        published.date.formatted(date: .abbreviated, time: .shortened)
+    }
 }
 
 /// Stable hue per source, drawn from a curated ring (web `cards.js` `hashHue`): fallback tiles,

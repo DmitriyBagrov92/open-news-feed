@@ -6,6 +6,7 @@ import FeedFeature
 import Networking
 import Observation
 import Persistence
+import StoryFeature
 import SwiftUI
 import YourFeedFeature
 
@@ -41,9 +42,34 @@ public enum AppTab: Hashable, Sendable {
 @Observable
 public final class AppRouter {
     public var tab: AppTab
+    /// Compact width: the story pushed on each tab's stack.
+    public var paths: [AppTab: [StoryRoute]] = [:]
+    /// Regular width: the story in the pane beside each tab's feed.
+    public var panes: [AppTab: StoryRoute] = [:]
 
     public init(tab: AppTab = .today) {
         self.tab = tab
+    }
+
+    public func open(_ route: StoryRoute, on tab: AppTab, regular: Bool) {
+        if regular {
+            panes[tab] = route
+        } else {
+            paths[tab] = [route]
+        }
+    }
+
+    /// The window changed size class: the pane becomes a pushed story, and back.
+    public func adapt(regular: Bool) {
+        if regular {
+            for (tab, path) in paths {
+                if let route = path.last { panes[tab] = route }
+            }
+            paths = [:]
+        } else {
+            for (tab, route) in panes { paths[tab] = [route] }
+            panes = [:]
+        }
     }
 }
 
@@ -101,16 +127,30 @@ public struct RootView: View {
     @Environment(\.openURL) private var openURL
     @State private var model = AppModel()
     @State private var router: AppRouter
+    private let initialStoryID: String?
 
-    public init(initialTab: AppTab? = nil) {
-        _router = State(initialValue: AppRouter(tab: initialTab ?? .today))
+    /// - Parameter initialRoute: UI tests / screenshots (`LaunchContract.Env.initialRoute`):
+    ///   `today`, `saved`, `search` or `story/<articleID>` (a Today story, opened once it loads).
+    public init(initialRoute: String? = nil) {
+        let parts = (initialRoute ?? "").split(separator: "/", maxSplits: 1).map(String.init)
+        let tab: AppTab = switch parts.first {
+        case "saved": .saved
+        case "search": .search
+        default: .today
+        }
+        _router = State(initialValue: AppRouter(tab: tab))
+        initialStoryID = parts.first == "story" && parts.count == 2 ? parts[1] : nil
     }
 
     public var body: some View {
         let model = model
         let preferences = model.preferences
         tabs
-            .modifier(TimeAccessory(isEnabled: router.tab == .today && horizontalSizeClass != .regular, store: model.today))
+            .modifier(TimeAccessory(
+                // the chip belongs to the feed: not over a pushed story's dock
+                isEnabled: router.tab == .today && horizontalSizeClass != .regular && (router.paths[.today] ?? []).isEmpty,
+                store: model.today
+            ))
             .overlay(alignment: .bottom) {
                 ToastOverlay().padding(.bottom, horizontalSizeClass == .regular ? 32 : 104)
             }
@@ -131,7 +171,9 @@ public struct RootView: View {
                 await model.library.load()
                 model.states.syncSaved()
             }
+            .task { await openInitialStory() }
             .onAppear {
+                guard initialStoryID == nil else { return }
                 if let saved = AppTab(storageKey: preferences.value.lastTab), router.tab == .today { router.tab = saved }
             }
             .onChange(of: router.tab) { _, tab in
@@ -152,6 +194,7 @@ public struct RootView: View {
                 if preferences.value.targetLang != "en" { model.feeds.forEach { $0.invalidate() } }
             }
             .onChange(of: horizontalSizeClass) { _, size in
+                router.adapt(regular: size == .regular)
                 // a category tab only exists in the sidebar: fold it into Today when the window goes compact
                 if size == .compact, case .category(let category) = router.tab {
                     model.today.select(category)
@@ -163,7 +206,7 @@ public struct RootView: View {
     private var tabs: some View {
         TabView(selection: $router.tab) {
             Tab(L10n.t("nav.today"), systemImage: "newspaper", value: AppTab.today) {
-                NavigationStack { TodayView(store: model.today).toolbar { toolbar } }
+                StoryStack(.today, router: router) { TodayView(store: model.today).toolbar { toolbar } }
             }
 
             Tab(L10n.t("cat.saved"), systemImage: "person.crop.circle", value: AppTab.yourFeed) {
@@ -175,14 +218,14 @@ public struct RootView: View {
             }
 
             Tab(L10n.t("nav.saved"), systemImage: "bookmark", value: AppTab.saved) {
-                NavigationStack { SavedView().toolbar { toolbar } }
+                StoryStack(.saved, router: router) { SavedView().toolbar { toolbar } }
             }
 
             if horizontalSizeClass == .regular {
                 TabSection(L10n.t("ios.sidebar.categories")) {
                     ForEach(NewsCategory.feed) { category in
                         Tab(category.label, systemImage: category.symbol, value: AppTab.category(category)) {
-                            NavigationStack {
+                            StoryStack(.category(category), router: router) {
                                 if let store = model.categories[category] {
                                     TodayView(store: store).toolbar { toolbar }
                                 }
@@ -194,18 +237,29 @@ public struct RootView: View {
             }
 
             Tab(value: AppTab.search, role: .search) {
-                NavigationStack { SearchView(store: model.search) }
+                StoryStack(.search, router: router) { SearchView(store: model.search) }
             }
         }
         .tabViewStyle(.sidebarAdaptable)
         .tabBarMinimizeBehavior(.onScrollDown)
     }
 
-    /// Opening a story: the in-app browser for now (the reader view arrives in P3).
+    private func openInitialStory() async {
+        guard let id = initialStoryID else { return }
+        for _ in 0..<200 {
+            let articles = model.today.items.map(\.article)
+            if let article = articles.first(where: { $0.id == id }) {
+                router.open(StoryRoute(article: article, context: articles), on: .today, regular: horizontalSizeClass == .regular)
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+    }
+
+    /// The original article opens in the in-app browser (stories open through `openStory`).
     private var cardActions: CardActions {
-        var actions = CardActions()
+        var actions = CardActions(id: "app")
         let open = openURL
-        actions.open = { article in open(article.url, prefersInApp: true) }
         actions.openOriginal = { article in open(article.url, prefersInApp: true) }
         return actions
     }
