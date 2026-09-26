@@ -1,6 +1,6 @@
 // A glass context menu: long-press (or right-click) on a story row opens
 // it near the pointer. One menu at a time; a tap outside, Escape or a
-// scroll closes it. Items are plain buttons — keyboard reachable.
+// scrolling gesture closes it. Items are plain buttons — keyboard reachable.
 
 import { el, icon } from './dom.js';
 
@@ -53,19 +53,26 @@ export function showMenu({ x, y, items, label = 'Actions', returnFocus = null })
       returnFocus?.focus?.();
     }
   };
-  const onScroll = () => closeMenu();
+  // the reader scrolling (wheel, finger) closes it — not `scroll` events the
+  // page sends by itself: scroll anchoring when content above changes size,
+  // or a scroll that was still settling when the menu opened
+  const onGesture = (e) => {
+    if (!root.contains(e.target)) closeMenu();
+  };
   // the opening pointer is still down: listen from the next tick
   setTimeout(() => {
     document.addEventListener('pointerdown', onDown, true);
     document.addEventListener('keydown', onKey, true);
-    window.addEventListener('scroll', onScroll, { passive: true, once: true });
+    document.addEventListener('wheel', onGesture, { capture: true, passive: true });
+    document.addEventListener('touchmove', onGesture, { capture: true, passive: true });
   }, 0);
   open = {
     root,
     cleanup() {
       document.removeEventListener('pointerdown', onDown, true);
       document.removeEventListener('keydown', onKey, true);
-      window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('wheel', onGesture, true);
+      document.removeEventListener('touchmove', onGesture, true);
     },
   };
   root.querySelector('button')?.focus({ preventScroll: true });
