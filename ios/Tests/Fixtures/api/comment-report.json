@@ -1,0 +1,15 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/comments/cc00000000000002/report",
+  "author": "quiet",
+  "body": {
+   "reason": "spam"
+  }
+ },
+ "status": 200,
+ "body": {
+  "reported": true,
+  "hidden": false
+ }
+}

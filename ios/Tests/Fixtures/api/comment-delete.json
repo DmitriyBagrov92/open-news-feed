@@ -1,0 +1,11 @@
+{
+ "request": {
+  "method": "DELETE",
+  "path": "/api/comments/0e30102cebe2faa2",
+  "author": "amber"
+ },
+ "status": 200,
+ "body": {
+  "deleted": true
+ }
+}

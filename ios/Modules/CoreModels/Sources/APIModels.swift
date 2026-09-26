@@ -385,24 +385,30 @@ public struct Comment: Sendable, Hashable, Codable, Identifiable {
     public let id: String
     public let name: String
     public let avatar: Avatar
+    /// The author's public key (16 hex): what blocking refers to; "" from an older server.
+    public let authorKey: String
     public let body: String
     public let createdAt: Timestamp
     public var up: Int
     public var down: Int
     public var myVote: Vote?
+    /// The requester wrote it: offer Delete instead of Report / Block.
+    public let mine: Bool
 
-    private enum CodingKeys: String, CodingKey { case id, name, avatar, body, createdAt, up, down, myVote }
+    private enum CodingKeys: String, CodingKey { case id, name, avatar, authorKey, body, createdAt, up, down, myVote, mine }
 
-    public init(id: String, name: String, avatar: Avatar, body: String, createdAt: Timestamp,
-                up: Int = 0, down: Int = 0, myVote: Vote? = nil) {
+    public init(id: String, name: String, avatar: Avatar, authorKey: String = "", body: String, createdAt: Timestamp,
+                up: Int = 0, down: Int = 0, myVote: Vote? = nil, mine: Bool = false) {
         self.id = id
         self.name = name
         self.avatar = avatar
+        self.authorKey = authorKey
         self.body = body
         self.createdAt = createdAt
         self.up = up
         self.down = down
         self.myVote = myVote
+        self.mine = mine
     }
 
     public init(from decoder: Decoder) throws {
@@ -410,11 +416,30 @@ public struct Comment: Sendable, Hashable, Codable, Identifiable {
         id = try c.decode(String.self, forKey: .id)
         name = try c.decodeIfPresent(String.self, forKey: .name) ?? ""
         avatar = (try? c.decodeIfPresent(Avatar.self, forKey: .avatar)) ?? Avatar(hue: 0, glyph: 0)
+        let key = (try? c.decodeIfPresent(String.self, forKey: .authorKey)) ?? nil
+        authorKey = key.map(AuthorKey.isValid) == true ? key! : ""
         body = try c.decode(String.self, forKey: .body)
         createdAt = try c.decode(Timestamp.self, forKey: .createdAt)
         up = try c.decodeIfPresent(Int.self, forKey: .up) ?? 0
         down = try c.decodeIfPresent(Int.self, forKey: .down) ?? 0
         myVote = (try? c.decodeIfPresent(Vote.self, forKey: .myVote)) ?? nil
+        mine = (try? c.decodeIfPresent(Bool.self, forKey: .mine)) ?? false
+    }
+}
+
+/// Why a reader reports a comment (`POST /api/comments/:id/report`).
+public enum ReportReason: String, Sendable, Hashable, Codable, CaseIterable, Identifiable {
+    case spam, abuse, hate, sexual, violence, other
+
+    public var id: String { rawValue }
+    /// "Spam or advertising", "Harassment or bullying"… (web `comments.reason.*`).
+    public var label: String { L10n.t("comments.reason.\(rawValue)") }
+}
+
+/// An author's public key: 16 lowercase hex digits.
+public enum AuthorKey {
+    public static func isValid(_ key: String) -> Bool {
+        key.utf8.count == 16 && key.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
     }
 }
 
@@ -448,6 +473,34 @@ public struct Avatar: Sendable, Hashable, Codable {
 }
 
 /// `POST /api/comments/:id/vote` and `POST /api/news/:id/vote`.
+/// `POST /api/comments/:id/report` → `{ reported, hidden }`.
+public struct ReportResult: Sendable, Hashable, Codable {
+    public let reported: Bool
+    public let hidden: Bool
+
+    public init(reported: Bool = true, hidden: Bool) {
+        self.reported = reported
+        self.hidden = hidden
+    }
+
+    private enum CodingKeys: String, CodingKey { case reported, hidden }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        reported = (try? c.decodeIfPresent(Bool.self, forKey: .reported)) ?? true
+        hidden = (try? c.decodeIfPresent(Bool.self, forKey: .hidden)) ?? false
+    }
+}
+
+/// `DELETE /api/comments/:id` → `{ deleted: true }`.
+public struct DeleteResult: Sendable, Hashable, Codable {
+    public let deleted: Bool
+
+    public init(deleted: Bool = true) {
+        self.deleted = deleted
+    }
+}
+
 public struct VoteResult: Sendable, Hashable, Codable {
     public let up: Int
     public let down: Int

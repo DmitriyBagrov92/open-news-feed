@@ -20,8 +20,13 @@ public final class FixtureServer: @unchecked Sendable {
     private struct MutableState {
         var comments: [String: [CoreModels.Comment]] = [:]
         var votes: [String: Reactions] = [:]
+        var reported: Set<String> = []
         var nextComment = 1
     }
+
+    /// The reader of the UI-test app: the fixtures' "amber" author (who wrote one captured comment).
+    public let me: Persona
+    public let myAuthorKey: String
 
     public init(directory: URL, newStories: Bool = false) throws {
         let api = directory.appendingPathComponent("api")
@@ -46,6 +51,22 @@ public final class FixtureServer: @unchecked Sendable {
             }
         }
         self.bodies = bodies
+
+        // the captured conversation on story-a, as "amber" sees it (their own comment is `mine`)
+        let created = try body("comment-created", as: CoreModels.Comment.self)
+        me = Persona(name: created.name, avatar: created.avatar)
+        myAuthorKey = created.authorKey
+        let thread = try body("comments-me", as: CommentsPage.self).comments
+        if let storyA = english.first(where: { $0.url.absoluteString.hasSuffix("/fixture/story-a") }) {
+            state.update { state in
+                state.comments[storyA.id] = thread
+                state.votes[storyA.id] = Reactions(comments: thread.count, up: 0, down: 0, myVote: nil)
+            }
+        }
+    }
+
+    private static func refusal(_ status: Int, _ code: String, _ message: String) -> APIError {
+        .server(status: status, code: code, message: message, retryAfter: nil)
     }
 
     /// `GET /api/news` semantics (lib/store.js `query`): filters, newest first, 1-based pages.
@@ -88,18 +109,27 @@ public final class FixtureServer: @unchecked Sendable {
                 return body
             },
             comments: { [self] query in
+                // like the server: one reader's report hides nothing (three do); the app hides it for that reader
                 let all = state.value.comments[query.articleID] ?? []
                 let sorted = query.sort == .top ? all.stableSorted { ($0.up - $0.down) > ($1.up - $1.down) } : all
                 let start = (query.page - 1) * query.pageSize
                 let page = start < sorted.count ? Array(sorted[start..<min(sorted.count, start + query.pageSize)]) : []
-                return CommentsPage(comments: page, total: all.count, page: query.page, pageSize: query.pageSize,
-                                    me: Persona(name: "Amber Falcon", avatar: Avatar(hue: 213, glyph: 4)))
+                return CommentsPage(comments: page, total: all.count, page: query.page, pageSize: query.pageSize, me: me)
             },
             postComment: { [self] articleID, body in
-                state.update { state in
-                    let id = String(format: "cc%014x", state.nextComment)
+                let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard (2...1000).contains(text.utf16.count) else {
+                    throw Self.refusal(400, "bad-body", "Comment must be 2-1000 characters")
+                }
+                // the server's content screen, reduced to the phrase the fixtures use
+                if text.lowercased().contains("kys") {
+                    throw Self.refusal(422, "objectionable", "This comment breaks the community rules")
+                }
+                return state.update { state in
+                    let id = String(format: "cc%014x", 0x100 + state.nextComment)
                     state.nextComment += 1
-                    let comment = CoreModels.Comment(id: id, name: "Amber Falcon", avatar: Avatar(hue: 213, glyph: 4), body: body, createdAt: capturedAt)
+                    let comment = CoreModels.Comment(id: id, name: me.name, avatar: me.avatar, authorKey: myAuthorKey,
+                                                     body: text, createdAt: capturedAt, mine: true)
                     state.comments[articleID, default: []].insert(comment, at: 0)
                     var reactions = state.votes[articleID] ?? .zero
                     reactions.comments += 1
@@ -107,7 +137,46 @@ public final class FixtureServer: @unchecked Sendable {
                     return comment
                 }
             },
-            voteComment: { _, value in VoteResult(up: max(0, value), down: max(0, -value), myVote: Vote(rawValue: value)) },
+            voteComment: { [self] commentID, value in
+                try state.update { state in
+                    for (articleID, thread) in state.comments {
+                        guard let index = thread.firstIndex(where: { $0.id == commentID }) else { continue }
+                        var comment = thread[index]
+                        if comment.myVote == .up { comment.up -= 1 }
+                        if comment.myVote == .down { comment.down -= 1 }
+                        comment.myVote = Vote(rawValue: value)
+                        if value == 1 { comment.up += 1 }
+                        if value == -1 { comment.down += 1 }
+                        state.comments[articleID]?[index] = comment
+                        return VoteResult(up: comment.up, down: comment.down, myVote: comment.myVote)
+                    }
+                    throw Self.refusal(404, "unknown-comment", "No such comment")
+                }
+            },
+            reportComment: { [self] commentID, _ in
+                try state.update { state in
+                    guard let comment = state.comments.values.joined().first(where: { $0.id == commentID }) else {
+                        throw Self.refusal(404, "unknown-comment", "No such comment")
+                    }
+                    if comment.mine { throw Self.refusal(400, "own-comment", "You cannot report your own comment") }
+                    state.reported.insert(commentID) // one reader: never the three that hide it for all
+                    return false
+                }
+            },
+            deleteComment: { [self] commentID in
+                try state.update { state in
+                    for (articleID, thread) in state.comments {
+                        guard let comment = thread.first(where: { $0.id == commentID }) else { continue }
+                        guard comment.mine else { throw Self.refusal(403, "not-owner", "Only its author can delete a comment") }
+                        state.comments[articleID]?.removeAll { $0.id == commentID }
+                        var reactions = state.votes[articleID] ?? .zero
+                        reactions.comments = max(0, reactions.comments - 1)
+                        state.votes[articleID] = reactions
+                        return
+                    }
+                    throw Self.refusal(404, "unknown-comment", "No such comment")
+                }
+            },
             voteArticle: { [self] articleID, value in
                 state.update { state in
                     var reactions = state.votes[articleID] ?? english.first { $0.id == articleID }?.reactions ?? .zero

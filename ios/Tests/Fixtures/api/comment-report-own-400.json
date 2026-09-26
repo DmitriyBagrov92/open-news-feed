@@ -1,0 +1,17 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/comments/cc00000000000002/report",
+  "author": "solar",
+  "body": {
+   "reason": "spam"
+  }
+ },
+ "status": 400,
+ "body": {
+  "error": {
+   "code": "own-comment",
+   "message": "You cannot report your own comment"
+  }
+ }
+}

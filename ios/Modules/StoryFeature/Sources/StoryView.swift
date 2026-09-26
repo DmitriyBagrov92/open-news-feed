@@ -154,6 +154,7 @@ public struct StoryPager: View {
             ToolbarItemGroup(placement: .bottomBar) {
                 VoteButton(article: article, vote: .up, live: live)
                 VoteButton(article: article, vote: .down, live: live)
+                CommentsButton(store: store, live: live)
             }
         }
     }
@@ -199,6 +200,7 @@ struct StoryDock: View {
                 HStack(spacing: 2) {
                     VoteButton(article: article, vote: .up, live: live)
                     VoteButton(article: article, vote: .down, live: live)
+                    CommentsButton(store: store, live: live)
                 }
                 .buttonStyle(DockIconStyle())
                 .glassEffect(.regular, in: .capsule)
@@ -300,6 +302,28 @@ struct VoteButton: View {
     }
 }
 
+/// 💬 with the count: scrolls the story to its comments (web `preview-comments`).
+struct CommentsButton: View {
+    let store: StoryStore
+    let live: ArticleLiveState
+
+    var body: some View {
+        let count = live.reactions?.comments ?? store.comments.total
+        Button {
+            store.showComments()
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "bubble.left")
+                if count > 0 { Text("\(count)").monospacedDigit() }
+            }
+            .fontWeight(.semibold)
+        }
+        .accessibilityLabel(L10n.t("ios.comments.open"))
+        .accessibilityValue(String(count))
+        .accessibilityIdentifier("story-comments")
+    }
+}
+
 struct SaveButton: View {
     let article: Article
     let live: ArticleLiveState
@@ -359,24 +383,31 @@ struct StoryPage: View {
 
     private var article: Article { store.article }
 
+    static let commentsAnchor = "comments"
+
     var body: some View {
         GeometryReader { geometry in
             let hasPhoto = article.image != nil
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    if hasPhoto {
-                        StoryHero(article: article)
-                            .frame(height: heroHeight(geometry.size.height))
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if hasPhoto {
+                            StoryHero(article: article)
+                                .frame(height: heroHeight(geometry.size.height))
+                        }
+                        StoryBody(store: store, isPane: isPane)
+                            .padding(.top, hasPhoto ? (isPane ? -56 : -64) : insets.top + 12)
                     }
-                    StoryBody(store: store, isPane: isPane)
-                        .padding(.top, hasPhoto ? (isPane ? -56 : -64) : insets.top + 12)
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                .contentMargins(.bottom, insets.bottom + 16, for: .scrollContent)
+                .contentMargins(.top, insets.top, for: .scrollIndicators)
+                .contentMargins(.bottom, insets.bottom, for: .scrollIndicators)
+                .ignoresSafeArea(edges: .vertical)
+                .onChange(of: store.commentsScrollRequest) {
+                    withAnimation(.snappy) { proxy.scrollTo(Self.commentsAnchor, anchor: .top) }
+                }
             }
-            .contentMargins(.bottom, insets.bottom + 16, for: .scrollContent)
-            .contentMargins(.top, insets.top, for: .scrollIndicators)
-            .contentMargins(.bottom, insets.bottom, for: .scrollIndicators)
-            .ignoresSafeArea(edges: .vertical)
         }
         .task { await store.load() }
         .accessibilityElement(children: .contain)
@@ -456,6 +487,8 @@ struct StoryBody: View {
                 StoryBlocks(blocks: store.displayedBlocks)
                     .accessibilityIdentifier("story-\(article.id)-text")
             }
+            CommentsSection(store: store.comments)
+                .id(StoryPage.commentsAnchor)
         }
         .animation(.smooth, value: store.summary)
         .animation(.smooth, value: store.showsTranslation)

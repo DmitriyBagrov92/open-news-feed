@@ -1420,6 +1420,171 @@
         }
       }
     },
+    "ios.comments.cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "ios.comments.count" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{n}/1000"
+          }
+        }
+      }
+    },
+    "ios.comments.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comments"
+          }
+        }
+      }
+    },
+    "ios.comments.write" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a comment…"
+          }
+        }
+      }
+    },
+    "ios.rules.agree" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agree and continue"
+          }
+        }
+      }
+    },
+    "ios.rules.full" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read the full rules"
+          }
+        }
+      }
+    },
+    "ios.rules.harassment" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "harassment, threats, or encouragement of violence or self-harm"
+          }
+        }
+      }
+    },
+    "ios.rules.hate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hate speech, slurs or attacks on people for who they are"
+          }
+        }
+      }
+    },
+    "ios.rules.illegal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "illegal content, or personal information about anyone"
+          }
+        }
+      }
+    },
+    "ios.rules.impersonation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "impersonation of other people or organisations"
+          }
+        }
+      }
+    },
+    "ios.rules.lead" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meridian has zero tolerance for objectionable content and abusive users. By commenting you agree not to post:"
+          }
+        }
+      }
+    },
+    "ios.rules.moderation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reports are reviewed within 24 hours. Comments that break the rules are removed and their authors are banned from commenting. You can report any comment and block any commenter."
+          }
+        }
+      }
+    },
+    "ios.rules.sexual" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sexual content"
+          }
+        }
+      }
+    },
+    "ios.rules.spam" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spam, advertising or repeated posts"
+          }
+        }
+      }
+    },
+    "ios.rules.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Community rules"
+          }
+        }
+      }
+    },
     "ios.search.hint" : {
       "extractionState" : "manual",
       "localizations" : {

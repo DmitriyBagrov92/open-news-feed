@@ -24,6 +24,10 @@ public struct Preferences: Sendable, Hashable, Codable {
     public var lastTab: String?
     /// Onboarding like/dislike profile for Your Feed.
     public var taste = TasteProfile()
+    /// Commenters whose comments this device hides (web `blockedAuthors`), oldest first.
+    public var blockedAuthors: [BlockedAuthor] = []
+    /// The community rules were accepted before the first comment (iOS: App Store Guideline 1.2).
+    public var commentRulesAccepted = false
 
     public init() {}
 
@@ -31,6 +35,21 @@ public struct Preferences: Sendable, Hashable, Codable {
 
     private enum CodingKeys: String, CodingKey {
         case theme, targetLang, autoTranslate, hiddenSources, category, gridSize, forecast, lastTab, taste
+        case blockedAuthors, commentRulesAccepted
+    }
+
+    public func isBlocked(_ authorKey: String) -> Bool {
+        !authorKey.isEmpty && blockedAuthors.contains { $0.key == authorKey }
+    }
+
+    /// web `blockAuthor`: no duplicates, the newest 500 kept.
+    public mutating func block(_ authorKey: String, name: String) {
+        guard AuthorKey.isValid(authorKey), !isBlocked(authorKey) else { return }
+        blockedAuthors = BlockedAuthor.sanitized(blockedAuthors + [BlockedAuthor(key: authorKey, name: name)])
+    }
+
+    public mutating func unblock(_ authorKey: String) {
+        blockedAuthors.removeAll { $0.key == authorKey }
     }
 
     public init(from decoder: Decoder) throws {
@@ -47,6 +66,40 @@ public struct Preferences: Sendable, Hashable, Codable {
         forecast = (try? c.decodeIfPresent(Bool.self, forKey: .forecast)) ?? defaults.forecast
         lastTab = (try? c.decodeIfPresent(String.self, forKey: .lastTab)) ?? nil
         taste = ((try? c.decodeIfPresent(TasteProfile.self, forKey: .taste)) ?? nil)?.sanitized() ?? defaults.taste
+        let blocked = ((try? c.decodeIfPresent(Lossy<BlockedAuthor>.self, forKey: .blockedAuthors)) ?? nil)?.elements ?? []
+        blockedAuthors = BlockedAuthor.sanitized(blocked)
+        commentRulesAccepted = (try? c.decodeIfPresent(Bool.self, forKey: .commentRulesAccepted)) ?? false
+    }
+}
+
+/// A blocked commenter (web `prefs.blockedAuthors` entry).
+public struct BlockedAuthor: Sendable, Hashable, Codable {
+    public let key: String
+    public let name: String
+
+    public init(key: String, name: String) {
+        self.key = key
+        self.name = name
+    }
+
+    private enum CodingKeys: String, CodingKey { case key, name }
+
+    /// Tolerant: a missing or non-string name is "" (the sanitizer drops a bad key).
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        key = try c.decode(String.self, forKey: .key)
+        name = ((try? c.decodeIfPresent(String.self, forKey: .name)) ?? nil) ?? ""
+    }
+
+    /// web `sanitizeBlocked`: valid 16-hex keys, first of duplicates, names cut to 60 UTF-16
+    /// units, the newest 500.
+    public static func sanitized(_ entries: [BlockedAuthor]) -> [BlockedAuthor] {
+        var seen = Set<String>()
+        var out: [BlockedAuthor] = []
+        for entry in entries where AuthorKey.isValid(entry.key) && seen.insert(entry.key).inserted {
+            out.append(BlockedAuthor(key: entry.key, name: entry.name.jsPrefix(60)))
+        }
+        return Array(out.suffix(500))
     }
 }
 
@@ -105,6 +158,17 @@ public enum ArticleID {
 }
 
 // MARK: - JavaScript compatibility
+
+public extension String {
+    /// `text.slice(0, n)` in UTF-16 units, backing off rather than splitting a surrogate pair.
+    func jsPrefix(_ length: Int) -> String {
+        let units = Array(utf16)
+        guard units.count > length else { return self }
+        var cut = max(0, length)
+        if cut > 0, UTF16.isLeadSurrogate(units[cut - 1]) { cut -= 1 }
+        return String(decoding: units[0..<cut], as: UTF16.self)
+    }
+}
 
 public extension Sequence {
     /// `Array.prototype.sort` is stable: elements the comparator calls equal keep their order.

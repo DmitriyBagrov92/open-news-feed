@@ -42,6 +42,9 @@ const advance = (ms) => {
 
 process.env.RATE_LIMIT_DISABLED = '1';
 process.env.PUBLIC_URL = 'https://fixtures.meridi.info';
+// the admin API is not part of the app: only used to set up the banned-author exchange
+process.env.ADMIN_TOKEN = 'fixture-admin-token';
+const ADMIN = { Authorization: 'Bearer fixture-admin-token' };
 const { startServer } = await import(pathToFileURL(path.join(ROOT, 'test/helpers/server.js')).href);
 const { base, close } = await startServer();
 
@@ -53,8 +56,8 @@ const AUTHORS = {
 };
 const files = new Map();
 
-async function call(name, method, pathAndQuery, { body, author } = {}) {
-  const headers = {};
+async function call(name, method, pathAndQuery, { body, author, headers: extra = {} } = {}) {
+  const headers = { ...extra };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (author) headers['X-Author-Id'] = author;
   const res = await fetch(base + pathAndQuery, {
@@ -77,6 +80,7 @@ async function call(name, method, pathAndQuery, { body, author } = {}) {
 }
 const get = (name, p, opts) => call(name, 'GET', p, opts);
 const post = (name, p, body, opts = {}) => call(name, 'POST', p, { ...opts, body });
+const del = (name, p, opts) => call(name, 'DELETE', p, opts);
 
 // ── feed ─────────────────────────────────────────────────────────────────────
 const page1 = await get('news-page1', '/api/news?page=1&pageSize=30');
@@ -134,6 +138,22 @@ await get('comments-top', `/api/comments?article=${aid}&sort=top`);
 await get('comments-me', `/api/comments?article=${aid}&sort=new`, { author: AUTHORS.amber });
 await get('comments-page2', `/api/comments?article=${aid}&page=2&pageSize=2`);
 await get('comments-bad-400', '/api/comments?article=nope');
+
+// ── moderation: report, delete, the content screen, a banned author ─────────
+await post('comment-report', `/api/comments/${third.id}/report`, { reason: 'spam' }, { author: AUTHORS.quiet });
+await post('comment-report-own-400', `/api/comments/${third.id}/report`, { reason: 'spam' }, { author: AUTHORS.solar });
+await post('comment-report-bad-reason-400', `/api/comments/${third.id}/report`, { reason: 'boring' }, { author: AUTHORS.amber });
+await post('comment-report-unknown-404', '/api/comments/0000000000000000/report', { reason: 'spam' }, { author: AUTHORS.amber });
+advance(15_000);
+const doomed = await post(null, '/api/comments', { articleId: aid, body: 'On second thought, never mind.' }, { author: AUTHORS.amber });
+await del('comment-delete-not-owner-403', `/api/comments/${doomed.id}`, { author: AUTHORS.quiet });
+await del('comment-delete', `/api/comments/${doomed.id}`, { author: AUTHORS.amber });
+await del('comment-delete-unknown-404', '/api/comments/0000000000000000', { author: AUTHORS.amber });
+advance(15_000);
+await post('comment-objectionable-422', '/api/comments', { articleId: aid, body: 'kys, all of you' }, { author: AUTHORS.quiet });
+await post(null, '/api/admin/bans', { authorKey: third.authorKey, reason: 'fixture' }, { headers: ADMIN });
+await post('comment-banned-403', '/api/comments', { articleId: aid, body: 'Let me back in, please.' }, { author: AUTHORS.solar });
+await del(null, `/api/admin/bans/${third.authorKey}`, { headers: ADMIN });
 await post('news-vote-up', `/api/news/${aid}/vote`, { value: 1 }, { author: AUTHORS.amber });
 await post('news-vote-retract', `/api/news/${aid}/vote`, { value: 0 }, { author: AUTHORS.amber });
 await post(null, `/api/news/${aid}/vote`, { value: -1 }, { author: AUTHORS.quiet });

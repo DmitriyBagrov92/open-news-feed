@@ -1,0 +1,17 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/comments/cc00000000000002/report",
+  "author": "amber",
+  "body": {
+   "reason": "boring"
+  }
+ },
+ "status": 400,
+ "body": {
+  "error": {
+   "code": "bad-reason",
+   "message": "\"reason\" must be one of: spam, abuse, hate, sexual, violence, other"
+  }
+ }
+}

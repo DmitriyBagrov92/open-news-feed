@@ -1,0 +1,17 @@
+{
+ "request": {
+  "method": "POST",
+  "path": "/api/comments/0000000000000000/report",
+  "author": "amber",
+  "body": {
+   "reason": "spam"
+  }
+ },
+ "status": 404,
+ "body": {
+  "error": {
+   "code": "unknown-comment",
+   "message": "No such comment"
+  }
+ }
+}

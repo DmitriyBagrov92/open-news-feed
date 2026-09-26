@@ -50,11 +50,7 @@ public enum TextKit {
 
     /// `text.slice(0, n)` in UTF-16 units, backing off rather than splitting a surrogate pair.
     public static func jsPrefix(_ text: String, _ length: Int) -> String {
-        let units = Array(text.utf16)
-        guard units.count > length else { return text }
-        var cut = max(0, length)
-        if cut > 0, UTF16.isLeadSurrogate(units[cut - 1]) { cut -= 1 }
-        return String(decoding: units[0..<cut], as: UTF16.self)
+        text.jsPrefix(length)
     }
 
     /// Runs of scalars where `isWordScalar` holds (a JS `split` on the complement, empties dropped).

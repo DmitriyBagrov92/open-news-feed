@@ -111,7 +111,7 @@ public final class LockedValue<Value>: @unchecked Sendable {
     }
 
     @discardableResult
-    public func update<Result>(_ body: (inout Value) -> Result) -> Result {
-        lock.withLock { body(&stored) }
+    public func update<Result>(_ body: (inout Value) throws -> Result) rethrows -> Result {
+        try lock.withLock { try body(&stored) }
     }
 }

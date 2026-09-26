@@ -1,6 +1,7 @@
 import XCTest
 
 /// The app launches on the fixture newsroom: Today, the brief and the first cards are there.
+@MainActor
 final class LaunchSmokeTests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false

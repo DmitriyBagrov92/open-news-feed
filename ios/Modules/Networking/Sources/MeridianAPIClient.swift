@@ -15,6 +15,10 @@ public struct MeridianAPIClient: Sendable {
     public var postComment: @Sendable (_ articleID: String, _ body: String) async throws -> CoreModels.Comment
     /// `value`: 1, -1 or 0 (retract).
     public var voteComment: @Sendable (_ commentID: String, _ value: Int) async throws -> VoteResult
+    /// A reader flags a comment (one report per reader). Returns whether it is now hidden for all.
+    public var reportComment: @Sendable (_ commentID: String, _ reason: ReportReason) async throws -> Bool
+    /// The author deletes their own comment.
+    public var deleteComment: @Sendable (_ commentID: String) async throws -> Void
     public var voteArticle: @Sendable (_ articleID: String, _ value: Int) async throws -> VoteResult
     public var reactions: @Sendable (_ articleIDs: [String]) async throws -> [String: Reactions]
     public var translate: @Sendable (_ texts: [String], _ target: String, _ source: String) async throws -> TranslateResponse
@@ -63,6 +67,15 @@ public extension MeridianAPIClient {
             },
             voteComment: { commentID, value in
                 try await transport.post("/api/comments/\(commentID)/vote", Body(["value": .int(value)]), author: .mint)
+            },
+            reportComment: { commentID, reason in
+                let result: ReportResult = try await transport.post(
+                    "/api/comments/\(commentID)/report", Body(["reason": .string(reason.rawValue)]), author: .mint
+                )
+                return result.hidden
+            },
+            deleteComment: { commentID in
+                let _: DeleteResult = try await transport.delete("/api/comments/\(commentID)", author: .mint)
             },
             voteArticle: { articleID, value in
                 try await transport.post("/api/news/\(articleID)/vote", Body(["value": .int(value)]), author: .mint)
@@ -160,6 +173,12 @@ struct Transport: Sendable {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(body)
+        return try await send(request, author: author)
+    }
+
+    func delete<T: Decodable>(_ path: String, author: AuthorHeader) async throws -> T {
+        var request = URLRequest(url: try url(path, []))
+        request.httpMethod = "DELETE"
         return try await send(request, author: author)
     }
 

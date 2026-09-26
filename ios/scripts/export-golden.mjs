@@ -336,6 +336,22 @@ async function prefsVectors() {
       },
     },
     { taste: 'corrupt' },
+    {
+      // oldest first: the newest 500 survive; names are cut at 60 UTF-16 units (an emoji is two)
+      blockedAuthors: [
+        ...Array.from({ length: 510 }, (_, i) => ({ key: (0x1000 + i).toString(16).padStart(16, 'e'), name: `Commenter ${i}` })),
+        { key: 'aaaaaaaaaaaaaaaa', name: 'Amber Falcon' },
+        { key: 'aaaaaaaaaaaaaaaa', name: 'Duplicate' },
+        { key: 'AAAAAAAAAAAAAAAA', name: 'Upper-case key' },
+        { key: 'not-a-key', name: 'x' },
+        { key: 'bbbbbbbbbbbbbbbb', name: 'N'.repeat(58) + '😀tail' },
+        { key: 'cccccccccccccccc' },
+        { key: 'dddddddddddddddd', name: 42 },
+        'junk',
+        null,
+      ],
+    },
+    { blockedAuthors: 'corrupt' },
   ];
   const cases = [];
   for (const [i, raw] of inputs.entries()) {

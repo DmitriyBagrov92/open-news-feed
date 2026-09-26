@@ -157,3 +157,29 @@ public struct ThinkingBars: View {
         .accessibilityHidden(true)
     }
 }
+
+/// A commenter's avatar (web comments.js `avatarEl`): a glyph from a fixed set of 24 on the
+/// persona's hue — hsl(hue, 50%, 52%). U+FE0E keeps the symbols from turning into emoji.
+public struct PersonaAvatar: View {
+    public static let glyphs: [String] = ["◆", "●", "▲", "■", "★", "✦", "☀", "☾", "⚡", "❄", "✳", "✺",
+                                          "◐", "◭", "⬟", "⬢", "✹", "❋", "✷", "✵", "♆", "♓", "⌘", "✜"]
+    private let hue: Int
+    private let glyph: Int
+    private let size: CGFloat
+
+    public init(hue: Int, glyph: Int, size: CGFloat = 34) {
+        self.hue = hue
+        self.glyph = glyph
+        self.size = size
+    }
+
+    public var body: some View {
+        let index = ((glyph % Self.glyphs.count) + Self.glyphs.count) % Self.glyphs.count
+        Text(Self.glyphs[index] + "\u{FE0E}")
+            .font(.system(size: size * 0.4, weight: .bold))
+            .foregroundStyle(.white)
+            .frame(width: size, height: size)
+            .background(Color(hue: Double(min(359, max(0, hue))), saturation: 0.5, lightness: 0.52), in: Circle())
+            .accessibilityHidden(true)
+    }
+}

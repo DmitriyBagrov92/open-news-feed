@@ -139,6 +139,36 @@ struct GoldenParityTests {
         }
     }
 
+    @Test("prefs.js sanitizeBlocked: 16-hex keys, first of duplicates, 60 UTF-16 units, newest 500")
+    func blockedAuthors() throws {
+        let root = try #require(JSONSerialization.jsonObject(with: Fixtures.data("golden/prefs.json")) as? [String: Any])
+        let cases = try #require(root["cases"] as? [[String: Any]])
+        for (index, vector) in cases.enumerated() {
+            let expected = ((vector["prefs"] as? [String: Any])?["blockedAuthors"] as? [[String: Any]] ?? [])
+                .map { BlockedAuthor(key: $0["key"] as? String ?? "", name: $0["name"] as? String ?? "") }
+            // the web's input object through the app's tolerant decoder (not an object → defaults)
+            var actual: [BlockedAuthor] = []
+            if let input = vector["input"], JSONSerialization.isValidJSONObject(input),
+               let data = try? JSONSerialization.data(withJSONObject: input),
+               let prefs = try? JSONDecoder().decode(Preferences.self, from: data) {
+                actual = prefs.blockedAuthors
+            }
+            #expect(actual == expected, "case \(index)")
+        }
+    }
+
+    @Test("blocking: no duplicates, no bad keys, unblock removes")
+    func blocking() {
+        var prefs = Preferences()
+        prefs.block("aaaaaaaaaaaaaaaa", name: "Amber Falcon")
+        prefs.block("aaaaaaaaaaaaaaaa", name: "Again")
+        prefs.block("nope", name: "Bad key")
+        #expect(prefs.blockedAuthors == [BlockedAuthor(key: "aaaaaaaaaaaaaaaa", name: "Amber Falcon")])
+        #expect(prefs.isBlocked("aaaaaaaaaaaaaaaa") && !prefs.isBlocked(""))
+        prefs.unblock("aaaaaaaaaaaaaaaa")
+        #expect(prefs.blockedAuthors.isEmpty)
+    }
+
     // MARK: i18n.js
 
     struct StringVectors: Decodable {

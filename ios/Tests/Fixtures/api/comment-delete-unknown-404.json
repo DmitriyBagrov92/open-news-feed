@@ -1,0 +1,14 @@
+{
+ "request": {
+  "method": "DELETE",
+  "path": "/api/comments/0000000000000000",
+  "author": "amber"
+ },
+ "status": 404,
+ "body": {
+  "error": {
+   "code": "unknown-comment",
+   "message": "No such comment"
+  }
+ }
+}

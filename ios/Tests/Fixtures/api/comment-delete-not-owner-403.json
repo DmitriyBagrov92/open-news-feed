@@ -1,0 +1,14 @@
+{
+ "request": {
+  "method": "DELETE",
+  "path": "/api/comments/0e30102cebe2faa2",
+  "author": "quiet"
+ },
+ "status": 403,
+ "body": {
+  "error": {
+   "code": "not-owner",
+   "message": "Only its author can delete a comment"
+  }
+ }
+}

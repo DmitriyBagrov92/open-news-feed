@@ -81,19 +81,27 @@ Env keys: `FIXTURES_DIR` (use `LaunchContract.fixturesDirectory()`), `POLL_SECON
 otherwise every launch starts clean), `SEED_PREFS` (JSON `Preferences`), `APPEARANCE`, `FIXED_NOW`,
 `INITIAL_ROUTE` (`today` | `saved` | `search` | `story/<articleID>` — a Today story, opened once it loads).
 Fixture stories: the hero `825452304de0` is story-a (rich blocks), `b52427f78777` story-b (paragraphs),
-`15eeca76f28c` story-c (paywall stub); every other extraction fails with 422 (the note).
+`15eeca76f28c` story-c (paywall stub); every other extraction fails with 422 (the note). Story-a carries
+the three captured comments (`cc…01` is the reader's own — the reader is the fixtures' "amber" author,
+persona Solar Jetty; `cc…02` Lunar Tundra, liked; `cc…03` Mellow Kestrel). The fake server refuses a body
+containing "kys" with 422 `objectionable`, only the author may delete, one report hides nothing.
 Stable selectors: `card-<articleID>` (the headline block, a button), `card-<id>-{up,down,save,
 translate,open}`, `chip-<category>`, `new-stories-pill`, `offline-banner`, `time-chip-label`,
 `time-rail`, `brief`, `empty-{feed,search,saved}`, `language-menu`; the story: `story`, `story-<id>`
 (a page), `story-<id>-{title,text}`, `story-{save,share,summarize,translate,source,up,down}`,
-`story-{prev,next,close}` (the iPad pane), `story-{chip,note,summary,skeleton}`.
+`story-{prev,next,close}` (the iPad pane), `story-{chip,note,summary,skeleton,comments}`; comments:
+`comments`, `comments-{compose,sort,total,empty,more,rules}`, `comment-<id>` (+ `-menu`, `-up`,
+`-down`, `-body`), the composer sheet `comments-{input,post,cancel}`, the rules `rules`, `rules-agree`;
+toasts `toast` (match the text on the label — `toast(app, text)`). Pages of the pager coexist: scope
+queries to `story-<id>`.
 Suites derive from `AcceptanceTestCase` (`@MainActor`: XCUI APIs are main-actor isolated).
 Gotchas: after scrolling the iPhone tab bar is minimised — swipe down before tapping a tab; chips
 off-screen are not hittable; wait with `XCTWaiter` + `XCTNSPredicateExpectation` (Swift 6 rejects
 `waitForExpectations` in a non-isolated test); `#filePath` as a default argument names the caller; on a
 phone the hero's headline sits under the tab bar at launch (`isHittable` still says true) — tap its photo;
 selectable story text is not always a `staticText` — query by label predicate; new test files need
-`xcodegen generate` before `build-for-testing`. A UI test failing with "main thread busy for 30 s" is a
+`xcodegen generate` before `build-for-testing`; a toast lives 3.5 s — assert it before any slow
+`eventually`; an element with an identifier is not found by its label through `query["text"]`. A UI test failing with "main thread busy for 30 s" is a
 real hang: profile the simulator app while the test runs — `sample <pid> 2` (the pid from `ps -axo
 pid,command | grep <device UDID> | grep Meridian.app/Meridian`) — and compare with the previous commit
 built in a `git worktree` under the same two-simulator load.

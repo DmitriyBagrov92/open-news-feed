@@ -111,6 +111,20 @@ struct APIDecodingTests {
         #expect(try Fixtures.decodeAPI(CommentsPage.self, "comments-new").me == nil)
         let created = try Fixtures.decodeAPI(CoreModels.Comment.self, "comment-created")
         #expect((0...23).contains(created.avatar.glyph) && (0...359).contains(created.avatar.hue))
+        #expect(created.mine, "the author's own comment")
+        #expect(AuthorKey.isValid(created.authorKey))
+        let mine = page.comments.filter(\.mine)
+        #expect(mine.map(\.authorKey) == [created.authorKey], "the caller sees only their comment as mine")
+        #expect(Set(page.comments.map(\.authorKey)).count == 3, "one public key per author")
+        #expect(try Fixtures.decodeAPI(CommentsPage.self, "comments-new").comments.allSatisfy { !$0.mine })
+    }
+
+    @Test("moderation: a report says whether the comment is hidden; a delete confirms")
+    func moderation() throws {
+        #expect(try Fixtures.decodeAPI(ReportResult.self, "comment-report") == ReportResult(reported: true, hidden: false))
+        #expect(try Fixtures.decodeAPI(DeleteResult.self, "comment-delete").deleted)
+        #expect(ReportReason.allCases.map(\.rawValue) == ["spam", "abuse", "hate", "sexual", "violence", "other"])
+        #expect(ReportReason.abuse.label == "Harassment or bullying")
     }
 
     @Test("reactions, votes, translation")
@@ -134,6 +148,13 @@ struct APIDecodingTests {
         ("comment-unknown-article-404", 404, "unknown-article"),
         ("comment-bad-author-400", 400, "bad-author"),
         ("news-vote-unknown-404", 404, "unknown-article"),
+        ("comment-report-own-400", 400, "own-comment"),
+        ("comment-report-bad-reason-400", 400, "bad-reason"),
+        ("comment-report-unknown-404", 404, "unknown-comment"),
+        ("comment-delete-not-owner-403", 403, "not-owner"),
+        ("comment-delete-unknown-404", 404, "unknown-comment"),
+        ("comment-objectionable-422", 422, "objectionable"),
+        ("comment-banned-403", 403, "banned"),
         ("unknown-endpoint-404", 404, "not-found"),
     ])
     func errors(name: String, status: Int, code: String) throws {

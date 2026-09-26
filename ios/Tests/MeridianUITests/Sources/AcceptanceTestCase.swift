@@ -47,6 +47,11 @@ class AcceptanceTestCase: XCTestCase {
         return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
     }
 
+    /// A toast with this text (toasts carry the `toast` identifier, so the text is matched on the label).
+    func toast(_ app: XCUIApplication, _ text: String) -> XCUIElement {
+        app.staticTexts.matching(identifier: "toast").matching(NSPredicate(format: "label == %@", text)).firstMatch
+    }
+
     /// Makes sure a text field has keyboard focus (tap its text area, not a clear/mic button).
     func focus(_ field: XCUIElement) {
         for _ in 0..<3 {

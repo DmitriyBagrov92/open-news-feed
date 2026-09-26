@@ -92,6 +92,10 @@ public final class StoryStore {
     public private(set) var translation: Translation?
     public private(set) var showsTranslation = false
     public private(set) var isTranslating = false
+    /// The conversation at the end of the story.
+    public let comments: CommentsStore
+    /// Bumped by the dock's 💬: the page scrolls to the comments.
+    public private(set) var commentsScrollRequest = 0
 
     @ObservationIgnored private var extracted: ArticleBody?
     @ObservationIgnored private var loaded = false
@@ -112,6 +116,11 @@ public final class StoryStore {
         self.toasts = toasts
         self.states = states
         self.cache = cache
+        comments = CommentsStore(article: article, preferences: preferences, toasts: toasts, states: states)
+    }
+
+    public func showComments() {
+        commentsScrollRequest += 1
     }
 
     private var target: String { preferences?.value.targetLang ?? "en" }

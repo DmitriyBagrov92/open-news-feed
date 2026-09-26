@@ -17,5 +17,20 @@
   "ios.brief.less": "Show less",
   "ios.time.rail": "Time in the feed",
   "ios.search.hint": "Search headlines and descriptions from every source. Pick a category to narrow it down.",
-  "ios.card.copyLink": "Copy link"
+  "ios.card.copyLink": "Copy link",
+  "ios.comments.write": "Add a comment…",
+  "ios.comments.cancel": "Cancel",
+  "ios.comments.count": "{n}/1000",
+  "ios.comments.open": "Comments",
+  "ios.rules.title": "Community rules",
+  "ios.rules.lead": "Meridian has zero tolerance for objectionable content and abusive users. By commenting you agree not to post:",
+  "ios.rules.hate": "hate speech, slurs or attacks on people for who they are",
+  "ios.rules.harassment": "harassment, threats, or encouragement of violence or self-harm",
+  "ios.rules.sexual": "sexual content",
+  "ios.rules.spam": "spam, advertising or repeated posts",
+  "ios.rules.illegal": "illegal content, or personal information about anyone",
+  "ios.rules.impersonation": "impersonation of other people or organisations",
+  "ios.rules.moderation": "Reports are reviewed within 24 hours. Comments that break the rules are removed and their authors are banned from commenting. You can report any comment and block any commenter.",
+  "ios.rules.full": "Read the full rules",
+  "ios.rules.agree": "Agree and continue"
 }

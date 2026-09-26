@@ -211,7 +211,8 @@ struct StoryIntegrationTests {
             let store = world.story(article)
             #expect(world.states.live(article).reactions == nil)
             await store.load()
-            #expect(world.states.live(article).reactions == .zero)
+            // story-a carries the captured three-comment conversation
+            #expect(world.states.live(article).reactions == Reactions(comments: 3, up: 0, down: 0, myVote: nil))
         }
     }
 }
