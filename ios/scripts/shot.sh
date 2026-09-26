@@ -2,7 +2,7 @@
 # Design iteration helper: build the app, run it in a simulator on the fixture newsroom
 # (-UITestMode) or live (--live), and save a screenshot to ios/screenshots/<name>.png.
 #
-#   ios/scripts/shot.sh <name> [--device "iPhone 17"] [--dark] [--live] [--wait 4] [--no-build]
+#   ios/scripts/shot.sh <name> [--device "iPhone 17"] [--dark] [--live] [--wait 4] [--no-build] [--env KEY=VALUE]...
 set -euo pipefail
 IOS="$(cd "$(dirname "$0")/.." && pwd)"
 NAME="${1:?usage: shot.sh <name> [--device NAME] [--dark] [--live] [--wait S] [--no-build]}"
@@ -12,6 +12,7 @@ APPEARANCE=light
 LIVE=0
 WAIT=4
 BUILD=1
+EXTRA=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --device) DEVICE="$2"; shift ;;
@@ -19,6 +20,7 @@ while [ $# -gt 0 ]; do
     --live) LIVE=1 ;;
     --wait) WAIT="$2"; shift ;;
     --no-build) BUILD=0 ;;
+    --env) EXTRA+=("SIMCTL_CHILD_$2"); shift ;;
   esac
   shift
 done
@@ -49,7 +51,7 @@ xcrun simctl install "$UDID" build/DerivedData/Build/Products/Debug-iphonesimula
 if [ "$LIVE" = 1 ]; then
   xcrun simctl launch --terminate-running-process "$UDID" info.meridi.app >/dev/null
 else
-  SIMCTL_CHILD_FIXTURES_DIR="$IOS/Tests/Fixtures" SIMCTL_CHILD_APPEARANCE="$APPEARANCE" \
+  env SIMCTL_CHILD_FIXTURES_DIR="$IOS/Tests/Fixtures" SIMCTL_CHILD_APPEARANCE="$APPEARANCE" "${EXTRA[@]}" \
     xcrun simctl launch --terminate-running-process "$UDID" info.meridi.app -UITestMode >/dev/null
 fi
 sleep "$WAIT"

@@ -13,6 +13,8 @@ public final class FixtureServer: @unchecked Sendable {
     private let sourcesResponse: SourcesResponse
     private let battlesResponse: BattlesResponse
     private let bodies: [URL: ArticleBody]
+    /// The three "Breaking:" stories of `feed.fresh.json`, found by polls when enabled.
+    private let freshStories: [Article]
     private let state = LockedValue(MutableState())
 
     private struct MutableState {
@@ -21,7 +23,7 @@ public final class FixtureServer: @unchecked Sendable {
         var nextComment = 1
     }
 
-    public init(directory: URL) throws {
+    public init(directory: URL, newStories: Bool = false) throws {
         let api = directory.appendingPathComponent("api")
         func body<T: Decodable>(_ name: String, as type: T.Type) throws -> T {
             let data = try Data(contentsOf: api.appendingPathComponent("\(name).json"))
@@ -35,6 +37,7 @@ public final class FixtureServer: @unchecked Sendable {
         let mixed = try body("news-all-de", as: FeedPage.self).articles
         native = mixed.filter { $0.language != "en" }
         sourcesResponse = try body("sources", as: SourcesResponse.self)
+        freshStories = newStories ? try body("news-new-stories", as: FeedPage.self).articles : []
         battlesResponse = try body("battles", as: BattlesResponse.self)
         var bodies: [URL: ArticleBody] = [:]
         for (slug, name) in [("story-a", "article-story-a"), ("story-b", "article-story-b"), ("story-c", "article-story-c-paywall")] {
@@ -55,7 +58,10 @@ public final class FixtureServer: @unchecked Sendable {
             pool = pool.filter { ($0.title + " " + $0.description).lowercased().contains(search) }
         }
         if !query.exclude.isEmpty { pool = pool.filter { !query.exclude.contains($0.source.id) } }
-        if let since = query.since { pool = pool.filter { $0.publishedAt > since } }
+        if let since = query.since {
+            // polls also see the breaking stories that "arrived" after the capture (when enabled)
+            pool = (freshStories + pool).filter { $0.publishedAt > since }
+        }
         pool.sort { $0.publishedAt > $1.publishedAt }
         let size = min(100, max(1, query.pageSize))
         let start = (max(1, query.page) - 1) * size

@@ -66,6 +66,21 @@ Generated data (commit the outputs; the gate fails on drift):
   simulator); fakes are selected via `LaunchContract`.
 - Commits, pushes and deploys only when the user asks.
 
+## UI tests (XCUITest) and the launch contract
+
+`Tests/Shared/LaunchContract.swift` is compiled into TestSupport and the UI-test bundles. The app
+builds the faked graph (`TestSupport.UITestConfiguration`) only in DEBUG with `-UITestMode`, and
+**crashes** if the fixtures cannot load (a silent fallback once ran a "passing" test on live data).
+Env keys: `FIXTURES_DIR` (use `LaunchContract.fixturesDirectory()`), `POLL_SECONDS`, `NEW_STORIES=1`
+(polls find the three "Breaking:" stories), `OFFLINE=1`, `KEEP_STATE=1` (prefs survive a relaunch;
+otherwise every launch starts clean), `SEED_PREFS` (JSON `Preferences`), `APPEARANCE`, `FIXED_NOW`.
+Stable selectors: `card-<articleID>` (the headline block, a button), `card-<id>-{up,down,save,
+translate,open}`, `chip-<category>`, `new-stories-pill`, `offline-banner`, `time-chip-label`,
+`time-rail`, `brief`, `empty-{feed,search,saved}`, `language-menu`.
+Gotchas: after scrolling the iPhone tab bar is minimised — swipe down before tapping a tab; chips
+off-screen are not hittable; wait with `XCTWaiter` + `XCTNSPredicateExpectation` (Swift 6 rejects
+`waitForExpectations` in a non-isolated test); `#filePath` as a default argument names the caller.
+
 ## Verified API notes (iOS 26.4 SDK)
 
 - `Guardrails.permissiveContentTransformations` suppresses `guardrailViolation` **only for String

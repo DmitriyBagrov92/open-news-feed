@@ -310,12 +310,16 @@ targets:
     templates: [UnitTests]
     dependencies:
       - target: AppFeature
+      - target: FeedFeature
       - target: ArticleKit
+      - target: DesignSystem
       - target: CoreModels
       - target: Networking
       - target: Persistence
       - target: Intelligence
       - target: TestSupport
+      - package: Dependencies
+        product: Dependencies
 
   ContractTests:
     # The LIVE client against the real Node server in fixture mode (booted by scripts/test.sh).

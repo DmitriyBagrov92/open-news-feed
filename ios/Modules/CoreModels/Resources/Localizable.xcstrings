@@ -1211,6 +1211,28 @@
         }
       }
     },
+    "ios.card.copyLink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy link"
+          }
+        }
+      }
+    },
+    "ios.search.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search headlines and descriptions from every source. Pick a category to narrow it down."
+          }
+        }
+      }
+    },
     "ios.sidebar.categories" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1284,6 +1306,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "NOW"
+          }
+        }
+      }
+    },
+    "ios.time.rail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time in the feed"
           }
         }
       }

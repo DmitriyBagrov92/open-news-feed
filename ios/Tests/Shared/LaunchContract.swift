@@ -22,6 +22,14 @@ public enum LaunchContract {
         public static let fakeModel = "FAKE_MODEL"
         /// `1` — behave like a device without Apple Intelligence.
         public static let forceNoAI = "FORCE_NO_AI"
+        /// Seconds between feed polls (live: 30).
+        public static let pollSeconds = "POLL_SECONDS"
+        /// `1` — polls find the three "Breaking:" fixture stories (web `/__fixture/advance`).
+        public static let newStories = "NEW_STORIES"
+        /// `1` — the device is offline.
+        public static let offline = "OFFLINE"
+        /// `1` — keep preferences from the previous UI-test launch (tests of persistence).
+        public static let keepState = "KEEP_STATE"
     }
 
     /// ios/Tests/Fixtures on the host, located from THIS file (Tests/Shared/LaunchContract.swift).

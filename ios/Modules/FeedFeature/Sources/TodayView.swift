@@ -2,77 +2,76 @@ import ArticleKit
 import CoreModels
 import DesignSystem
 import Intelligence
+import Networking
+import Persistence
 import SwiftUI
 
 /// Today (or one category): world clocks, the brief, then the freshest-first mosaic — photos as
 /// the material, Liquid Glass only on the controls floating above them.
 public struct TodayView: View {
     @Bindable private var store: FeedStore
-    @Environment(\.cardSizing) private var sizing
     @Environment(\.clockNow) private var now
+    @Environment(ConnectivityModel.self) private var connectivity: ConnectivityModel?
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var isVisible = false
 
     public init(store: FeedStore) {
         self.store = store
     }
 
+    private var isOnline: Bool { connectivity?.isOnline ?? true }
+
     public var body: some View {
-        GeometryReader { geometry in
-            let columns = FeedLayout.columns(forWidth: geometry.size.width, cardMin: sizing.cardMin)
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    if !store.isCategoryLocked {
-                        CategoryChips(selected: store.category) { store.select($0) }
-                            .padding(.bottom, 10)
-                    }
-                    WorldClocks(compact: columns == 1)
-                        .padding(.horizontal, gutter(columns))
-                        .padding(.top, 2)
-                        .padding(.bottom, 12)
-                    BriefCard(lines: store.brief, provider: "local", isThinking: store.phase == .loading) {
-                        Task { await store.reload() }
-                    }
-                    .padding(.horizontal, gutter(columns))
-                    .padding(.bottom, 6)
-                    content(columns: columns, width: geometry.size.width)
-                }
-                .padding(.bottom, 24)
+        FeedList(store: store, showsRail: sizeClass == .regular) { columns in
+            if !store.isCategoryLocked {
+                CategoryChips(selected: store.category) { store.select($0) }
+                    .padding(.bottom, 10)
             }
-            .refreshable { await store.reload() }
+            WorldClocks(compact: columns == 1)
+                .padding(.horizontal, FeedMetrics.gutter(columns))
+                .padding(.top, 2)
+                .padding(.bottom, 12)
+            BriefCard(lines: store.brief, provider: "local", isThinking: store.phase == .loading) {
+                Task { await store.reload() }
+            }
+            .padding(.horizontal, FeedMetrics.gutter(columns))
+            .padding(.bottom, 6)
         }
-        .background { AmbientBackground(hues: store.hues) }
+        .overlay(alignment: .top) {
+            VStack(spacing: 8) {
+                if !isOnline {
+                    GlassBanner(L10n.t("feed.offline"), systemImage: "wifi.slash")
+                        .accessibilityIdentifier("offline-banner")
+                }
+                if !store.pending.isEmpty {
+                    NewStoriesPill(count: store.pending.count) { store.showPending() }
+                }
+            }
+            // below the category chips at rest, floating under the bar once the chips scroll away
+            .padding(.top, store.isCategoryLocked ? 8 : 58)
+            .animation(.spring(response: 0.4, dampingFraction: 0.75), value: store.pending.count)
+            .animation(.snappy, value: isOnline)
+        }
         .navigationTitle(store.title)
         .navigationSubtitle(Self.dateline(now))
+        .onAppear { isVisible = true }
+        .onDisappear { isVisible = false }
         .task { await store.appear() }
-    }
-
-    @ViewBuilder
-    private func content(columns: Int, width: CGFloat) -> some View {
-        switch store.phase {
-        case .idle, .loading where store.items.isEmpty:
-            ForEach(0..<6, id: \.self) { _ in SkeletonRow().padding(.horizontal, gutter(columns)) }
-        case .failed(let offline) where store.items.isEmpty:
-            ContentUnavailableView {
-                Label(L10n.t("feed.error"), systemImage: offline ? "wifi.slash" : "exclamationmark.triangle")
-            } description: {
-                Text(L10n.t("feed.errorHint"))
-            } actions: {
-                Button(L10n.t("feed.retry")) { Task { await store.reload() } }
-                    .buttonStyle(.glassProminent)
-            }
-            .padding(.top, 40)
-        case .empty:
-            ContentUnavailableView(L10n.t("feed.empty"), systemImage: "newspaper", description: Text(L10n.t("feed.emptyHint")))
-                .padding(.top, 40)
-        default:
-            let blocks = FeedLayout.blocks(store.items, columns: columns)
-            ForEach(blocks) { block in
-                FeedBlockView(block: block, columns: columns, width: width, gutter: gutter(columns))
-            }
+        .task(id: PollGate(active: scenePhase == .active, online: isOnline, visible: isVisible)) {
+            guard scenePhase == .active, isOnline, isVisible else { return }
+            await store.poll(quickStart: store.phase == .loaded)
+        }
+        .onChange(of: isOnline) { _, online in
+            // back online with nothing on screen: try again (web `online` handler)
+            if online, store.items.isEmpty { Task { await store.reload() } }
         }
     }
 
-    private func gutter(_ columns: Int) -> CGFloat {
-        columns == 1 ? Tokens.Space.page : 24
+    struct PollGate: Hashable {
+        let active: Bool
+        let online: Bool
+        let visible: Bool
     }
 
     /// "Saturday, 26 September" — the web's `#feedDate` (device locale), recomputed with the clock
@@ -83,67 +82,151 @@ public struct TodayView: View {
     }
 }
 
-/// One mosaic block: a row of cards, or a poster with cards stacked beside it.
-struct FeedBlockView: View {
-    let block: FeedBlock
-    let columns: Int
-    let width: CGFloat
-    let gutter: CGFloat
-    @Environment(\.cardSizing) private var sizing
+enum FeedMetrics {
+    /// Side margin: the phone gutter on one column, wider on the mosaic.
+    static func gutter(_ columns: Int) -> CGFloat { columns == 1 ? Tokens.Space.page : 24 }
+}
 
-    private let spacing: CGFloat = 32
+/// The scrolling feed shared by Today, a category, search and Saved: header content, then the
+/// blocks; tracks what is on screen (counters, the time chip), loads the next page near the end,
+/// keeps the reading position when new stories are prepended, and scrolls to seek targets.
+struct FeedList<Header: View>: View {
+    @Bindable var store: FeedStore
+    var showsRail = false
+    var header: (Int) -> Header
+
+    init(store: FeedStore, showsRail: Bool = false, @ViewBuilder header: @escaping (Int) -> Header) {
+        self.store = store
+        self.showsRail = showsRail
+        self.header = header
+    }
+    @Environment(\.cardSizing) private var sizing
+    @State private var position = ScrollPosition(idType: String.self)
+    @State private var visibleBlocks: [String] = []
+
 
     var body: some View {
-        let columnWidth = (width - gutter * 2 - spacing * CGFloat(columns - 1)) / CGFloat(max(columns, 1))
-        switch block {
-        case .row(let items) where columns == 1:
-            VStack(spacing: 0) {
-                ArticleCard(items[0])
-                Divider()
-            }
-            .padding(.horizontal, gutter)
-        case .row(let items):
-            HStack(alignment: .top, spacing: spacing) {
-                ForEach(items) { item in
-                    cell(item).frame(width: columnWidth)
+        GeometryReader { geometry in
+            let columns = FeedLayout.columns(forWidth: geometry.size.width, cardMin: sizing.cardMin)
+            let blocks = FeedLayout.blocks(store.items, columns: columns)
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    header(columns)
+                    content(blocks: blocks, columns: columns, width: geometry.size.width)
                 }
-                Spacer(minLength: 0)
+                .scrollTargetLayout()
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, gutter)
-        case .poster(let item, _) where columns == 1:
-            ArticleCard(item)
-                .padding(.horizontal, gutter)
-                .padding(.vertical, 14)
-        case .poster(let item, let side):
-            let span = item.variant == .hero ? 3 : 2
-            HStack(alignment: .top, spacing: spacing) {
-                ArticleCard(item, height: sizing.rowHeight * CGFloat(span) - 28)
-                    .frame(width: columnWidth * 2 + spacing)
-                    .padding(.vertical, 14)
-                ForEach(Array(side.enumerated()), id: \.offset) { _, stack in
-                    VStack(spacing: 0) {
-                        ForEach(stack) { cell($0) }
-                    }
-                    .frame(width: columnWidth)
+            .scrollPosition($position)
+            .onScrollTargetVisibilityChange(idType: String.self, threshold: 0.25) { ids in
+                visibleBlocks = ids
+                let lookup = Dictionary(uniqueKeysWithValues: blocks.map { ($0.id, $0.items.map(\.id)) })
+                store.visibleIDs = ids.flatMap { lookup[$0] ?? [] }
+                if let last = ids.last, let index = blocks.firstIndex(where: { $0.id == last }), index >= blocks.count - 3 {
+                    Task { await store.loadMore() }
                 }
-                Spacer(minLength: 0)
             }
-            .padding(.horizontal, gutter)
+            .onChange(of: store.scrollTarget) { _, target in
+                guard let target, let block = blocks.first(where: { $0.items.contains { $0.id == target } }) else { return }
+                withAnimation(.snappy) { position.scrollTo(id: block.id, anchor: .top) }
+                store.scrollTarget = nil
+            }
+            .onChange(of: store.items.first?.id) { old, _ in
+                guard old != nil, let anchor = visibleBlocks.first else { return }
+                let wasAtTop = !blocks.contains { $0.id == anchor } || anchor == blocks.first(where: { block in
+                    !store.fresh.contains(where: { block.items.map(\.id).contains($0) })
+                })?.id
+                if wasAtTop {
+                    // the reader was at the top: show what just arrived (web: scrollY ≤ 80)
+                    withAnimation(.snappy) { position.scrollTo(edge: .top) }
+                } else {
+                    // new stories went on top: keep the reader exactly where they were
+                    var transaction = Transaction()
+                    transaction.disablesAnimations = true
+                    withTransaction(transaction) { position.scrollTo(id: anchor, anchor: .top) }
+                }
+            }
+            .refreshable { await store.reload() }
+        }
+        .environment(\.freshStoryIDs, store.fresh)
+        .background { AmbientBackground(hues: store.hues) }
+        .safeAreaInset(edge: .trailing, spacing: 0) {
+            if showsRail, let scale = store.timescale {
+                TimeRail(scale: scale, topID: store.topVisibleID, items: store.items) { fraction in
+                    Task { await store.seek(to: fraction) }
+                }
+                .padding(.leading, 6)
+                .padding(.trailing, 14)
+                .padding(.vertical, 20)
+            }
         }
     }
 
-    private func cell(_ item: FeedItem) -> some View {
-        VStack(spacing: 0) {
-            ArticleCard(item)
-            Spacer(minLength: 0)
-            Divider()
+    @ViewBuilder
+    private func content(blocks: [FeedBlock], columns: Int, width: CGFloat) -> some View {
+        switch store.phase {
+        case .idle where store.isSearch && store.search == nil:
+            EmptyView()
+        case .idle, .loading where store.items.isEmpty:
+            ForEach(0..<6, id: \.self) { _ in SkeletonRow().padding(.horizontal, FeedMetrics.gutter(columns)) }
+        case .failed(let offline) where store.items.isEmpty:
+            ContentUnavailableView {
+                Label(L10n.t("feed.error"), systemImage: offline ? "wifi.slash" : "exclamationmark.triangle")
+            } description: {
+                Text(L10n.t("feed.errorHint"))
+            } actions: {
+                Button(L10n.t("feed.retry")) { Task { await store.reload() } }
+                    .buttonStyle(.glassProminent)
+                    .accessibilityIdentifier("feed-retry")
+            }
+            .padding(.top, 40)
+        case .empty:
+            if let query = store.search {
+                ContentUnavailableView(L10n.t("feed.emptySearch", ["q": query]), systemImage: "magnifyingglass",
+                                       description: Text(L10n.t("feed.emptySearchHint")))
+                    .padding(.top, 40)
+                    .accessibilityIdentifier("empty-search")
+            } else {
+                ContentUnavailableView(L10n.t("feed.empty"), systemImage: "newspaper", description: Text(L10n.t("feed.emptyHint")))
+                    .padding(.top, 40)
+                    .accessibilityIdentifier("empty-feed")
+            }
+        default:
+            ForEach(blocks) { block in
+                FeedBlockView(block: block, columns: columns, width: width, gutter: FeedMetrics.gutter(columns))
+                    .id(block.id)
+            }
+            if store.isLoadingMore {
+                ForEach(0..<3, id: \.self) { _ in SkeletonRow().padding(.horizontal, FeedMetrics.gutter(columns)) }
+            }
         }
-        .frame(height: sizing.rowHeight, alignment: .top)
-        .clipped()
     }
 }
 
-/// The category chips (All … Health) riding the top scroll edge.
+/// "3 NEW STORIES — LOAD": a tinted glass pill that pops in under the chips (web `#newPill`).
+struct NewStoriesPill: View {
+    let count: Int
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Circle().fill(Tokens.Palette.live).frame(width: 7, height: 7)
+                Text(L10n.t(count == 1 ? "feed.newStory" : "feed.newStories", ["n": String(count)]) + " — " + L10n.t("feed.load"))
+                    .captionVoice(.white)
+            }
+            .padding(.horizontal, 4)
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(.glassProminent)
+        .tint(.accentColor)
+        .transition(.scale(scale: 0.6).combined(with: .opacity))
+        .accessibilityIdentifier("new-stories-pill")
+        .sensoryFeedback(.increase, trigger: count)
+    }
+}
+
+/// The category chips (All … Health).
 struct CategoryChips: View {
     let selected: NewsCategory
     let select: (NewsCategory) -> Void
@@ -208,8 +291,8 @@ struct WorldClocks: View {
 }
 
 /// The brief: a glass card above the feed — sparkle, BRIEF, the provider badge, a refresh button,
-/// then 5–7 lines (web `#brief`). On a phone it opens folded to the developing stories (at most
-/// three lines) so the lead photograph stays above the fold; "Show all" unfolds the rest.
+/// then 5–7 lines (web `#brief`). On a phone it opens folded to three lines so the lead photograph
+/// stays above the fold; "Show all" unfolds the rest.
 struct BriefCard: View {
     let lines: [String]
     let provider: String
@@ -286,30 +369,3 @@ struct BriefCard: View {
     }
 }
 
-/// A row-shaped placeholder while the first page loads (web `skeletonCard`).
-struct SkeletonRow: View {
-    @Environment(\.cardSizing) private var sizing
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var dim = false
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            VStack(alignment: .leading, spacing: 8) {
-                RoundedRectangle(cornerRadius: 4).frame(width: 110, height: 10)
-                RoundedRectangle(cornerRadius: 4).frame(height: 14)
-                RoundedRectangle(cornerRadius: 4).frame(height: 14)
-                RoundedRectangle(cornerRadius: 4).frame(width: 180, height: 14)
-            }
-            RoundedRectangle(cornerRadius: Tokens.Radius.thumb, style: .continuous)
-                .frame(width: sizing.thumb, height: sizing.thumb)
-        }
-        .foregroundStyle(.quaternary)
-        .opacity(dim ? 0.45 : 1)
-        .padding(.vertical, Tokens.Space.row)
-        .onAppear {
-            guard !reduceMotion else { return }
-            withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) { dim = true }
-        }
-        .accessibilityHidden(true)
-    }
-}

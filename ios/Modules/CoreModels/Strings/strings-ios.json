@@ -14,5 +14,8 @@
   "ios.soon.saved": "Saved stories arrive in a later build.",
   "ios.soon.search": "Search arrives with the live feed.",
   "ios.brief.more": "Show all · {n} more",
-  "ios.brief.less": "Show less"
+  "ios.brief.less": "Show less",
+  "ios.time.rail": "Time in the feed",
+  "ios.search.hint": "Search headlines and descriptions from every source. Pick a category to narrow it down.",
+  "ios.card.copyLink": "Copy link"
 }
