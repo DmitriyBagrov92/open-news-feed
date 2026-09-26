@@ -55,17 +55,20 @@ public final class ArticleStateStore {
     @ObservationIgnored private let toasts: ToastCenter
     /// The pause after an auto-translate failure (web: 75 s).
     @ObservationIgnored private let translationBackoff: Duration
+    /// Extractions of this session (shared with the story view): a save keeps what was read.
+    @ObservationIgnored private let extractions: ExtractionCache
     @ObservationIgnored @Dependency(\.meridianAPI) private var api
     @ObservationIgnored @Dependency(\.translator) private var translator
     @ObservationIgnored @Dependency(\.onDeviceTranslation) private var onDevice
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
 
     public init(library: LibraryModel, preferences: PreferencesStore, toasts: ToastCenter,
-                translationBackoff: Duration = .seconds(75)) {
+                translationBackoff: Duration = .seconds(75), extractions: ExtractionCache = .shared) {
         self.library = library
         self.preferences = preferences
         self.toasts = toasts
         self.translationBackoff = translationBackoff
+        self.extractions = extractions
     }
 
     /// The live state for a story, created from the story's own counters the first time.
@@ -124,6 +127,27 @@ public final class ArticleStateStore {
     }
 
     /// Save / unsave the story as it is right now (with its live counters).
+    /// An onboarding rating moves the story's global counters too (web: like 👍, skip 👎): the
+    /// vote is set — never toggled off — and a failure is silent, the rating flow goes on.
+    public func rate(_ article: Article, _ vote: Vote) async {
+        let state = live(article)
+        let previous = state.reactions ?? .zero
+        guard previous.myVote != vote, !votesInFlight.contains(article.id) else { return }
+        votesInFlight.insert(article.id)
+        voteEpoch += 1
+        defer {
+            votesInFlight.remove(article.id)
+            voteEpoch += 1
+        }
+        state.reactions = Self.optimistic(previous, vote)
+        do {
+            let result = try await api.voteArticle(article.id, vote.rawValue)
+            state.reactions = Reactions(comments: previous.comments, up: result.up, down: result.down, myVote: result.myVote)
+        } catch {
+            state.reactions = previous
+        }
+    }
+
     public func toggleSave(_ article: Article) async {
         let state = live(article)
         var snapshot = article
@@ -131,6 +155,31 @@ public final class ArticleStateStore {
         state.isSaved.toggle()
         let saved = await library.toggle(snapshot)
         state.isSaved = saved
+        if saved { await keepBody(of: article) }
+    }
+
+    /// A saved story keeps its text so it reads offline (an iOS addition: the web's Saved holds
+    /// the card only): the extraction this session already made, or one made now.
+    func keepBody(of article: Article) async {
+        if let cached = extractions.body(for: article.id) {
+            await library.storeBody(cached, for: article.id)
+            return
+        }
+        guard let body = try? await api.article(article.url),
+              !body.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        extractions.store(body, for: article.id)
+        await library.storeBody(body, for: article.id)
+    }
+
+    /// The text kept with a saved story (the story view reads it before asking the network).
+    public func keptBody(of article: Article) async -> ArticleBody? {
+        await library.body(for: article.id)
+    }
+
+    /// A story extracted while it is saved keeps the fresh text.
+    public func keep(_ body: ArticleBody, of article: Article) async {
+        guard library.contains(article.id) else { return }
+        await library.storeBody(body, for: article.id)
     }
 
     /// Translate / show the original (web card translate) through the translate ladder.

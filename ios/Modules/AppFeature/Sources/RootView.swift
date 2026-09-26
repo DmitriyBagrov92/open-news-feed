@@ -108,6 +108,7 @@ final class AppModel {
     let today: FeedStore
     let search: FeedStore
     let categories: [NewsCategory: FeedStore]
+    let yourFeed: YourFeedStore
 
     init() {
         states = ArticleStateStore(library: library, preferences: preferences, toasts: toasts)
@@ -118,6 +119,7 @@ final class AppModel {
         categories = Dictionary(uniqueKeysWithValues: NewsCategory.feed.map {
             ($0, FeedStore(category: $0, locked: true, preferences: preferences, sources: sources, states: states, toasts: toasts))
         })
+        yourFeed = YourFeedStore(preferences: preferences, library: library, sources: sources, states: states, toasts: toasts)
     }
 
     var feeds: [FeedStore] { [today, search] + Array(categories.values) }
@@ -135,11 +137,12 @@ public struct RootView: View {
     private let opensAhead: Bool
 
     /// - Parameter initialRoute: UI tests / screenshots (`LaunchContract.Env.initialRoute`):
-    ///   `today`, `saved`, `search`, `story/<articleID>` (a Today story, opened once it loads) or
-    ///   `ahead` (Today's forecast, once the feed is in).
+    ///   `today`, `yourFeed`, `saved`, `search`, `story/<articleID>` (a Today story, opened once it
+    ///   loads) or `ahead` (Today's forecast, once the feed is in).
     public init(initialRoute: String? = nil) {
         let parts = (initialRoute ?? "").split(separator: "/", maxSplits: 1).map(String.init)
         let tab: AppTab = switch parts.first {
+        case "yourFeed": .yourFeed
         case "saved": .saved
         case "search": .search
         default: .today
@@ -206,6 +209,7 @@ public struct RootView: View {
                 // a reload re-runs the brief, otherwise the brief alone follows the language
                 if !model.sources.nativeLanguages.isEmpty {
                     model.feeds.forEach { $0.invalidate() }
+                    model.yourFeed.invalidate()
                 } else {
                     model.feeds.forEach { $0.languageChanged() }
                 }
@@ -215,10 +219,14 @@ public struct RootView: View {
             }
             .onChange(of: preferences.value.hiddenSources) { _, _ in
                 model.feeds.forEach { $0.invalidate() }
+                model.yourFeed.invalidate()
             }
             .onChange(of: model.sources.nativeLanguages) { _, _ in
                 // native feeds for the chosen language became known: the `lang` parameter changes
-                if preferences.value.targetLang != "en" { model.feeds.forEach { $0.invalidate() } }
+                if preferences.value.targetLang != "en" {
+                    model.feeds.forEach { $0.invalidate() }
+                    model.yourFeed.invalidate()
+                }
             }
             .onChange(of: scenePhase) { _, phase in
                 // Apple Intelligence may have been switched on in Settings meanwhile
@@ -241,7 +249,7 @@ public struct RootView: View {
             }
 
             Tab(L10n.t("cat.saved"), systemImage: "person.crop.circle", value: AppTab.yourFeed) {
-                NavigationStack { Placeholder(title: L10n.t("cat.saved"), symbol: "person.crop.circle", text: L10n.t("ios.soon.yourFeed")) }
+                StoryStack(.yourFeed, router: router) { YourFeedView(store: model.yourFeed).toolbar { toolbar(nil) } }
             }
 
             Tab(L10n.t("nav.battle"), systemImage: "bubbles.and.sparkles", value: AppTab.battle) {

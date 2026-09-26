@@ -14,6 +14,8 @@ final class SavedItem {
     /// JSON of the `Article` snapshot (not queried; avoids Codable-property edge cases).
     var payload: Data
     var savedAt: Date
+    /// JSON of the extracted `ArticleBody`: the story reads offline. Never fetched with the list.
+    var body: Data?
 
     init(articleID: String, payload: Data, savedAt: Date) {
         self.articleID = articleID
@@ -27,7 +29,8 @@ final class SavedItem {
 @ModelActor
 actor LibraryDatabase {
     func all() throws -> [Article] {
-        let descriptor = FetchDescriptor<SavedItem>(sortBy: [SortDescriptor(\.savedAt, order: .reverse)])
+        var descriptor = FetchDescriptor<SavedItem>(sortBy: [SortDescriptor(\.savedAt, order: .reverse)])
+        descriptor.propertiesToFetch = [\.articleID, \.payload, \.savedAt] // not the bodies
         let decoder = JSONDecoder()
         return try modelContext.fetch(descriptor).compactMap { try? decoder.decode(Article.self, from: $0.payload) }
     }
@@ -46,6 +49,17 @@ actor LibraryDatabase {
         try modelContext.save()
     }
 
+    func body(_ id: String) throws -> Data? {
+        try modelContext.fetch(FetchDescriptor<SavedItem>(predicate: #Predicate { $0.articleID == id })).first?.body
+    }
+
+    /// Only for a story that is saved: a body never creates an entry.
+    func storeBody(_ id: String, _ data: Data) throws {
+        guard let item = try modelContext.fetch(FetchDescriptor<SavedItem>(predicate: #Predicate { $0.articleID == id })).first else { return }
+        item.body = data
+        try modelContext.save()
+    }
+
     func remove(_ id: String) throws {
         try modelContext.fetch(FetchDescriptor<SavedItem>(predicate: #Predicate { $0.articleID == id })).forEach(modelContext.delete)
         try modelContext.save()
@@ -57,13 +71,20 @@ public struct LibraryClient: Sendable {
     public var all: @Sendable () async throws -> [Article]
     public var save: @Sendable (Article) async throws -> Void
     public var remove: @Sendable (String) async throws -> Void
+    /// The kept text of a saved story (JSON `ArticleBody`), if any.
+    public var body: @Sendable (String) async throws -> Data?
+    public var storeBody: @Sendable (String, Data) async throws -> Void
 
     public init(all: @escaping @Sendable () async throws -> [Article],
                 save: @escaping @Sendable (Article) async throws -> Void,
-                remove: @escaping @Sendable (String) async throws -> Void) {
+                remove: @escaping @Sendable (String) async throws -> Void,
+                body: @escaping @Sendable (String) async throws -> Data? = { _ in nil },
+                storeBody: @escaping @Sendable (String, Data) async throws -> Void = { _, _ in }) {
         self.all = all
         self.save = save
         self.remove = remove
+        self.body = body
+        self.storeBody = storeBody
     }
 
     public static func swiftData(inMemory: Bool) -> LibraryClient {
@@ -82,7 +103,9 @@ public struct LibraryClient: Sendable {
         return LibraryClient(
             all: { try await database.all() },
             save: { article in try await database.save(article, at: Date()) },
-            remove: { id in try await database.remove(id) }
+            remove: { id in try await database.remove(id) },
+            body: { id in try await database.body(id) },
+            storeBody: { id, data in try await database.storeBody(id, data) }
         )
     }
 
@@ -144,6 +167,18 @@ public final class LibraryModel {
         articles.insert(article, at: 0)
         ids.insert(article.id)
         try? await client.save(article)
+    }
+
+    /// The text kept with a saved story, for reading offline.
+    public func body(for id: String) async -> ArticleBody? {
+        guard ids.contains(id), let data = try? await client.body(id) else { return nil }
+        return try? JSONDecoder().decode(ArticleBody.self, from: data)
+    }
+
+    /// Keeps a saved story's text (ignored for a story that is not saved).
+    public func storeBody(_ body: ArticleBody, for id: String) async {
+        guard ids.contains(id), let data = try? JSONEncoder().encode(body) else { return }
+        try? await client.storeBody(id, data)
     }
 
     public func remove(_ id: String) async {

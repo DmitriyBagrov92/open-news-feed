@@ -140,6 +140,29 @@ final class ScreenshotTests: XCTestCase {
         return app
     }
 
+    func testYourFeedLight() throws { try captureYourFeed(appearance: "light") }
+
+    func testYourFeedDark() throws { try captureYourFeed(appearance: "dark") }
+
+    /// The taste onboarding deck one rating in, and the ranked feed of a tuned profile.
+    private func captureYourFeed(appearance: String) throws {
+        try XCTSkipIf(live, "the fixture newsroom")
+        let device = isPad ? "ipad" : "iphone"
+        let app = fixtureApp(appearance, ["INITIAL_ROUTE": "yourFeed"])
+        _ = app.descendants(matching: .any)["onboard-card"].waitForExistence(timeout: 30)
+        pause(1)
+        app.buttons["onboard-like"].tap()
+        pause(1.5)
+        shoot(app, "\(device)-\(appearance)-yourfeed-1-deck")
+        app.terminate()
+
+        let tuned = #"{"taste":{"count":5,"sources":["espn",4,"bbc-world",2],"cats":["sports",4,"world",2],"tokens":[],"rated":[]}}"#
+        let ranked = fixtureApp(appearance, ["INITIAL_ROUTE": "yourFeed", "SEED_PREFS": tuned])
+        _ = ranked.buttons["tune-more"].waitForExistence(timeout: 30)
+        pause(2)
+        shoot(ranked, "\(device)-\(appearance)-yourfeed-2-ranked")
+    }
+
     func testAheadLight() throws { try captureAhead(appearance: "light") }
 
     func testAheadDark() throws { try captureAhead(appearance: "dark") }

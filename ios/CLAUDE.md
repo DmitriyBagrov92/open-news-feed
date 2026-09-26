@@ -38,11 +38,11 @@ Generated data (commit the outputs; the gate fails on drift):
 |---|---|
 | CoreModels | Codable wire types (tolerant decoding), `Timestamp` (epoch ms like `Date.parse`), `RelativeTime`, `SourceHue`, `Provenance` + `CountryNames`, `L10n.t(key, vars)`, `Preferences`, `TasteProfile`, JS-compat helpers (`stableSorted`) |
 | Networking | API client, `APIError`, request budget, Keychain author id, reachability |
-| Persistence | `PreferencesStore`, SwiftData `LibraryStore` (saved/liked, offline bodies) |
-| Intelligence | `Translator` / `Summarizer` ladders (on-device → server → local), `LanguageModelClient` (the on-device model as a dependency), `Forecaster` + `ForecastKit` (ai.js forecast: prompts, pool order, sanitizer), local ports (brief digest, extractive, taste engine) — no Apple AI imports |
+| Persistence | `PreferencesStore`, SwiftData library (saved + onboarding likes; each keeps its extracted text so it reads offline — never fetched with the list) |
+| Intelligence | `Translator` / `Summarizer` ladders (on-device → server → local), `LanguageModelClient` (the on-device model as a dependency), `Forecaster` + `ForecastKit` (ai.js forecast: prompts, pool order, sanitizer), `TasteEngine` (recommend.js), local ports (brief digest, extractive) — no Apple AI imports |
 | AppleAI | the only importer of FoundationModels + Translation: `LanguageModelClient.apple()` (+ `ModelGate`), `OnDeviceTranslation.apple(broker:)`, `TranslationHost` |
 | DesignSystem | tokens, glass components, image pipeline, flags, avatars, ambient background |
-| ArticleKit | `ArticleStateStore`, cards, `FeedLayout`, swipe, `StoryRoute` / `openStory` / `storyList` |
+| ArticleKit | `ArticleStateStore`, cards, `FeedLayout`, swipe, `StoryRoute` / `openStory` / `storyList`, `ExtractionCache` (the session's extractions, shared by the story view and saving) |
 | Feed / Story / YourFeed / Battle / Settings features | screens; features never import each other |
 | AppFeature | root tab view ⇄ sidebar, `AppRouter` (per-tab story paths / panes), `StoryStack` |
 | TestSupport | fakes + `LaunchContract` (Tests/Shared) — test targets and the app's `#if DEBUG` UI-test root only |
@@ -86,7 +86,9 @@ translator, the fixture server answers "[de] …"), `FAKE_MODEL` (the fake Apple
 answers summaries with "On-device: …" lines, `slow` the same after 1.5 s, `refusal` refuses in prose,
 `error` throws; its forecast shows the web's mock drafts, badge MOCK; unset: no model — no ✦, the
 brief is the local digest, the fixture server's summarize answers 501), `FORCE_NO_AI=1` (no model even
-with `FAKE_MODEL`). `INITIAL_ROUTE=ahead` opens Today's forecast once the feed is in.
+with `FAKE_MODEL`). `INITIAL_ROUTE=ahead` opens Today's forecast once the feed is in; `yourFeed` opens Your
+Feed (the onboarding deck on a fresh profile; seed `{"taste":{"count":5,…}}` for the ranked feed — the
+taste maps encode as `[key, value, …]` arrays).
 Fixture stories: the hero `825452304de0` is story-a (rich blocks), `b52427f78777` story-b (paragraphs),
 `15eeca76f28c` story-c (paywall stub); every other extraction fails with 422 (the note). Story-a carries
 the three captured comments (`cc…01` is the reader's own — the reader is the fixtures' "amber" author,
@@ -99,7 +101,8 @@ translate,open}`, `chip-<category>`, `new-stories-pill`, `offline-banner`, `time
 `story-{prev,next,close}` (the iPad pane), `story-{chip,note,summary,skeleton,comments}`; comments:
 `comments`, `comments-{compose,sort,total,empty,more,rules}`, `comment-<id>` (+ `-menu`, `-up`,
 `-down`, `-body`), the composer sheet `comments-{input,post,cancel}`, the rules `rules`, `rules-agree`;
-the brief `brief` (+ `brief-toggle`); Ahead: `forecast-open` (✦), the sheet `forecast`,
+the brief `brief` (+ `brief-toggle`); Your Feed: `onboard`, `onboard-card`, `onboard-progress` ("n / 5"),
+`onboard-{like,skip,empty}`, `tune-more`; Ahead: `forecast-open` (✦), the sheet `forecast`,
 `forecast-{close,regenerate,status,badge,note,retry}`, cards `fcard` (+ `fcard-title`, `fcard-why`,
 `fcard-basis-<articleID>`);
 toasts `toast` (match the text on the label — `toast(app, text)`). Pages of the pager coexist: scope

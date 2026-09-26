@@ -305,6 +305,7 @@ targets:
     templates: [UnitTests]
     dependencies:
       - target: StoryFeature
+      - target: ArticleKit
       - target: CoreModels
       - target: TestSupport
 
@@ -323,6 +324,7 @@ targets:
       - target: AppFeature
       - target: FeedFeature
       - target: StoryFeature
+      - target: YourFeedFeature
       - target: ArticleKit
       - target: DesignSystem
       - target: CoreModels
@@ -332,6 +334,8 @@ targets:
       - target: TestSupport
       - package: Dependencies
         product: Dependencies
+      - package: Collections
+        product: OrderedCollections
 
   ContractTests:
     # The LIVE client against the real Node server in fixture mode (booted by scripts/test.sh).

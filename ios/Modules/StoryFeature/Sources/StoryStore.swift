@@ -28,37 +28,6 @@ public enum BlockText {
     }
 }
 
-/// The last 30 extracted bodies of this session, least recently read evicted first: a story
-/// revisited through prev/next does not hit `/api/article` again (30 requests/min per IP).
-@MainActor
-public final class ExtractionCache {
-    public static let shared = ExtractionCache()
-    private var order: [String] = [] // least recently used first
-    private var bodies: [String: ArticleBody] = [:]
-    private let capacity: Int
-
-    public init(capacity: Int = 30) {
-        self.capacity = capacity
-    }
-
-    public func body(for id: String) -> ArticleBody? {
-        guard let body = bodies[id] else { return nil }
-        touch(id)
-        return body
-    }
-
-    public func store(_ body: ArticleBody, for id: String) {
-        bodies[id] = body
-        touch(id)
-        while order.count > capacity { bodies[order.removeFirst()] = nil }
-    }
-
-    private func touch(_ id: String) {
-        order.removeAll { $0 == id }
-        order.append(id)
-    }
-}
-
 /// One story page (web modal.js `buildArticleView`): the extracted body — or the description with
 /// "Full text unavailable" when extraction fails — the key points and the translation. Every page
 /// starts fresh except for the extraction cache.
@@ -135,6 +104,10 @@ public final class StoryStore {
         async let counters: Void = fetchCountersIfMissing()
         if let cached = cache.body(for: article.id) {
             apply(cached)
+        } else if let kept = await states?.keptBody(of: article) {
+            // a saved story reads from its kept text: offline too, and without a request
+            cache.store(kept, for: article.id)
+            apply(kept)
         } else {
             do {
                 let extracted = try await api.article(article.url)
@@ -143,6 +116,7 @@ public final class StoryStore {
                 }
                 cache.store(extracted, for: article.id)
                 apply(extracted)
+                await states?.keep(extracted, of: article)
             } catch {
                 body = .fallback(article.description)
             }

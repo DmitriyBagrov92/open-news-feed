@@ -54,7 +54,8 @@ struct StoryIntegrationTests {
             let preferences = PreferencesStore()
             let library = LibraryModel()
             let toasts = ToastCenter()
-            let states = ArticleStateStore(library: library, preferences: preferences, toasts: toasts)
+            // a session cache of its own: suites run side by side
+            let states = ArticleStateStore(library: library, preferences: preferences, toasts: toasts, extractions: ExtractionCache())
             let articles = server.news(NewsQuery(pageSize: 100)).articles
             try await body(World(server: server, preferences: preferences, toasts: toasts, states: states, articles: articles))
         }
@@ -66,6 +67,57 @@ struct StoryIntegrationTests {
         case .heading(let level, _): "h\(level)"
         case .quote: "quote"
         case .list(let ordered, let items): "\(ordered ? "ol" : "ul")\(items.count)"
+        }
+    }
+
+    @Test("a saved story keeps its text and reads it offline; a story that is not saved does not")
+    func offlineText() async throws {
+        let offline = LockedValue(false)
+        try await world(api: { real in
+            var client = real
+            client.article = { url in
+                if offline.value { throw APIError.network(.notConnectedToInternet) }
+                return try await real.article(url)
+            }
+            return client
+        }) { world in
+            let saved = world.article(storyA)
+            await world.states.toggleSave(saved) // saving keeps the text
+            let online = world.story(saved)
+            await online.load()
+            offline.update { $0 = true }
+            let reread = world.story(saved) // a new session: nothing cached in memory
+            await reread.load()
+            #expect(reread.body == online.body)
+            if case .rich(let blocks) = reread.body { #expect(!blocks.isEmpty) } else { Issue.record("\(reread.body)") }
+
+            let unsaved = world.article("b52427f78777")
+            let story = world.story(unsaved)
+            await story.load()
+            #expect(story.body == .fallback(unsaved.description), "only saved stories keep their text")
+        }
+    }
+
+    @Test("a story saved offline keeps its text once it is read; unsaving drops it")
+    func keptOnRead() async throws {
+        let offline = LockedValue(true)
+        try await world(api: { real in
+            var client = real
+            client.article = { url in
+                if offline.value { throw APIError.network(.notConnectedToInternet) }
+                return try await real.article(url)
+            }
+            return client
+        }) { world in
+            let article = world.article("b52427f78777")
+            await world.states.toggleSave(article)
+            #expect(await world.states.keptBody(of: article) == nil, "nothing to keep offline")
+            offline.update { $0 = false }
+            let story = world.story(article)
+            await story.load()
+            #expect(await world.states.keptBody(of: article) != nil, "read while saved: kept")
+            await world.states.toggleSave(article)
+            #expect(await world.states.keptBody(of: article) == nil, "unsaved: gone")
         }
     }
 
