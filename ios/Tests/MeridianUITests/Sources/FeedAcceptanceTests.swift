@@ -92,15 +92,17 @@ final class FeedAcceptanceTests: AcceptanceTestCase {
         XCTAssertTrue(card(app, row).waitForExistence(timeout: 10))
     }
 
-    func testSwipingARowLeftTranslatesIntoTheChosenLanguage() throws {
+    func testPickingALanguageTranslatesTheFeedAndASwipeShowsTheOriginal() throws {
         try XCTSkipIf(isPad, "rows in the iPad mosaic answer to the context menu, not swipes")
         let app = launch()
         app.buttons["language-menu"].tap()
         app.buttons["Deutsch"].firstMatch.tap()
         let rowCard = card(app, row)
         XCTAssertTrue(scroll(app, until: rowCard, maxSwipes: 3))
+        // picking a language is asking for translation (web): the cards on screen follow
+        XCTAssertTrue(eventually("label CONTAINS '[de]'", rowCard))
         rowCard.swipeLeft(velocity: .slow)
-        XCTAssertTrue(eventually("label CONTAINS '[de]'", card(app, row)))
+        XCTAssertTrue(eventually("NOT (label CONTAINS '[de]')", rowCard))
     }
 
     func testALongPressOffersTheStoryActions() {

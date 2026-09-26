@@ -39,17 +39,33 @@ public final class ArticleStateStore {
     /// Bumped around every vote so a reactions batch that was in flight while a vote changed
     /// counters is dropped rather than undoing the vote (web `voteEpoch`).
     @ObservationIgnored public private(set) var voteEpoch = 0
+    /// Bumped when the cards on screen should ask for auto-translation again: the language or the
+    /// auto-translate switch changed, or the 75 s back-off after a failure ended (the web
+    /// re-observes its cards). Cards key their auto-translate task on it.
+    public private(set) var translationEpoch = 0
+
+    // auto-translate batching (web app.js:733-802)
+    @ObservationIgnored private var pending: [Article] = []
+    @ObservationIgnored private var flushTask: Task<Void, Never>?
+    @ObservationIgnored private var translateBroken = false
+    @ObservationIgnored private var brokenRetry: Task<Void, Never>?
 
     @ObservationIgnored private let library: LibraryModel
     @ObservationIgnored private let preferences: PreferencesStore
     @ObservationIgnored private let toasts: ToastCenter
+    /// The pause after an auto-translate failure (web: 75 s).
+    @ObservationIgnored private let translationBackoff: Duration
     @ObservationIgnored @Dependency(\.meridianAPI) private var api
     @ObservationIgnored @Dependency(\.translator) private var translator
+    @ObservationIgnored @Dependency(\.onDeviceTranslation) private var onDevice
+    @ObservationIgnored @Dependency(\.continuousClock) private var clock
 
-    public init(library: LibraryModel, preferences: PreferencesStore, toasts: ToastCenter) {
+    public init(library: LibraryModel, preferences: PreferencesStore, toasts: ToastCenter,
+                translationBackoff: Duration = .seconds(75)) {
         self.library = library
         self.preferences = preferences
         self.toasts = toasts
+        self.translationBackoff = translationBackoff
     }
 
     /// The live state for a story, created from the story's own counters the first time.
@@ -129,14 +145,105 @@ public final class ArticleStateStore {
             toasts.show(L10n.t("lang.pick"))
             return
         }
+        translateBroken = false // a fresh request may succeed where auto-translate failed (web)
         state.isTranslating = true
         defer { state.isTranslating = false }
-        guard let result = await translator.translate([article.title, article.description], target, article.language),
+        guard let result = await translator.translate([article.title, article.description], target, article.language, true),
               result.texts.count == 2 else {
-            toasts.show(L10n.t("lang.unavailable"))
+            toasts.show(L10n.t("ios.lang.unavailable"))
             return
         }
         state.translation = .init(language: target, title: result.texts[0], description: result.texts[1])
+    }
+
+    // MARK: Auto-translate
+
+    /// A card on screen asks for its translation (web viewport observer): with auto-translate on and
+    /// a target other than English, stories in another language join a batch — collected for
+    /// 250 ms, then up to 10 stories (20 texts) of one source language per request.
+    public func autoTranslate(_ article: Article) {
+        let target = preferences.value.targetLang
+        guard preferences.value.autoTranslate, target != "en", article.language != target, !translateBroken else { return }
+        let state = live(article)
+        guard state.translation?.language != target, !state.isTranslating else { return }
+        guard !pending.contains(where: { $0.id == article.id }) else { return }
+        pending.append(article)
+        flushTask?.cancel()
+        flushTask = Task { [weak self, clock] in
+            try? await clock.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
+            await self?.flush(target)
+        }
+    }
+
+    private func flush(_ target: String) async {
+        guard !translateBroken, !pending.isEmpty else {
+            pending.removeAll()
+            return
+        }
+        let source = pending[0].language
+        let batch = Array(pending.filter { $0.language == source }.prefix(10))
+        pending.removeAll { article in batch.contains { $0.id == article.id } }
+        let texts = batch.flatMap { [$0.title, $0.description] }
+        guard let result = await translator.translate(texts, target, source, false), result.texts.count == texts.count else {
+            pending.removeAll()
+            markTranslateBroken()
+            return
+        }
+        for (index, article) in batch.enumerated() {
+            // the reader may have switched languages while the batch was in flight
+            guard preferences.value.targetLang == target, preferences.value.autoTranslate else { break }
+            live(article).translation = .init(language: target, title: result.texts[2 * index], description: result.texts[2 * index + 1])
+        }
+        if !pending.isEmpty { await flush(target) } // drain the rest
+    }
+
+    /// One toast, then a 75 s pause before the cards on screen ask again (web `markTranslateBroken`).
+    private func markTranslateBroken() {
+        guard !translateBroken else { return }
+        translateBroken = true
+        toasts.show(L10n.t("ios.lang.unavailable"))
+        brokenRetry?.cancel()
+        brokenRetry = Task { [weak self, clock, translationBackoff] in
+            try? await clock.sleep(for: translationBackoff)
+            guard !Task.isCancelled, let self else { return }
+            translateBroken = false
+            translationEpoch += 1
+        }
+    }
+
+    /// The reader picked another language (web `setLanguage`): every translation reverts and the
+    /// cards on screen translate again. Picking a language is asking for it: when the device can
+    /// download it, the system offers to now.
+    public func languageChanged() {
+        resetAutoTranslate()
+        for state in states.values where state.translation != nil { state.translation = nil }
+        translationEpoch += 1
+        let target = preferences.value.targetLang
+        guard target != "en", preferences.value.autoTranslate else { return }
+        let onDevice = onDevice
+        Task {
+            if await onDevice.availability("en", target) == .downloadable {
+                _ = await onDevice.prepare("en", target)
+            }
+        }
+    }
+
+    /// The auto-translate switch (web `setAutoTranslate`): on translates the cards on screen, off
+    /// shows every story in its own language again.
+    public func autoTranslateChanged() {
+        resetAutoTranslate()
+        if !preferences.value.autoTranslate {
+            for state in states.values where state.translation != nil { state.translation = nil }
+        }
+        translationEpoch += 1
+    }
+
+    private func resetAutoTranslate() {
+        translateBroken = false
+        brokenRetry?.cancel()
+        flushTask?.cancel()
+        pending.removeAll()
     }
 
     /// Keeps saved flags right after the library changes elsewhere (e.g. the Saved tab).

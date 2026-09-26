@@ -35,7 +35,7 @@ struct LaddersTests {
         })
         let texts = (0..<45).map { "sentence \($0)" } + [String(repeating: "é", count: 1500)]
         let result = await withDependencies { $0.meridianAPI = api } operation: {
-            await Translator.ladder().translate(texts, "de", "en")
+            await Translator.ladder().translate(texts, "de", "en", false)
         }
         #expect(calls.value.map(\.count) == [20, 20, 6])
         #expect(calls.value.last?.last?.utf16.count == 1000)
@@ -52,16 +52,80 @@ struct LaddersTests {
         let short = client(translate: { texts, _, _ in
             TranslateResponse(translations: Array(texts.dropLast()), provider: nil)
         })
-        let same = await Translator.ladder().translate(["a", "b"], "en", "en")
+        let same = await Translator.ladder().translate(["a", "b"], "en", "en", false)
         #expect(same == TranslationResult(texts: ["a", "b"], provider: "none"))
         let none = await withDependencies { $0.meridianAPI = unavailable } operation: {
-            await Translator.ladder().translate(["a"], "de", "en")
+            await Translator.ladder().translate(["a"], "de", "en", false)
         }
         #expect(none == nil)
         let mismatched = await withDependencies { $0.meridianAPI = short } operation: {
-            await Translator.ladder().translate(["a", "b"], "de", "en")
+            await Translator.ladder().translate(["a", "b"], "de", "en", false)
         }
         #expect(mismatched == nil)
+    }
+
+    /// A fake on-device translator: `availability` for every pair; `prepare` installs it.
+    private func onDevice(_ availability: OnDeviceTranslation.Availability, prepared: LockedValue<Int>) -> OnDeviceTranslation {
+        let state = LockedValue(availability)
+        return OnDeviceTranslation(
+            availability: { _, _ in state.value },
+            translate: { texts, _, target in
+                guard state.value == .installed else { throw CancellationError() }
+                return texts.map { "[on-device \(target)] \($0)" }
+            },
+            prepare: { _, _ in
+                prepared.update { $0 += 1 }
+                state.update { $0 = .installed }
+                return true
+            }
+        )
+    }
+
+    private func server() -> MeridianAPIClient {
+        client(translate: { texts, target, _ in
+            TranslateResponse(translations: texts.map { "[\(target)] \($0)" }, provider: "mymemory")
+        })
+    }
+
+    @Test("translate: an installed pair stays on the device; otherwise the server")
+    func onDeviceRung() async {
+        let prepared = LockedValue(0)
+        let installed = await withDependencies {
+            $0.meridianAPI = server()
+            $0.onDeviceTranslation = onDevice(.installed, prepared: prepared)
+        } operation: {
+            await Translator.ladder().translate(["Storm"], "de", "en", false)
+        }
+        #expect(installed == TranslationResult(texts: ["[on-device de] Storm"], provider: "on-device"))
+        let unsupported = await withDependencies {
+            $0.meridianAPI = server()
+            $0.onDeviceTranslation = onDevice(.unsupported, prepared: prepared)
+        } operation: {
+            await Translator.ladder().translate(["Storm"], "de", "en", true)
+        }
+        #expect(unsupported?.provider == "mymemory")
+        #expect(prepared.value == 0)
+    }
+
+    @Test("translate: a download is offered only for what the reader asked; background work uses the server")
+    func downloads() async {
+        let prepared = LockedValue(0)
+        let background = await withDependencies {
+            $0.meridianAPI = server()
+            $0.onDeviceTranslation = onDevice(.downloadable, prepared: prepared)
+        } operation: {
+            await Translator.ladder().translate(["Storm"], "de", "en", false)
+        }
+        #expect(background?.provider == "mymemory")
+        #expect(prepared.value == 0, "no download sheet for auto-translation")
+        let asked = await withDependencies {
+            $0.meridianAPI = server()
+            $0.onDeviceTranslation = onDevice(.downloadable, prepared: prepared)
+        } operation: {
+            await Translator.ladder().translate(["Storm"], "de", "en", true)
+        }
+        #expect(asked?.provider == "on-device")
+        #expect(prepared.value == 1)
     }
 
     @Test("summarize: a 501 is remembered — the server is asked once, the local rung answers")

@@ -1464,6 +1464,17 @@
         }
       }
     },
+    "ios.lang.unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Translation is unavailable right now. Try again later."
+          }
+        }
+      }
+    },
     "ios.rules.agree" : {
       "extractionState" : "manual",
       "localizations" : {

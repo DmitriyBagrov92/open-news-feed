@@ -1,5 +1,7 @@
 import AppFeature
+import AppleAI
 import Dependencies
+import Intelligence
 import SwiftUI
 #if DEBUG
 import TestSupport
@@ -11,15 +13,25 @@ import TestSupport
 struct MeridianApp: App {
     private let colorScheme: ColorScheme?
     private let initialRoute: String?
+    /// Shows the system's language download sheet when the reader asks for a new language.
+    private let translations: TranslationBroker
 
     init() {
         var scheme: ColorScheme?
         var route: String?
+        let translations = TranslationBroker()
+        self.translations = translations
         #if DEBUG
-        if let configuration = UITestConfiguration.fromProcess() {
-            prepareDependencies { configuration.apply(to: &$0) }
-            route = configuration.initialRoute
+        let configuration = UITestConfiguration.fromProcess()
+        route = configuration?.initialRoute
+        #endif
+        prepareDependencies {
+            $0.onDeviceTranslation = .apple(broker: translations)
+            #if DEBUG
+            configuration?.apply(to: &$0) // fakes everywhere, the on-device translator included
+            #endif
         }
+        #if DEBUG
         switch ProcessInfo.processInfo.environment[LaunchContract.Env.appearance] {
         case "dark": scheme = .dark
         case "light": scheme = .light
@@ -34,6 +46,7 @@ struct MeridianApp: App {
         WindowGroup {
             RootView(initialRoute: initialRoute)
                 .preferredColorScheme(colorScheme)
+                .modifier(TranslationHost(broker: translations))
         }
     }
 }

@@ -113,6 +113,8 @@ public struct ArticleCard: View {
         } preview: {
             CardPreview(article: article, snapshot: snapshot)
         }
+        // on screen: ask for the auto-translation (again whenever the language or the switch changes)
+        .task(id: store?.translationEpoch) { store?.autoTranslate(article) }
         .accessibilityAction(named: L10n.t(snapshot.isSaved ? "card.unsave" : "card.save")) {
             Task { await store?.toggleSave(article) }
         }

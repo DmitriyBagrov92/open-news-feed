@@ -32,5 +32,6 @@
   "ios.rules.impersonation": "impersonation of other people or organisations",
   "ios.rules.moderation": "Reports are reviewed within 24 hours. Comments that break the rules are removed and their authors are banned from commenting. You can report any comment and block any commenter.",
   "ios.rules.full": "Read the full rules",
-  "ios.rules.agree": "Agree and continue"
+  "ios.rules.agree": "Agree and continue",
+  "ios.lang.unavailable": "Translation is unavailable right now. Try again later."
 }

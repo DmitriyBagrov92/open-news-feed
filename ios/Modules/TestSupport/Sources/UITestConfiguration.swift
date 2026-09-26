@@ -2,6 +2,7 @@ import CoreModels
 import DesignSystem
 import Dependencies
 import Foundation
+import Intelligence
 import Networking
 import Persistence
 
@@ -16,6 +17,7 @@ public struct UITestConfiguration: Sendable {
     public let offline: Bool
     public let keepState: Bool
     public let seedPreferences: Preferences?
+    public let fakeTranslation: String?
 
     /// `nil` unless the process was launched with `-UITestMode`.
     public static func fromProcess(_ info: ProcessInfo = .processInfo) -> UITestConfiguration? {
@@ -31,7 +33,8 @@ public struct UITestConfiguration: Sendable {
             newStories: env[LaunchContract.Env.newStories] == "1",
             offline: env[LaunchContract.Env.offline] == "1",
             keepState: env[LaunchContract.Env.keepState] == "1",
-            seedPreferences: env[LaunchContract.Env.seedPrefs].flatMap { try? JSONDecoder().decode(Preferences.self, from: Data($0.utf8)) }
+            seedPreferences: env[LaunchContract.Env.seedPrefs].flatMap { try? JSONDecoder().decode(Preferences.self, from: Data($0.utf8)) },
+            fakeTranslation: env[LaunchContract.Env.fakeTranslation]
         )
     }
 
@@ -50,6 +53,11 @@ public struct UITestConfiguration: Sendable {
         values.imageLoader = .testValue
         values.library = .swiftData(inMemory: true)
         values.connectivity = .constant(!offline)
+        values.onDeviceTranslation = switch fakeTranslation {
+        case "installed": .fake(installed: true)
+        case "downloadable": .fake(installed: false)
+        default: .unavailable // the real translator is never called from tests
+        }
         if let pollInterval { values.polling = PollingConfiguration(interval: pollInterval, resumeDelay: .milliseconds(300)) }
 
         // Preferences persist in their own suite so a test can relaunch and find them; every other

@@ -189,7 +189,7 @@ public final class StoryStore {
         let result = await summarizer.article(article.title, paragraphs.joined(separator: "\n\n"), target)
         var bullets = result.bullets
         if result.provider == "local", target != article.language,
-           let translated = await translator.translate(bullets, target, article.language),
+           let translated = await translator.translate(bullets, target, article.language, false),
            translated.texts.count == bullets.count {
             bullets = translated.texts
         }
@@ -226,10 +226,11 @@ public final class StoryStore {
                 units.append(TextKit.chunkParagraph(block.plainText))
             }
         }
-        let result = await translator.translate(units.flatMap { $0 }, target, article.language)
+        // asked for (not the quiet auto-translation): the system may offer to download the language
+        let result = await translator.translate(units.flatMap { $0 }, target, article.language, manual)
         guard generation == bodyGeneration else { return } // the extraction replaced the description meanwhile
         guard let result, result.texts.count == units.reduce(0, { $0 + $1.count }) else {
-            if manual { toasts?.show(L10n.t("lang.unavailable")) }
+            if manual { toasts?.show(L10n.t("ios.lang.unavailable")) }
             return
         }
         var cursor = result.texts.startIndex

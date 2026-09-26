@@ -79,7 +79,10 @@ builds the faked graph (`TestSupport.UITestConfiguration`) only in DEBUG with `-
 Env keys: `FIXTURES_DIR` (use `LaunchContract.fixturesDirectory()`), `POLL_SECONDS`, `NEW_STORIES=1`
 (polls find the three "Breaking:" stories), `OFFLINE=1`, `KEEP_STATE=1` (prefs survive a relaunch;
 otherwise every launch starts clean), `SEED_PREFS` (JSON `Preferences`), `APPEARANCE`, `FIXED_NOW`,
-`INITIAL_ROUTE` (`today` | `saved` | `search` | `story/<articleID>` — a Today story, opened once it loads).
+`INITIAL_ROUTE` (`today` | `saved` | `search` | `story/<articleID>` — a Today story, opened once it loads),
+`FAKE_TRANSLATION` (`installed`: the fake device translates every pair as "[on-device de] …";
+`downloadable`: installed once the reader asks — the system sheet is simulated; unset: no on-device
+translator, the fixture server answers "[de] …").
 Fixture stories: the hero `825452304de0` is story-a (rich blocks), `b52427f78777` story-b (paragraphs),
 `15eeca76f28c` story-c (paywall stub); every other extraction fails with 422 (the note). Story-a carries
 the three captured comments (`cc…01` is the reader's own — the reader is the fixtures' "amber" author,
@@ -116,6 +119,10 @@ built in a `git worktree` under the same two-simulator load.
 - `TranslationSession(installedSource:target:)` (26.0) works outside SwiftUI for installed pairs only;
   downloads need `.translationTask` + `prepareTranslation()`. `TranslationSession` and
   `LanguageAvailability` are non-Sendable: create and use them inside one nonisolated async function.
+  The `.translationTask` action formed in a view body is main-actor isolated and may not send the
+  session anywhere: pass a nonisolated method of a Sendable struct instead (`TranslationHost`).
+  Downloads only for what the reader asked (`Translator.translate(…, interactive: true)`, picking a
+  language); auto-translation uses installed pairs or the server.
 - Foundation region names differ from the web's ICU: CN "China mainland" (overridden to "China"),
   HK "Hong Kong" (kept). Pinned in `GoldenParityTests.country`.
 - `.tabViewBottomAccessory` stays on screen over a pushed view even with `.toolbar(.hidden, for: .tabBar)`

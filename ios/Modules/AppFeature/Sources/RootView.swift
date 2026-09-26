@@ -183,8 +183,12 @@ public struct RootView: View {
                 model.preferences.value.category = category.rawValue
             }
             .onChange(of: preferences.value.targetLang) { _, _ in
+                model.states.languageChanged()
                 // the language decides the `lang` parameter when it has native feeds (web setLanguage)
                 if !model.sources.nativeLanguages.isEmpty { model.feeds.forEach { $0.invalidate() } }
+            }
+            .onChange(of: preferences.value.autoTranslate) { _, _ in
+                model.states.autoTranslateChanged()
             }
             .onChange(of: preferences.value.hiddenSources) { _, _ in
                 model.feeds.forEach { $0.invalidate() }

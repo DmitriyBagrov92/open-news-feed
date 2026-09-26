@@ -22,6 +22,9 @@ public enum LaunchContract {
         public static let fakeModel = "FAKE_MODEL"
         /// `1` — behave like a device without Apple Intelligence.
         public static let forceNoAI = "FORCE_NO_AI"
+        /// The on-device translator: `installed` (every pair, "[on-device de] …"), `downloadable`
+        /// (installed once the reader agrees), anything else — none (the server rung only).
+        public static let fakeTranslation = "FAKE_TRANSLATION"
         /// Seconds between feed polls (live: 30).
         public static let pollSeconds = "POLL_SECONDS"
         /// `1` — polls find the three "Breaking:" fixture stories (web `/__fixture/advance`).
