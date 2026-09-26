@@ -2,7 +2,7 @@
 
 import { el, clear, lockScroll, unlockScroll } from './dom.js';
 import { t, catLabel, setLocale, applyI18n, LANGUAGES, isLanguage } from './i18n.js';
-import { prefs, setPref, savePrefs, isSaved, toggleSaved, ensureAuthorId } from './prefs.js';
+import { prefs, setPref, savePrefs, isSaved, toggleSaved, ensureAuthorId, unblockAuthor } from './prefs.js';
 import { api } from './api.js';
 import { initWireClocks, refreshTimes } from './time.js';
 import { initChrome } from './chrome.js';
@@ -1313,6 +1313,7 @@ function initDrawer() {
     clearTimeout(closeTimer);
     opener = from;
     if (!sourcesData) loadSources(); // retry a failed boot-time load
+    renderBlockedList(); // blocks happen in the comments, while the sheet is closed
     drawer.hidden = false;
     scrim.hidden = false;
     requestAnimationFrame(() =>
@@ -1400,6 +1401,29 @@ function initForecastSetting(f) {
     setPref('forecast', toggle.checked);
     f.setEnabled(toggle.checked);
   });
+}
+
+// Commenters blocked from a comment's menu; unblocking brings their comments
+// back the next time a story's comments load.
+function renderBlockedList() {
+  const wrap = $('#blockedList');
+  if (!wrap) return;
+  clear(wrap);
+  wrap.append(el('h4', { class: 'drawer-cat mono', text: t('settings.blocked') }));
+  if (!prefs.blockedAuthors.length) {
+    wrap.append(el('p', { class: 'drawer-hint', text: t('settings.blockedNone') }));
+    return;
+  }
+  for (const blocked of prefs.blockedAuthors) {
+    const row = el('div', { class: 'blocked-row', 'data-testid': 'blocked-row' });
+    const unblock = el('button', { type: 'button', 'data-testid': 'unblock', text: t('settings.unblock') });
+    unblock.addEventListener('click', () => {
+      unblockAuthor(blocked.key);
+      renderBlockedList();
+    });
+    row.append(el('span', { class: 'blocked-name', text: blocked.name || blocked.key }), unblock);
+    wrap.append(row);
+  }
 }
 
 function renderSourcesList() {

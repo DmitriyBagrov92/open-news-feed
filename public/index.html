@@ -115,6 +115,10 @@
     <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
     <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.6c0 5.7-7.5 10.3-7.5 10.3z"/></symbol>
     <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18.5" cy="12" r="1.2"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5.5 21V4.5M5.5 4.5h11l-2.2 4 2.2 4h-11"/></symbol>
+    <symbol id="i-block" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 6.5h15M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6"/></symbol>
     <symbol id="i-bubbles" viewBox="0 0 24 24"><circle cx="9" cy="10" r="5.5"/><circle cx="16.5" cy="15.5" r="3.5"/></symbol>
     <symbol id="i-today" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="3.5"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></symbol>
     <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
@@ -430,9 +434,21 @@
         <p class="drawer-hint drawer-hint--out" data-i18n="settings.sourcesHint">Switch a source off to hide its stories from the feed.</p>
         <div class="glist" id="sourcesList" data-testid="sources-list"><p class="drawer-hint" data-i18n="settings.sourcesLoading">Loading sources…</p></div>
       </section>
+      <section class="drawer-section" data-testid="comments-setting">
+        <h3 class="drawer-label mono" data-i18n="settings.comments">Comments</h3>
+        <p class="drawer-hint drawer-hint--out" data-i18n="settings.commentsHint">You comment anonymously: your nickname comes from a random ID kept on this device.</p>
+        <div class="glist" id="blockedList" data-testid="blocked-list"></div>
+      </section>
       <section class="drawer-section">
         <h3 class="drawer-label mono" data-i18n="settings.about">About</h3>
-        <div class="glist"><p class="drawer-hint" data-i18n="settings.aboutText">Meridian is an open-source news reader that aggregates dozens of verified feeds and sorts the world by freshness. The world, as it happens.</p></div>
+        <div class="glist">
+          <p class="drawer-hint" data-i18n="settings.aboutText">Meridian is an open-source news reader that aggregates dozens of verified feeds and sorts the world by freshness. The world, as it happens.</p>
+          <p class="drawer-links">
+            <a href="/terms" target="_blank" rel="noopener" data-testid="link-terms" data-i18n="settings.rules">Community rules</a>
+            <a href="/privacy" target="_blank" rel="noopener" data-testid="link-privacy" data-i18n="settings.privacy">Privacy</a>
+            <a href="/support" target="_blank" rel="noopener" data-testid="link-support" data-i18n="settings.support">Support</a>
+          </p>
+        </div>
       </section>
     </div>
   </aside>

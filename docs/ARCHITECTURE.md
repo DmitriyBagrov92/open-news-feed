@@ -237,7 +237,10 @@ Identity: the client generates `crypto.randomUUID()` once (localStorage) and
 sends it as `X-Author-Id`. The server derives the display persona
 deterministically — `sha1(authorId)` → adjective+noun name ("Amber Falcon")
 and avatar `{hue: 0..359, glyph: 0..23}` (glyph indexes a fixed client-side
-glyph set). Spoofable by design; abuse is bounded per-IP. Articles in
+glyph set). The same id also yields the public `authorKey` —
+`sha256("meridian:author-key:" + id)`, 16 hex — that blocking (clients) and
+bans (moderators) refer to; the id itself never leaves the server.
+Spoofable by design; abuse is bounded per-IP and moderated (below). Articles in
 `/api/news` responses carry `commentCount` (int ≥ 0; absent = unknown) plus
 article-reaction fields `up`, `down` (int ≥ 0) and `myVote`
 (`1 | -1 | null`; only non-null when the request carried `X-Author-Id` —
@@ -249,23 +252,43 @@ Optional `X-Author-Id`. Always `Cache-Control: no-store`. Response `200`:
 
 ```jsonc
 { "comments": [ { "id": "16hex", "name": "Amber Falcon",
-    "avatar": { "hue": 213, "glyph": 4 },
+    "avatar": { "hue": 213, "glyph": 4 }, "authorKey": "16hex",
     "body": "…", "createdAt": "ISO", "up": 3, "down": 1,
-    "myVote": 1 | -1 | null } ],
-  "total": 37, "page": 1, "pageSize": 20,
+    "myVote": 1 | -1 | null,
+    "mine": false } ],                      // true: the requester wrote it (offer Delete)
+  "total": 37, "page": 1, "pageSize": 20,   // total counts visible comments only
   "me": { "name": "…", "avatar": { … } } | null }
 ```
+
+Hidden comments (three reports, or a moderator) and comments by banned
+authors are left out of every list, `total`, `commentCount` and
+`/api/reactions` count.
 
 **`POST /api/comments`** — header `X-Author-Id` required; body
 `{ "articleId": "12hex", "body": "…" }` (2–1000 chars after normalization;
 article must currently exist in the store). `201` → created comment object.
-Errors: `404 unknown-article`, `429 rate-limited` (5/min/IP, its own bucket)
+Errors: `404 unknown-article`, `403 banned`, `422 objectionable` (the
+content screen, below), `429 rate-limited` (5/min/IP, its own bucket)
 `| too-fast` (≥10s per author) `| article-limit` (30/author/article),
-`409 comments-full` (500/article) `| duplicate`.
+`409 comments-full` (500/article) `| duplicate`. Every `429` carries
+`Retry-After` (seconds).
 
 **`POST /api/comments/:id/vote`** — header required; body
 `{ "value": 1 | -1 | 0 }` (0 retracts) → `200 { "up", "down", "myVote" }`;
 `404 unknown-comment`. One vote per author per comment (server-upserted).
+
+**`POST /api/comments/:id/report`** — header required; body
+`{ "reason": "spam" | "abuse" | "hate" | "sexual" | "violence" | "other" }`
+(default `other`) → `200 { "reported": true, "hidden": bool }`. One report
+per reader per comment (repeats are idempotent); the third distinct reporter
+since the last moderator decision hides the comment for everyone. Errors:
+`400 bad-reason | own-comment`, `404 unknown-comment`, `429 rate-limited`
+(10/min/IP, its own bucket). With `MODERATION_WEBHOOK_URL` set, every new
+report is POSTed there (`{ text, content, event }` — Slack/Discord-ready).
+
+**`DELETE /api/comments/:id`** — header required; the author deletes their
+own comment (its votes and reports go with it) → `200 { "deleted": true }`;
+`403 not-owner`, `404 unknown-comment`.
 
 **`POST /api/news/:id/vote`** — like/dislike a story. Header required; body
 `{ "value": 1 | -1 | 0 }` (0 retracts) → `200 { "up", "down", "myVote" }`;
@@ -289,8 +312,41 @@ whether a story is still live.
 
 Storage: SQLite via Node's built-in `node:sqlite` at `COMMENTS_DB` (default
 `./data/comments.db`; on Railway mount a volume at `/data`). Requires
-Node ≥ 22.13; older runtimes degrade to a non-persistent in-memory backend.
-Comments are pruned on the same 7-day horizon as articles.
+Node ≥ 22.13; older runtimes degrade to a non-persistent in-memory backend
+with the same behaviour (one contract suite runs against both). Comments,
+their votes and reports are pruned on the same 7-day horizon as articles;
+bans stay until lifted. Schema migrations are numbered (`PRAGMA
+user_version`, currently 4: v3 added `author_key`, soft hiding, reports and
+bans; v4 backfills author keys).
+
+### Moderation (App Store Guideline 1.2)
+
+- **Content screen** (`lib/moderation.js`): slurs against groups, explicit
+  threats and incitement to self-harm, more than two links, 30+ repeated
+  characters → `422 objectionable`. Matching survives case, diacritics,
+  digit/symbol swaps, stretched and spaced-out letters; words with innocent
+  senses are left to reports.
+- **Reports** hide a comment at three distinct reporters (above); clients
+  also hide a reported comment for the reporter at once.
+- **Blocking** is per device: clients hide every comment carrying a blocked
+  `authorKey` (web: `prefs.blockedAuthors`, managed in Settings).
+- **Admin API** — only when `ADMIN_TOKEN` is set (otherwise these routes are
+  `404`); `Authorization: Bearer <ADMIN_TOKEN>`, `401 unauthorized` otherwise;
+  `Cache-Control: no-store`. `scripts/moderate.mjs` is the command-line client.
+  - `GET /api/admin/reports?limit=50` → `{ reports: [ { id, articleId,
+    authorKey, body, createdAt, reports, reasons: [...], lastReportAt,
+    hidden, hiddenReason, moderatedAt, banned } ] }`, most recently reported first.
+  - `POST /api/admin/comments/:id/hide` `{ reason? }` · `POST
+    /api/admin/comments/:id/restore` (visible again; only later reports count
+    towards hiding it again) · `DELETE /api/admin/comments/:id`.
+  - `GET /api/admin/bans` · `POST /api/admin/bans { authorKey, reason? }` →
+    `201` (the author can no longer post — `403 banned` — and their comments
+    leave every list) · `DELETE /api/admin/bans/:authorKey`.
+- **Legal pages**: `GET /privacy`, `/terms` (the community rules — zero
+  tolerance, 24-hour report review), `/support`, rendered by `lib/legal.js`
+  with `SUPPORT_EMAIL` as the contact (without it they say support is not
+  configured). The apps link to them; the iOS comment composer requires
+  accepting the rules once.
 
 ### `GET /api/health`
 

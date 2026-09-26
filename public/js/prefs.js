@@ -13,6 +13,7 @@ const DEFAULTS = Object.freeze({
   gridSize: 0,              // card sizing level: -2 (dense) … 2 (large)
   saved: [],                // full Article objects — the Saved tab works offline
   authorId: null,           // anonymous comment identity (lazy UUID)
+  blockedAuthors: [],       // [{ key, name }] — commenters whose comments this device hides
   feedSub: 'recommended',   // Your Feed sub-tab: 'recommended' | 'saved'
   forecast: true,           // AI forecast pull gesture (only where the Prompt API exists)
   glass: 0.5,               // Liquid Glass tint: 0 ultra clear … 1 tinted
@@ -36,6 +37,7 @@ function sanitize(raw) {
   p.taste = sanitizeTaste(p.taste);
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (typeof p.authorId !== 'string' || !UUID_RE.test(p.authorId)) p.authorId = null;
+  p.blockedAuthors = sanitizeBlocked(p.blockedAuthors);
   p.hiddenSources = Array.isArray(p.hiddenSources)
     ? p.hiddenSources.filter((id) => typeof id === 'string')
     : [];
@@ -52,6 +54,21 @@ function sanitize(raw) {
       )
     : [];
   return p;
+}
+
+// Blocked commenters: 16-hex author keys (the server's public key, never the
+// id), a display name of at most 60 characters, no duplicates, newest 500.
+function sanitizeBlocked(raw) {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== 'object' || typeof entry.key !== 'string' || !/^[0-9a-f]{16}$/.test(entry.key)) continue;
+    if (seen.has(entry.key)) continue;
+    seen.add(entry.key);
+    out.push({ key: entry.key, name: typeof entry.name === 'string' ? entry.name.slice(0, 60) : '' });
+  }
+  return out.slice(-500);
 }
 
 // Weights are finite numbers clamped to [-50, 50]; tokens capped at 400
@@ -120,6 +137,19 @@ export function toggleSaved(article) {
 
 // Anonymous comment identity: created lazily on first use, stable per
 // device, rotates only when the user clears their storage.
+export function isBlocked(authorKey) {
+  return prefs.blockedAuthors.some((b) => b.key === authorKey);
+}
+
+export function blockAuthor(authorKey, name) {
+  if (isBlocked(authorKey)) return;
+  setPref('blockedAuthors', sanitizeBlocked([...prefs.blockedAuthors, { key: authorKey, name }]));
+}
+
+export function unblockAuthor(authorKey) {
+  setPref('blockedAuthors', prefs.blockedAuthors.filter((b) => b.key !== authorKey));
+}
+
 export function ensureAuthorId() {
   if (!prefs.authorId) {
     prefs.authorId = crypto.randomUUID();

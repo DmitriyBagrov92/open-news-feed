@@ -1,12 +1,14 @@
 // Anonymous comments panel: header with live total and sort toggle,
-// composer ("Commenting as <persona>"), paginated list with like/dislike.
-// Every user-generated string is rendered via textContent — comment bodies
-// are as untrusted as feed content.
+// composer ("Commenting as <persona>"), paginated list with like/dislike and
+// a per-comment menu — report, block the commenter, delete your own
+// (App Store Guideline 1.2 parity with the apps). Every user-generated string
+// is rendered via textContent — comment bodies are as untrusted as feed content.
 
 import { el, clear, icon } from './dom.js';
 import { t } from './i18n.js';
 import { api, ApiError } from './api.js';
-import { prefs, ensureAuthorId } from './prefs.js';
+import { prefs, ensureAuthorId, isBlocked, blockAuthor } from './prefs.js';
+import { showMenu } from './menu.js';
 import { relTime } from './time.js';
 import { toast } from './toast.js';
 import { animateReveal } from './motion.js';
@@ -30,9 +32,13 @@ function errorCodeToast(err) {
     'article-limit': 'comments.limit',
     'comments-full': 'comments.limit',
     'unknown-article': 'comments.closed',
+    objectionable: 'comments.objectionable',
+    banned: 'comments.banned',
   };
   toast(t(map[err?.code] || 'comments.failed'));
 }
+
+const REPORT_REASONS = ['spam', 'abuse', 'hate', 'sexual', 'violence', 'other'];
 
 // Builds the panel and starts loading page 1.
 // onCountChange(total) fires whenever the known total changes.
@@ -71,7 +77,15 @@ export function buildCommentsPanel(article, { onCountChange } = {}) {
   const composer = el('div', { class: 'cmt-composer' });
   const composerFoot = el('div', { class: 'cmt-composer-foot' });
   composerFoot.append(meLine, postBtn);
-  composer.append(input, composerFoot);
+  const rules = el('a', {
+    class: 'cmt-rules',
+    href: '/terms',
+    target: '_blank',
+    rel: 'noopener',
+    'data-testid': 'comments-rules',
+    text: t('comments.rules'),
+  });
+  composer.append(input, composerFoot, rules);
 
   /* ── list & footer ─────────────────────────────────────────────────────── */
   const list = el('ul', { class: 'cmt-list' });
@@ -117,8 +131,90 @@ export function buildCommentsPanel(article, { onCountChange } = {}) {
     return btn;
   }
 
+  // Rows leave the list without a reload: reported, blocked, deleted.
+  function dropRows(match) {
+    let removed = 0;
+    for (const row of [...list.children]) {
+      if (!match(row)) continue;
+      state.ids.delete(row.dataset.id);
+      row.remove();
+      removed += 1;
+    }
+    if (removed) setTotal(Math.max(0, state.total - removed));
+    if (!list.childElementCount && !state.total) showStatus('empty');
+  }
+
+  function reportMenu(comment, anchor) {
+    const box = anchor.getBoundingClientRect();
+    showMenu({
+      x: box.left + box.width / 2,
+      y: box.bottom,
+      label: t('comments.reportTitle'),
+      returnFocus: anchor,
+      items: REPORT_REASONS.map((reason) => ({
+        icon: 'flag',
+        label: t('comments.reason.' + reason),
+        onSelect: async () => {
+          try {
+            await api.reportComment(comment.id, reason, ensureAuthorId());
+            dropRows((row) => row.dataset.id === comment.id);
+            toast(t('comments.reported'));
+          } catch {
+            toast(t('comments.actionFailed'));
+          }
+        },
+      })),
+    });
+  }
+
+  function openRowMenu(comment, anchor) {
+    const box = anchor.getBoundingClientRect();
+    const items = comment.mine
+      ? [{
+          icon: 'trash',
+          label: t('comments.delete'),
+          danger: true,
+          onSelect: async () => {
+            try {
+              await api.deleteComment(comment.id, ensureAuthorId());
+              dropRows((row) => row.dataset.id === comment.id);
+              toast(t('comments.deleted'));
+            } catch {
+              toast(t('comments.actionFailed'));
+            }
+          },
+        }]
+      : [
+          { icon: 'flag', label: t('comments.report'), onSelect: () => reportMenu(comment, anchor) },
+          {
+            icon: 'block',
+            label: t('comments.block', { name: comment.name }),
+            danger: true,
+            onSelect: () => {
+              blockAuthor(comment.authorKey, comment.name);
+              dropRows((row) => row.dataset.author === comment.authorKey);
+              toast(t('comments.blocked', { name: comment.name }));
+            },
+          },
+        ];
+    showMenu({ x: box.left + box.width / 2, y: box.bottom, label: t('comments.actions'), returnFocus: anchor, items });
+  }
+
   function commentRow(comment) {
     const row = el('li', { class: 'cmt-item', 'data-id': comment.id, 'data-testid': 'comment' });
+    if (typeof comment.authorKey === 'string') row.dataset.author = comment.authorKey;
+    const menuBtn = el('button', {
+      class: 'cmt-menu',
+      type: 'button',
+      'data-testid': 'comment-menu',
+      'aria-label': t('comments.actions'),
+      'aria-haspopup': 'menu',
+    });
+    menuBtn.append(icon('more'));
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openRowMenu(comment, menuBtn);
+    });
     const meta = el('div', { class: 'cmt-meta' });
     meta.append(
       avatarEl(comment.avatar, comment.name),
@@ -127,7 +223,8 @@ export function buildCommentsPanel(article, { onCountChange } = {}) {
         class: 'mono cmt-time',
         datetime: comment.createdAt,
         text: relTime(comment.createdAt),
-      })
+      }),
+      menuBtn
     );
     const body = el('p', { class: 'cmt-body', text: comment.body });
     const votes = el('div', { class: 'cmt-votes' });
@@ -169,6 +266,7 @@ export function buildCommentsPanel(article, { onCountChange } = {}) {
       for (const comment of res.comments) {
         if (state.ids.has(comment.id)) continue;
         state.ids.add(comment.id);
+        if (isBlocked(comment.authorKey)) continue; // blocked on this device
         list.append(commentRow(comment));
       }
       state.page += 1;

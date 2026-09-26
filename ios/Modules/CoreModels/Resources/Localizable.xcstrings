@@ -452,6 +452,28 @@
         }
       }
     },
+    "comments.actionFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That did not work. Try again."
+          }
+        }
+      }
+    },
+    "comments.actions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comment actions"
+          }
+        }
+      }
+    },
     "comments.as" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -463,6 +485,39 @@
         }
       }
     },
+    "comments.banned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can no longer comment on Meridian."
+          }
+        }
+      }
+    },
+    "comments.block" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block {name}"
+          }
+        }
+      }
+    },
+    "comments.blocked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You won’t see comments from {name}."
+          }
+        }
+      }
+    },
     "comments.closed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -470,6 +525,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Comments are closed for archived stories."
+          }
+        }
+      }
+    },
+    "comments.delete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete my comment"
+          }
+        }
+      }
+    },
+    "comments.deleted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your comment was deleted."
           }
         }
       }
@@ -562,6 +639,17 @@
         }
       }
     },
+    "comments.objectionable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This comment breaks the community rules."
+          }
+        }
+      }
+    },
     "comments.placeholder" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -595,6 +683,105 @@
         }
       }
     },
+    "comments.reason.abuse" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harassment or bullying"
+          }
+        }
+      }
+    },
+    "comments.reason.hate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hate speech"
+          }
+        }
+      }
+    },
+    "comments.reason.other" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something else"
+          }
+        }
+      }
+    },
+    "comments.reason.sexual" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sexual content"
+          }
+        }
+      }
+    },
+    "comments.reason.spam" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spam or advertising"
+          }
+        }
+      }
+    },
+    "comments.reason.violence" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Violence or threats"
+          }
+        }
+      }
+    },
+    "comments.report" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Report"
+          }
+        }
+      }
+    },
+    "comments.reportTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Report this comment"
+          }
+        }
+      }
+    },
+    "comments.reported" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thanks — the comment was reported and hidden for you."
+          }
+        }
+      }
+    },
     "comments.retry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -602,6 +789,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Retry"
+          }
+        }
+      }
+    },
+    "comments.rules" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By posting you accept the community rules"
           }
         }
       }
@@ -1827,6 +2025,28 @@
         }
       }
     },
+    "settings.blocked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocked commenters"
+          }
+        }
+      }
+    },
+    "settings.blockedNone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No one is blocked."
+          }
+        }
+      }
+    },
     "settings.close" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1834,6 +2054,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Close settings"
+          }
+        }
+      }
+    },
+    "settings.comments" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "COMMENTS"
+          }
+        }
+      }
+    },
+    "settings.commentsHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You comment anonymously: your nickname comes from a random ID kept on this device."
           }
         }
       }
@@ -1937,6 +2179,17 @@
         }
       }
     },
+    "settings.privacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy"
+          }
+        }
+      }
+    },
     "settings.requiresKey" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1944,6 +2197,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "NEEDS KEY"
+          }
+        }
+      }
+    },
+    "settings.rules" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Community rules"
           }
         }
       }
@@ -1992,6 +2256,17 @@
         }
       }
     },
+    "settings.support" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support"
+          }
+        }
+      }
+    },
     "settings.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1999,6 +2274,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Settings"
+          }
+        }
+      }
+    },
+    "settings.unblock" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unblock"
           }
         }
       }

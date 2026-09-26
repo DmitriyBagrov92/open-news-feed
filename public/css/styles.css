@@ -1965,7 +1965,11 @@
   .cmt-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
   .cmt-item { display: grid; grid-template-columns: 34px 1fr; gap: 6px 10px; padding-bottom: 12px; border-bottom: 0.5px solid var(--sep); }
   .cmt-item:last-child { border-bottom: none; }
-  .cmt-meta { grid-column: 1 / -1; display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 10px; min-width: 0; }
+  .cmt-meta { grid-column: 1 / -1; display: grid; grid-template-columns: 34px 1fr auto auto; align-items: center; gap: 10px; min-width: 0; }
+  .cmt-menu { width: 28px; height: 28px; margin-right: -4px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--label-2); transition: background var(--dur-1), color var(--dur-1); }
+  .cmt-menu:hover, .cmt-menu:focus-visible { background: var(--fill); color: var(--label); }
+  .cmt-menu .icon { width: 18px; height: 18px; }
+  .cmt-rules { align-self: flex-start; font-size: 11px; color: var(--label-2); text-decoration: underline; text-decoration-color: var(--sep); text-underline-offset: 2px; }
   .cmt-avatar { width: 34px; height: 34px; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 13px; font-weight: 700; color: #fff; background: hsl(var(--av-hue, 210) 50% 52%); }
   .cmt-name { font-weight: 700; font-size: 13px; color: var(--label); }
   .cmt-time { color: var(--label-2); font-size: 11px; flex: none; }
@@ -2055,6 +2059,11 @@
   .source-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .source-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--label-3); flex: none; }
   .source-row input { margin-left: auto; }
+  .blocked-row { display: flex; align-items: center; gap: 10px; }
+  .blocked-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .blocked-row button { flex: none; color: var(--tint); font-size: 15px; font-weight: 600; }
+  .glist > .drawer-links { flex-wrap: wrap; gap: 6px 18px; }
+  .drawer-links a { color: var(--tint); font-size: 15px; }
   /* appearance picker: three live previews */
   .appearance { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 14px 14px 12px; }
   .appearance-opt { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--label-2); }

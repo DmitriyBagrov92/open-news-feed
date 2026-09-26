@@ -1,18 +1,22 @@
 // Meridian backend: routes + static /public + limits. See docs/ARCHITECTURE.md.
 
 import path from 'node:path';
+import { timingSafeEqual } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { getHeapStatistics } from 'node:v8';
 import express from 'express';
 import compression from 'compression';
 import * as store from './lib/store.js';
 import { extractArticle, ExtractError } from './lib/extract.js';
-import { summarize, translateTexts, rateLimitOk } from './lib/ai.js';
+import { summarize, translateTexts, rateLimitOk, rateLimitRetryAfter } from './lib/ai.js';
 import { createLimiter } from './lib/ratelimit.js';
 import {
   initComments, listComments, addComment, setVote, setArticleVote,
-  reactionCounts, CommentError,
+  reactionCounts, reportComment, deleteOwnComment, CommentError,
+  listReports, hideComment, restoreComment, removeComment, banAuthor, unbanAuthor, listBans,
 } from './lib/comments.js';
+import { notifyModeration } from './lib/notify.js';
+import { renderLegal, LEGAL_PAGES } from './lib/legal.js';
 import { getBattles } from './lib/battles.js';
 import * as log from './lib/log.js';
 import { usageMiddleware, startUsageLog } from './lib/usage.js';
@@ -75,22 +79,42 @@ if (INDEXNOW_KEY) {
   });
 }
 
+// Privacy policy, terms (the community rules) and support — linked from the
+// apps and required for the App Store.
+for (const page of LEGAL_PAGES) {
+  app.get(`/${page}`, (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.type('html').send(renderLegal(page, publicOrigin(req)));
+  });
+}
+
 // Country flags are tiny, named by ISO code and effectively never change.
 app.use('/flags', express.static(path.join(__dirname, 'public', 'flags'), { maxAge: '30d', immutable: true }));
 app.use(express.static(path.join(__dirname, 'public'), { index: 'index.html' }));
 
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-function httpError(status, code, message) {
+function httpError(status, code, message, { retryAfter } = {}) {
   const err = new Error(message);
   err.status = status;
   err.code = code;
+  if (retryAfter !== undefined) err.retryAfter = retryAfter;
   return err;
 }
 
+const clientIp = (req) => req.ip || req.socket.remoteAddress || 'unknown';
+
 function rateLimit(req) {
-  const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  if (!rateLimitOk(ip)) throw httpError(429, 'rate-limited', 'Too many requests, slow down');
+  const ip = clientIp(req);
+  if (!rateLimitOk(ip)) {
+    throw httpError(429, 'rate-limited', 'Too many requests, slow down', { retryAfter: rateLimitRetryAfter(ip) });
+  }
+}
+
+// A per-feature bucket: 429 with the seconds left in the window.
+function limitWith(limiter, req, message) {
+  const ip = clientIp(req);
+  if (!limiter(ip)) throw httpError(429, 'rate-limited', message, { retryAfter: limiter.retryAfter(ip) });
 }
 
 // ── API routes ───────────────────────────────────────────────────────────────
@@ -157,10 +181,7 @@ app.get('/api/comments', wrap((req, res) => {
 }));
 
 app.post('/api/comments', wrap((req, res) => {
-  const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  if (!commentPostLimiter(ip)) {
-    throw httpError(429, 'rate-limited', 'Too many comments, slow down');
-  }
+  limitWith(commentPostLimiter, req, 'Too many comments, slow down');
   const authorId = requireAuthor(req);
   const { articleId, body } = req.body || {};
   if (!articleId || !ARTICLE_ID_RE.test(articleId)) {
@@ -186,6 +207,41 @@ app.post('/api/comments/:id/vote', wrap((req, res) => {
   res.json(result);
 }));
 
+// Reporting (Guideline 1.2): its own bucket, so reports never compete with
+// reading or voting. Three distinct reporters hide a comment until review.
+const reportLimiter = createLimiter({ limit: 10 });
+app.post('/api/comments/:id/report', wrap((req, res) => {
+  limitWith(reportLimiter, req, 'Too many reports, slow down');
+  const authorId = requireAuthor(req);
+  const { id } = req.params;
+  if (!COMMENT_ID_RE.test(id)) throw httpError(400, 'bad-comment', 'Malformed comment id');
+  const result = reportComment({ commentId: id, authorId, reason: req.body?.reason });
+  if (!result) throw httpError(404, 'unknown-comment', 'No such comment');
+  if (result.added) {
+    notifyModeration({
+      commentId: id,
+      articleId: result.comment.articleId,
+      authorKey: result.comment.authorKey,
+      body: result.comment.body,
+      reason: result.reason,
+      reports: result.reports,
+      hidden: result.hidden,
+      newlyHidden: result.newlyHidden,
+    });
+  }
+  res.json({ reported: true, hidden: result.hidden });
+}));
+
+// Authors delete their own comments (votes and reports go with them).
+app.delete('/api/comments/:id', wrap((req, res) => {
+  rateLimit(req);
+  const authorId = requireAuthor(req);
+  const { id } = req.params;
+  if (!COMMENT_ID_RE.test(id)) throw httpError(400, 'bad-comment', 'Malformed comment id');
+  if (!deleteOwnComment({ commentId: id, authorId })) throw httpError(404, 'unknown-comment', 'No such comment');
+  res.json({ deleted: true });
+}));
+
 // ── article reactions (like/dislike on stories) ────────────────────────────
 
 app.post('/api/news/:id/vote', wrap((req, res) => {
@@ -209,10 +265,7 @@ app.post('/api/news/:id/vote', wrap((req, res) => {
 // interactive 30/min bucket would starve votes/translate behind one NAT IP.
 const reactionsLimiter = createLimiter({ limit: 30 });
 app.get('/api/reactions', wrap((req, res) => {
-  const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  if (!reactionsLimiter(ip)) {
-    throw httpError(429, 'rate-limited', 'Too many requests, slow down');
-  }
+  limitWith(reactionsLimiter, req, 'Too many requests, slow down');
   const ids = String(req.query.articles || '')
     .split(',')
     .filter(Boolean)
@@ -278,6 +331,62 @@ app.get('/api/health', wrap((req, res) => {
   });
 }));
 
+// ── moderation (admin) ───────────────────────────────────────────────────────
+// Bearer ADMIN_TOKEN; without the variable the endpoints do not exist (404).
+// scripts/moderate.mjs is the command-line client.
+
+function requireAdmin(req) {
+  const token = process.env.ADMIN_TOKEN || '';
+  if (!token) throw httpError(404, 'not-found', 'Unknown API endpoint');
+  rateLimit(req); // slows down token guessing
+  const given = Buffer.from(/^Bearer (.+)$/.exec(req.get('authorization') || '')?.[1] || '');
+  const expected = Buffer.from(token);
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
+    throw httpError(401, 'unauthorized', 'Admin token required');
+  }
+}
+
+const admin = (handler) => wrap((req, res) => {
+  requireAdmin(req);
+  res.setHeader('Cache-Control', 'no-store');
+  return handler(req, res);
+});
+
+function adminComment(req) {
+  const { id } = req.params;
+  if (!COMMENT_ID_RE.test(id)) throw httpError(400, 'bad-comment', 'Malformed comment id');
+  return id;
+}
+
+app.get('/api/admin/reports', admin((req, res) => {
+  res.json({ reports: listReports({ limit: req.query.limit }) });
+}));
+app.post('/api/admin/comments/:id/hide', admin((req, res) => {
+  const result = hideComment({ commentId: adminComment(req), reason: req.body?.reason || 'moderator' });
+  if (!result) throw httpError(404, 'unknown-comment', 'No such comment');
+  res.json(result);
+}));
+app.post('/api/admin/comments/:id/restore', admin((req, res) => {
+  const result = restoreComment({ commentId: adminComment(req) });
+  if (!result) throw httpError(404, 'unknown-comment', 'No such comment');
+  res.json(result);
+}));
+app.delete('/api/admin/comments/:id', admin((req, res) => {
+  const result = removeComment({ commentId: adminComment(req) });
+  if (!result) throw httpError(404, 'unknown-comment', 'No such comment');
+  res.json(result);
+}));
+app.get('/api/admin/bans', admin((req, res) => {
+  res.json({ bans: listBans() });
+}));
+app.post('/api/admin/bans', admin((req, res) => {
+  res.status(201).json(banAuthor({ authorKey: req.body?.authorKey, reason: req.body?.reason ?? null }));
+}));
+app.delete('/api/admin/bans/:key', admin((req, res) => {
+  if (!unbanAuthor({ authorKey: req.params.key })) throw httpError(404, 'unknown-ban', 'No such ban');
+  res.json({ unbanned: true });
+}));
+
 app.use('/api', (req, res, next) => next(httpError(404, 'not-found', 'Unknown API endpoint')));
 
 // ── fixture mode (tests only) ────────────────────────────────────────────────
@@ -318,6 +427,10 @@ app.use((err, req, res, next) => {
   // Uncontrolled 5xx messages may carry internals (paths, library errors) —
   // log them above, mask them to the client.
   const message = hasCode || status < 500 ? err.message || 'Request failed' : 'Internal error';
+  if (status === 429) {
+    const seconds = Number(err.retryAfter);
+    res.setHeader('Retry-After', String(Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds) : 60));
+  }
   res.status(status).json({ error: { code, message } });
 });
 

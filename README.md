@@ -94,6 +94,9 @@ Every variable is optional — the app works out of the box.
 | `LIBRETRANSLATE_URL` | Server-side translation fallback: a LibreTranslate instance URL |
 | `LIBRETRANSLATE_API_KEY` | API key for that LibreTranslate instance, if it needs one |
 | `COMMENTS_DB` | SQLite file for anonymous comments (default `./data/comments.db`; point it at a mounted volume in production) |
+| `ADMIN_TOKEN` | Enables the moderation API (`/api/admin/*`, used by `scripts/moderate.mjs`); a long random secret — without it the endpoints do not exist |
+| `SUPPORT_EMAIL` | Contact address shown on `/privacy`, `/terms` and `/support` (required for the App Store) |
+| `MODERATION_WEBHOOK_URL` | Optional Slack/Discord-compatible webhook that receives every report of a comment |
 | `USAGE_LOG_MINUTES` | Minutes between `usage` log lines (default `5`; `0` disables) — see Logs below |
 | `PUBLIC_URL` | Public origin (e.g. `https://meridi.info`) for canonical, Open Graph and sitemap URLs; defaults to Railway's domain, else the request host |
 | `GOOGLE_SITE_VERIFICATION` | Google Search Console ownership token — rendered as the `google-site-verification` meta tag (see Getting indexed) |
@@ -133,6 +136,24 @@ Every variable is optional — the app works out of the box.
    deployment with SIGTERM, and through npm the signal stops at npm's
    `sh -c` wrapper, so Node never shuts down cleanly and Railway reports the
    old deployment as crashed. Keep the two commands' flags in sync.
+
+### Moderating comments
+
+Comments are anonymous but moderated (the App Store requires it for the iOS
+app): a content screen refuses slurs, threats and link spam; readers report
+comments (three reports hide one until review) and block commenters; authors
+delete their own. Reports should be reviewed within 24 hours — the terms say
+so. Set `ADMIN_TOKEN` (and `SUPPORT_EMAIL`, optionally
+`MODERATION_WEBHOOK_URL` to be pinged on every report), then:
+
+```bash
+export MERIDIAN_URL=https://meridi.info ADMIN_TOKEN=…
+node scripts/moderate.mjs reports             # the queue, most recently reported first
+node scripts/moderate.mjs hide <commentId> spam
+node scripts/moderate.mjs restore <commentId> # keep it; only newer reports count
+node scripts/moderate.mjs delete <commentId>
+node scripts/moderate.mjs ban <authorKey> harassment   # also: bans, unban <authorKey>
+```
 
 ### Logs
 

@@ -72,6 +72,15 @@ export const api = {
     return post(`/api/comments/${commentId}/vote`, { value }, { 'X-Author-Id': authorId });
   },
 
+  // reason: 'spam' | 'abuse' | 'hate' | 'sexual' | 'violence' | 'other'
+  reportComment(commentId, reason, authorId) {
+    return post(`/api/comments/${commentId}/report`, { reason }, { 'X-Author-Id': authorId });
+  },
+
+  deleteComment(commentId, authorId) {
+    return request(`/api/comments/${commentId}`, { method: 'DELETE', headers: { 'X-Author-Id': authorId } });
+  },
+
   // params: { category, q, sources, exclude, page, pageSize, lang, since }
   // authorId (optional) lights up per-user myVote on the returned articles.
   news(params, authorId) {

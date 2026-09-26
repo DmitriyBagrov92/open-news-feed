@@ -53,3 +53,28 @@ test('setPref, toggleSaved and ensureAuthorId persist', async () => {
   assert.match(id, /^[0-9a-f-]{36}$/);
   assert.equal(mod.ensureAuthorId(), id);
 });
+
+test('blocked commenters: valid keys only, no duplicates, names capped; block/unblock persist', async () => {
+  const key = (c) => c.repeat(16);
+  const { mod, storage } = await load({
+    blockedAuthors: [
+      { key: key('a'), name: 'Amber Falcon' },
+      { key: key('a'), name: 'Duplicate' },
+      { key: 'not-a-key', name: 'x' },
+      { key: key('b'), name: 'N'.repeat(80) },
+      { key: key('c') },
+      'junk',
+    ],
+  }, 'blocked');
+  assert.deepEqual(mod.prefs.blockedAuthors.map((b) => b.key), [key('a'), key('b'), key('c')]);
+  assert.equal(mod.prefs.blockedAuthors[1].name.length, 60);
+  assert.equal(mod.prefs.blockedAuthors[2].name, '');
+  mod.blockAuthor(key('d'), 'Quiet Heron');
+  assert.ok(mod.isBlocked(key('d')));
+  mod.blockAuthor(key('d'), 'Again');
+  assert.equal(mod.prefs.blockedAuthors.filter((b) => b.key === key('d')).length, 1);
+  mod.unblockAuthor(key('a'));
+  assert.ok(!mod.isBlocked(key('a')));
+  const saved = JSON.parse(storage.get('meridian:prefs'));
+  assert.deepEqual(saved.blockedAuthors.map((b) => b.name), ['N'.repeat(60), '', 'Quiet Heron']);
+});

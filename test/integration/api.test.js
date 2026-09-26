@@ -9,6 +9,16 @@ after(() => close());
 const AUTH = { 'X-Author-Id': '123e4567-e89b-12d3-a456-426614174000' };
 const get = (p, headers = {}) => fetch(base + p, { headers });
 const post = (p, body, headers = {}) => fetch(base + p, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body) });
+const del = (p, headers = {}) => fetch(base + p, { method: 'DELETE', headers });
+// a fresh anonymous author (and its own address, so per-IP buckets never collide between tests)
+let authorSeq = 0;
+const author = () => {
+  authorSeq += 1;
+  return {
+    'X-Author-Id': `${String(authorSeq).padStart(8, '0')}-aaaa-4bbb-8ccc-${String(authorSeq).padStart(12, '0')}`,
+    'X-Forwarded-For': `198.51.100.${authorSeq}`,
+  };
+};
 
 test('security headers and CSP on every response', async () => {
   const res = await get('/api/health');
@@ -135,11 +145,13 @@ test('unknown api routes are 404 in the error shape', async () => {
 test('rate limit: the comment-post bucket trips at 5/min per address', async () => {
   const headers = { ...AUTH, 'X-Forwarded-For': '203.0.113.9' };
   const { articles } = await (await get('/api/news?pageSize=1')).json();
-  const statuses = [];
+  const responses = [];
   for (let i = 0; i < 6; i += 1) {
-    statuses.push((await post('/api/comments', { articleId: articles[0].id, body: 'burst ' + i }, headers)).status);
+    responses.push(await post('/api/comments', { articleId: articles[0].id, body: 'burst ' + i }, headers));
   }
-  assert.equal(statuses[5], 429);
+  assert.equal(responses[5].status, 429);
+  const wait = Number(responses[5].headers.get('retry-after'));
+  assert.ok(wait >= 1 && wait <= 60, `Retry-After ${wait}`);
 });
 
 test('fixture routes raise and rewind the feed', async () => {
@@ -149,4 +161,124 @@ test('fixture routes raise and rewind the feed', async () => {
   assert.equal(adv.articles, before_ + 3);
   const reset = await (await post('/__fixture/reset', {})).json();
   assert.equal(reset.articles, before_);
+});
+
+test('moderation: authors see their own comments, readers report, three reports hide, authors delete', async () => {
+  const { articles } = await (await get('/api/news?pageSize=3')).json();
+  const id = articles[2].id;
+  const writer = author();
+  const created = await (await post('/api/comments', { articleId: id, body: 'A take worth arguing about' }, writer)).json();
+  assert.match(created.authorKey, /^[0-9a-f]{16}$/);
+  assert.equal(created.mine, true);
+  const seen = await (await get('/api/comments?article=' + id, author())).json();
+  assert.equal(seen.comments[0].mine, false);
+  assert.equal(seen.comments[0].authorKey, created.authorKey);
+
+  const own = await post(`/api/comments/${created.id}/report`, { reason: 'spam' }, writer);
+  assert.equal(own.status, 400);
+  assert.equal((await own.json()).error.code, 'own-comment');
+  assert.equal((await post(`/api/comments/${created.id}/report`, { reason: 'boring' }, author())).status, 400);
+  assert.equal((await post('/api/comments/0000000000000000/report', {}, author())).status, 404);
+  assert.equal((await post('/api/comments/nope/report', {}, author())).status, 400);
+  assert.equal((await post(`/api/comments/${created.id}/report`, {})).status, 400, 'author header required');
+
+  const answers = [];
+  for (const reason of ['spam', 'abuse', undefined]) {
+    answers.push(await (await post(`/api/comments/${created.id}/report`, { reason }, author())).json());
+  }
+  assert.deepEqual(answers, [
+    { reported: true, hidden: false },
+    { reported: true, hidden: false },
+    { reported: true, hidden: true },
+  ]);
+  assert.equal((await (await get('/api/comments?article=' + id)).json()).total, 0);
+
+  const mine = await (await post('/api/comments', { articleId: id, body: 'Second thoughts' }, author())).json();
+  const stranger = await del('/api/comments/' + mine.id, author());
+  assert.equal(stranger.status, 403);
+  assert.equal((await stranger.json()).error.code, 'not-owner');
+});
+
+test('moderation: delete your own, the objectionable filter, Retry-After on too-fast', async () => {
+  const { articles } = await (await get('/api/news?pageSize=4')).json();
+  const id = articles[3].id;
+  const writer = author();
+  const created = await (await post('/api/comments', { articleId: id, body: 'Posted in haste' }, writer)).json();
+  const fast = await post('/api/comments', { articleId: id, body: 'And again at once' }, writer);
+  assert.equal(fast.status, 429);
+  assert.equal((await fast.json()).error.code, 'too-fast');
+  const wait = Number(fast.headers.get('retry-after'));
+  assert.ok(wait >= 1 && wait <= 10, `Retry-After ${wait}`);
+  const gone = await del('/api/comments/' + created.id, writer);
+  assert.equal(gone.status, 200);
+  assert.deepEqual(await gone.json(), { deleted: true });
+  assert.equal((await del('/api/comments/' + created.id, writer)).status, 404);
+  const refused = await post('/api/comments', { articleId: id, body: 'kys' }, author());
+  assert.equal(refused.status, 422);
+  assert.equal((await refused.json()).error.code, 'objectionable');
+});
+
+test('admin: off without ADMIN_TOKEN, a bearer token lists reports, restores, bans and unbans', async () => {
+  const adminGet = (p, token) => get(p, { Authorization: `Bearer ${token}`, 'X-Forwarded-For': '192.0.2.10' });
+  delete process.env.ADMIN_TOKEN;
+  assert.equal((await adminGet('/api/admin/reports', 'anything')).status, 404);
+  process.env.ADMIN_TOKEN = 'test-admin-token-0123456789';
+  try {
+    assert.equal((await adminGet('/api/admin/reports', 'wrong-token')).status, 401);
+    const auth = { Authorization: 'Bearer test-admin-token-0123456789', 'X-Forwarded-For': '192.0.2.11' };
+
+    const { articles } = await (await get('/api/news?pageSize=5')).json();
+    const id = articles[4].id;
+    const troll = author();
+    const c = await (await post('/api/comments', { articleId: id, body: 'Contrarian as ever' }, troll)).json();
+    await post(`/api/comments/${c.id}/report`, { reason: 'abuse' }, author());
+    const queue = await (await get('/api/admin/reports', auth)).json();
+    const entry = queue.reports.find((r) => r.id === c.id);
+    assert.deepEqual([entry.reports, entry.reasons, entry.hidden, entry.authorKey], [1, ['abuse'], false, c.authorKey]);
+
+    assert.deepEqual(await (await post(`/api/admin/comments/${c.id}/hide`, { reason: 'abuse' }, auth)).json(), { id: c.id, hidden: true });
+    assert.equal((await (await get('/api/comments?article=' + id)).json()).total, 0);
+    assert.deepEqual(await (await post(`/api/admin/comments/${c.id}/restore`, {}, auth)).json(), { id: c.id, hidden: false });
+    assert.equal((await (await get('/api/comments?article=' + id)).json()).total, 1);
+
+    const ban = await post('/api/admin/bans', { authorKey: c.authorKey, reason: 'repeat abuse' }, auth);
+    assert.equal(ban.status, 201);
+    assert.equal((await ban.json()).authorKey, c.authorKey);
+    assert.equal((await (await get('/api/comments?article=' + id)).json()).total, 0, 'a banned author’s comments leave the lists');
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    const blocked = await post('/api/comments', { articleId: id, body: 'Let me back in' }, troll);
+    assert.equal(blocked.status, 403);
+    assert.equal((await blocked.json()).error.code, 'banned');
+    assert.ok((await (await get('/api/admin/bans', auth)).json()).bans.some((b) => b.authorKey === c.authorKey));
+    assert.equal((await del('/api/admin/bans/' + c.authorKey, auth)).status, 200);
+    assert.equal((await del('/api/admin/bans/' + c.authorKey, auth)).status, 404);
+    assert.equal((await post('/api/admin/bans', { authorKey: 'nope' }, auth)).status, 400);
+    assert.deepEqual(await (await del(`/api/admin/comments/${c.id}`, auth)).json(), { id: c.id, deleted: true });
+    assert.equal((await del(`/api/admin/comments/${c.id}`, auth)).status, 404);
+  } finally {
+    delete process.env.ADMIN_TOKEN;
+  }
+});
+
+test('privacy, terms and support pages carry the support address', async () => {
+  delete process.env.SUPPORT_EMAIL;
+  const bare = await (await get('/support')).text();
+  assert.match(bare, /not configured yet/);
+  process.env.SUPPORT_EMAIL = 'help@example.com';
+  try {
+    for (const [page, title] of [['privacy', 'Privacy Policy'], ['terms', 'Terms of Use'], ['support', 'Support']]) {
+      const res = await get('/' + page);
+      assert.equal(res.status, 200);
+      assert.match(res.headers.get('content-type'), /text\/html/);
+      assert.match(res.headers.get('content-security-policy'), /default-src 'self'/);
+      const html = await res.text();
+      assert.ok(html.includes(`<title>${title}`), page);
+      assert.ok(html.includes('mailto:help@example.com'), page);
+      assert.ok(html.includes(`<link rel="canonical" href="https://test.meridi.info/${page}">`), page);
+    }
+    assert.match(await (await get('/terms')).text(), /zero tolerance for objectionable content and abusive users/);
+    assert.match(await (await get('/privacy/')).text(), /<title>Privacy Policy/, 'a trailing slash is the same page');
+  } finally {
+    delete process.env.SUPPORT_EMAIL;
+  }
 });

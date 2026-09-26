@@ -150,7 +150,7 @@ struct GoldenParityTests {
     @Test("the String Catalog speaks the web's English table, key for key")
     func strings() throws {
         let vectors = try Fixtures.golden(StringVectors.self, "strings")
-        #expect(vectors.en.count == 177)
+        #expect(vectors.en.count == 203)
         for (key, value) in vectors.en {
             #expect(L10n.t(key) == value, "\(key)")
         }
