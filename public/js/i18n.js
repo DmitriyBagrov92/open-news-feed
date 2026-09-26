@@ -241,6 +241,9 @@ let locale = 'en';
 
 // The interface speaks the chosen language when a table for it exists,
 // English otherwise — no separate "interface language" to keep in sync.
+// The English table, for tooling (the iOS String Catalog is generated from it).
+export const STRINGS_EN = TABLES.en;
+
 export function setLocale(next) {
   locale = TABLES[next] ? next : 'en';
 }

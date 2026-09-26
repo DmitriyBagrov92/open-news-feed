@@ -76,7 +76,9 @@ export function rankForYou(articles, taste, savedIds, now = Date.now()) {
     scored.push({ a, score });
   }
   scored.sort(
-    (x, y) => y.score - x.score || (x.a.publishedAt < y.a.publishedAt ? 1 : -1)
+    (x, y) =>
+      y.score - x.score ||
+      (x.a.publishedAt < y.a.publishedAt ? 1 : x.a.publishedAt > y.a.publishedAt ? -1 : 0)
   );
 
   const personalized = scored.some(({ score }) => score > 2.05); // beats bare freshness

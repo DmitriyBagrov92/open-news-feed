@@ -201,7 +201,7 @@ export function entityTokens(title) {
   return out;
 }
 
-function briefDigest(articles) {
+export function briefDigest(articles) {
   const docs = articles.map((a) => ({ a, toks: entityTokens(a.title) }));
   const byTok = new Map(); // lower → { display, idxs: [] }
   docs.forEach((d, i) => {
@@ -232,7 +232,7 @@ function briefDigest(articles) {
     bestCov.forEach((i) => used.add(i));
     const group = bestCov
       .map((i) => docs[i].a)
-      .sort((x, y) => (x.publishedAt < y.publishedAt ? 1 : -1));
+      .sort((x, y) => (x.publishedAt < y.publishedAt ? 1 : x.publishedAt > y.publishedAt ? -1 : 0));
     const lead = group[0];
     const sources = [...new Set(group.map((x) => x.source).filter(Boolean))];
     const breadth =
@@ -298,7 +298,7 @@ export async function translateTexts(texts, targetLang, { sourceLang = 'en', onP
 
 /* ── Local extractive summarizer ────────────────────────────────────────── */
 
-const STOPWORDS = new Set(
+export const STOPWORDS = new Set(
   ('a an the and or but nor of in on at to for from by with about as into over after before between ' +
    'is are was were be been being has have had do does did will would can could may might must shall should ' +
    'it its this that these those he she they them him his her their our we you your i me my not no yes ' +
@@ -312,6 +312,25 @@ function words(text) {
 export function splitSentences(text) {
   const matches = (text || '').replace(/\s+/g, ' ').match(/[^.!?]+[.!?]+[”"')\]]*\s*|[^.!?]+$/g);
   return matches ? matches.map((s) => s.trim()).filter(Boolean) : [];
+}
+
+// Splits a paragraph into ≤ maxLen chunks on sentence boundaries so server
+// translation limits (20 texts × 1000 chars) are respected losslessly.
+export function chunkParagraph(text, maxLen = 1000) {
+  if (text.length <= maxLen) return [text];
+  const chunks = [];
+  let current = '';
+  for (const sentence of splitSentences(text)) {
+    const piece = sentence.length > maxLen ? sentence.slice(0, maxLen) : sentence;
+    if (current && (current + ' ' + piece).length > maxLen) {
+      chunks.push(current);
+      current = piece;
+    } else {
+      current = current ? current + ' ' + piece : piece;
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks.length ? chunks : [text.slice(0, maxLen)];
 }
 
 // Frequency-based extraction: score each sentence by the corpus frequency of
@@ -351,13 +370,13 @@ export function extractive(sentences, max = 5) {
 export const FORECAST_OUTPUT_LANGS = new Set(['en', 'es', 'ja', 'de', 'fr']);
 export const FORECAST_COUNT = 4;
 // the model drafts spares so the least concrete candidates can be dropped
-const FORECAST_CANDIDATES = FORECAST_COUNT + 2;
+export const FORECAST_CANDIDATES = FORECAST_COUNT + 2;
 export const FORECAST_TIMEFRAMES = { '24h': 24, '48h': 48, '3d': 72, '7d': 168 };
-const FORECAST_MAX_HEADLINE = 110;
-const FORECAST_MAX_WHY = 320;
-const FORECAST_MIN_ARTICLES = 5;
+export const FORECAST_MAX_HEADLINE = 110;
+export const FORECAST_MAX_WHY = 320;
+export const FORECAST_MIN_ARTICLES = 5;
 const FORECAST_PROMPT_MS = 45000;
-const LANGUAGE_NAMES = { en: 'English', es: 'Spanish', ja: 'Japanese', de: 'German', fr: 'French' };
+export const LANGUAGE_NAMES = { en: 'English', es: 'Spanish', ja: 'Japanese', de: 'German', fr: 'French' };
 
 // Mock provider for UI work and automated checks on machines without the
 // model: ?forecast=mock | ?forecast=mock-download, or localStorage
@@ -377,7 +396,7 @@ export function forecastMockMode() {
 }
 let mockDownloaded = false;
 
-function forecastSystemPrompt(outLang) {
+export function forecastSystemPrompt(outLang) {
   const language = LANGUAGE_NAMES[outLang] || 'English';
   return (
     `You are a cautious news analyst writing in ${language}. For each story you are given you predict the NEXT event it points to within 7 days \u2014 never the story itself.\n` +
@@ -397,22 +416,22 @@ function forecastSystemPrompt(outLang) {
 // stories, three NEXT-step forecasts that keep the names and add the event.
 // The names are invented so nothing from the example can pass as news —
 // and a forecast that mentions them anyway is dropped (EXAMPLE_ENTITIES).
-const FORECAST_EXAMPLE_USER =
+export const FORECAST_EXAMPLE_USER =
   'Today is Tue, 09 Sep 2026 10:00:00 GMT. Headlines, newest first (index \u00b7 source \u00b7 age \u00b7 title \u2014 description):\n' +
   '0 \u00b7 Harbor Sports \u00b7 3h ago \u00b7 Sources: Halden Wolves, Rask agree to $33.75M extension \u2014 The Wolves and striker Teo Rask have reached an agreement on a three-year extension ahead of Sunday\u2019s opener against Vardo.\n' +
   '1 \u00b7 Meridian Wire \u00b7 5h ago \u00b7 Sable Bank expected to hold rates this week as inflation cools \u2014 Markets price a hold at Wednesday\u2019s policy meeting; the statement language is in focus.\n' +
   '2 \u00b7 Coast News \u00b7 1h ago \u00b7 Storm Kestrel strengthens as it heads for Port Averly \u2014 Forecasters expect landfall on the east coast late Thursday.\n\n' +
   'Return exactly 3 forecasts as JSON.';
-const FORECAST_EXAMPLE_ASSISTANT = JSON.stringify({
+export const FORECAST_EXAMPLE_ASSISTANT = JSON.stringify({
   forecasts: [
     { headline: 'Rask starts for the Halden Wolves in Sunday\u2019s opener against Vardo', why: 'The three-year, $33.75M extension signed this week makes him the lead striker going into the opener.', timeframe: '48h', confidence: 'medium', basis: [0] },
     { headline: 'Sable Bank holds rates on Wednesday and hints at a December cut', why: 'Markets price a hold at this week\u2019s policy meeting, so the statement\u2019s wording is the next move.', timeframe: '3d', confidence: 'medium', basis: [1] },
     { headline: 'Port Averly closes schools and offices on Thursday as Kestrel makes landfall', why: 'Forecasters expect landfall on the east coast late Thursday; closures follow every storm warning.', timeframe: '7d', confidence: 'low', basis: [2] },
   ],
 });
-const EXAMPLE_ENTITIES = ['halden', 'wolves', 'rask', 'vardo', 'sable bank', 'kestrel', 'averly'];
+export const EXAMPLE_ENTITIES = ['halden', 'wolves', 'rask', 'vardo', 'sable bank', 'kestrel', 'averly'];
 
-function forecastSchema(n) {
+export function forecastSchema(n) {
   return {
     type: 'object',
     additionalProperties: false,
@@ -444,7 +463,7 @@ function forecastSchema(n) {
   };
 }
 
-function forecastUserPrompt(articles, now) {
+export function forecastUserPrompt(articles, now) {
   const lines = articles.map((a, i) => {
     const age = Math.max(0, Math.round((now - Date.parse(a.publishedAt)) / 3600000));
     const title = String(a.title || '').slice(0, 120);
@@ -556,7 +575,7 @@ export function releaseForecastSession(delayMs = 0) {
   else drop();
 }
 
-const MOCK_FORECASTS = [
+export const MOCK_FORECASTS = [
   { headline: 'Follow-up talks announced after this week’s breakthrough', timeframe: '24h', confidence: 'medium' },
   { headline: 'Regulators schedule a hearing on the disputed decision', timeframe: '48h', confidence: 'low' },
   { headline: 'Rival bid emerges as the deal heads for a shareholder vote', timeframe: '3d', confidence: 'low' },
@@ -633,7 +652,7 @@ export async function generateForecast({ articles, outLang = 'en', onProgress, s
 
 // Capitalised words and numbers — the names, places and figures a concrete
 // forecast has to carry over from the story it builds on.
-const ENTITY_STOP = new Set(('the a an and of in on at to for with by from as is are was were be after before over ' +
+export const ENTITY_STOP = new Set(('the a an and of in on at to for with by from as is are was were be after before over ' +
   'under into amid vs new his her their this that these those it its he she they we you why how what when').split(' '));
 export function forecastEntities(text) {
   const out = new Set();
@@ -647,18 +666,18 @@ export function forecastEntities(text) {
   return out;
 }
 // headline clichés a small model reaches for when it has nothing concrete
-const VAGUE_RE = /\b(evolv\w*|continu\w*|develop\w*|shap\w*|remain\w*|focus\w*|shift\w*|attention|momentum|reaction\w*|discussion\w*|speculation|scrutiny|tension\w*|uncertaint\w*|pressure|ongoing|planned|prowess|amaze\w*|showcase\w*|compelling|emerging|impact\w*|prompt\w*|prepare\w*|heighten\w*|increas\w*|strategy|condemnation|escalat\w*|faces|face|sparks|fuels|raises questions|spotlight|boost\w*|outlook|seen as|potential\w*|narrative|complexit\w*|signal\w*|significant\w*|commit\w*|priorit\w*|amid)\b/gi;
+export const VAGUE_RE = /\b(evolv\w*|continu\w*|develop\w*|shap\w*|remain\w*|focus\w*|shift\w*|attention|momentum|reaction\w*|discussion\w*|speculation|scrutiny|tension\w*|uncertaint\w*|pressure|ongoing|planned|prowess|amaze\w*|showcase\w*|compelling|emerging|impact\w*|prompt\w*|prepare\w*|heighten\w*|increas\w*|strategy|condemnation|escalat\w*|faces|face|sparks|fuels|raises questions|spotlight|boost\w*|outlook|seen as|potential\w*|narrative|complexit\w*|signal\w*|significant\w*|commit\w*|priorit\w*|amid)\b/gi;
 
 // Stories that name an upcoming event forecast well; the pool is ordered
 // by this so the model meets them first (it leans on the top of the list).
-const FUTURE_CUE_RE = /\b(will|set to|due|scheduled|expected|to (face|meet|vote|decide|announce|hold|open|close|release|play|host|begin|start|resume|testify|appear|unveil)|monday|tuesday|wednesday|thursday|friday|saturday|sunday|this (week|weekend|month)|next (week|month|year)|tomorrow|tonight|deadline|final\w*|semi-?final\w*|opener|vote\w*|hearing|trial|verdict|sentencing|summit|talks|meeting|election\w*|launch\w*|earnings|deal|strike|ceasefire|ruling|referendum|debate|inauguration|kickoff|matchday|playoff\w*)\b/gi;
+export const FUTURE_CUE_RE = /\b(will|set to|due|scheduled|expected|to (face|meet|vote|decide|announce|hold|open|close|release|play|host|begin|start|resume|testify|appear|unveil)|monday|tuesday|wednesday|thursday|friday|saturday|sunday|this (week|weekend|month)|next (week|month|year)|tomorrow|tonight|deadline|final\w*|semi-?final\w*|opener|vote\w*|hearing|trial|verdict|sentencing|summit|talks|meeting|election\w*|launch\w*|earnings|deal|strike|ceasefire|ruling|referendum|debate|inauguration|kickoff|matchday|playoff\w*)\b/gi;
 export function forecastability(article) {
   const text = `${article.title || ''} ${article.description || ''}`;
   return (text.match(FUTURE_CUE_RE) || []).length;
 }
 // the concrete nouns of a checkable event, and dates / figures
-const EVENT_RE = /\b(vote\w*|hearing|ruling|verdict|sentenc\w*|deadline|launch\w*|report\w*|earnings|deal|agreement|strike\w*|landfall|final\w*|semi-?final\w*|match|game|opener|derby|election\w*|summit|meeting|announce\w*|sign\w*|release\w*|ship\w*|cut\w*|hike\w*|hold\w* rates|ban\w*|approv\w*|reject\w*|fine\w*|indict\w*|charge\w*|arrest\w*|resign\w*|appoint\w*|acquir\w*|buy\w*|sell\w*|ipo|evacuat\w*|close\w*|open\w*|start\w*|play\w*|beat\w*|win\w*|lose\w*|return\w*|test\w*|unveil\w*|publish\w*|ceasefire|sanction\w*|tariff\w*)\b/i;
-const WHEN_RE = /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|tonight|tomorrow|weekend|\d{1,2}(st|nd|rd|th)?|\d+(\.\d+)?%|\$\d)/i;
+export const EVENT_RE = /\b(vote\w*|hearing|ruling|verdict|sentenc\w*|deadline|launch\w*|report\w*|earnings|deal|agreement|strike\w*|landfall|final\w*|semi-?final\w*|match|game|opener|derby|election\w*|summit|meeting|announce\w*|sign\w*|release\w*|ship\w*|cut\w*|hike\w*|hold\w* rates|ban\w*|approv\w*|reject\w*|fine\w*|indict\w*|charge\w*|arrest\w*|resign\w*|appoint\w*|acquir\w*|buy\w*|sell\w*|ipo|evacuat\w*|close\w*|open\w*|start\w*|play\w*|beat\w*|win\w*|lose\w*|return\w*|test\w*|unveil\w*|publish\w*|ceasefire|sanction\w*|tariff\w*)\b/i;
+export const WHEN_RE = /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|tonight|tomorrow|weekend|\d{1,2}(st|nd|rd|th)?|\d+(\.\d+)?%|\$\d)/i;
 
 // How firmly a forecast stands on its stories: names/figures shared with
 // the basis headlines, a point for naming a concrete event and one for a

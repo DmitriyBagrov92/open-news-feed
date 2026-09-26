@@ -1165,6 +1165,7 @@ async function runBrief() {
           title: a.title,
           description: a.description || '',
           source: a.source?.name || '',
+          publishedAt: a.publishedAt, // the local digest leads each group with its freshest story
         })),
         targetLang: prefs.targetLang || 'en',
       },

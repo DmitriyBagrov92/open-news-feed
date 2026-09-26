@@ -11,7 +11,7 @@ import { prefs, ensureAuthorId } from './prefs.js';
 import { toast } from './toast.js';
 import { absTime } from './time.js';
 import { buildMedia, applyCardReactions } from './cards.js';
-import { summarize, translateTexts, splitSentences, providerLabel, toBullets } from './ai.js';
+import { summarize, translateTexts, chunkParagraph, providerLabel, toBullets } from './ai.js';
 import {
   animateReveal,
   animateStoryIn,
@@ -74,25 +74,6 @@ function teardown() {
   active.root.remove();
   unlockStory();
   active = null;
-}
-
-// Splits a paragraph into ≤ maxLen chunks on sentence boundaries so server
-// translation limits (20 texts × 1000 chars) are respected losslessly.
-function chunkParagraph(text, maxLen = 1000) {
-  if (text.length <= maxLen) return [text];
-  const chunks = [];
-  let current = '';
-  for (const sentence of splitSentences(text)) {
-    const piece = sentence.length > maxLen ? sentence.slice(0, maxLen) : sentence;
-    if (current && (current + ' ' + piece).length > maxLen) {
-      chunks.push(current);
-      current = piece;
-    } else {
-      current = current ? current + ' ' + piece : piece;
-    }
-  }
-  if (current) chunks.push(current);
-  return chunks.length ? chunks : [text.slice(0, maxLen)];
 }
 
 // Like/dislike for the opened story: optimistic pills mirroring the grid
