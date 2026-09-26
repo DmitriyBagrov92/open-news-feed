@@ -42,6 +42,20 @@ final class BattleAcceptanceTests: AcceptanceTestCase {
         XCTAssertTrue(app.staticTexts["story-\(hill)-title"].waitForExistence(timeout: 10), "the next viewpoint of the same story")
     }
 
+    func testTheBriefKeepsItsRoomWhenTheArenaIsRebuilt() throws {
+        try XCTSkipUnless(isPad, "the arena is the wide-window layout")
+        let app = openBattle()
+        let brief = app.descendants(matching: .any).matching(identifier: "battle-brief").firstMatch
+        XCTAssertTrue(eventually("label CONTAINS 'HOW COVERAGE DIFFERS'", brief))
+        XCUIDevice.shared.orientation = .landscapeLeft // a new width: the arena is laid out again
+        defer { XCUIDevice.shared.orientation = .portrait }
+        Thread.sleep(forTimeInterval: 4)
+        let area = brief.frame.insetBy(dx: 6, dy: 6)
+        for id in [guardian, hill, fox] {
+            XCTAssertFalse(bubble(app, id).frame.intersects(area), "\(id) lies on the brief")
+        }
+    }
+
     func testArenaTilesCanBeDragged() throws {
         try XCTSkipUnless(isPad, "the arena is the wide-window layout")
         let app = openBattle()

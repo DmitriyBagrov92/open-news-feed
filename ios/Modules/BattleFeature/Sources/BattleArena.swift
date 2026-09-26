@@ -200,6 +200,9 @@ final class ArenaModel {
     private(set) var frame = 0
 
     @ObservationIgnored var onVisibility: (@MainActor (String, Bool) -> Void)?
+    /// The briefs' measured heights: a rebuilt arena (rotation, card size) keeps them — the brief's
+    /// view survives the rebuild and does not report its unchanged size again.
+    @ObservationIgnored private var briefHeights: [String: CGFloat] = [:]
     @ObservationIgnored private var driver: FrameDriver?
     @ObservationIgnored private var lastTime: CFTimeInterval = 0
     @ObservationIgnored private var accumulator: CFTimeInterval = 0
@@ -219,6 +222,9 @@ final class ArenaModel {
         }
         let (layouts, total) = BattleLayout.arrange(radii, width: width)
         clusters = zip(battles, layouts).map { ArenaCluster(battle: $0, layout: $1) }
+        for cluster in clusters {
+            if let briefHeight = briefHeights[cluster.id] { cluster.physics.setBriefHeight(briefHeight) }
+        }
         height = total
         updateMounts()
         wake()
@@ -296,6 +302,7 @@ final class ArenaModel {
     }
 
     func setBriefHeight(_ id: String, _ height: CGFloat) {
+        briefHeights[id] = height
         guard let cluster = clusters.first(where: { $0.id == id }) else { return }
         cluster.physics.setBriefHeight(height)
         wake()
