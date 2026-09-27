@@ -15,6 +15,7 @@ test('extractive summary keeps the highest-scoring sentences in order', () => {
   assert.equal(s.indexOf(out[0]) < s.indexOf(out[1]), true);
   assert.deepEqual(ai.splitSentences('One. Two! Three?'), ['One.', 'Two!', 'Three?']);
   assert.deepEqual(ai.toBullets('- a\n• b\nc'), ['a', 'b', 'c']);
+  assert.deepEqual(ai.toBullets('- - a\n• - b\n  -  - c'), ['a', 'b', 'c'], 'a doubled marker goes too');
 });
 
 test('entityTokens is unicode-aware and skips stopwords/lowercase', () => {

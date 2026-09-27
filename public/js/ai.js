@@ -794,7 +794,8 @@ export function providerLabel(provider) {
 export function toBullets(summary, max = 7) {
   let lines = summary
     .split(/\n+/)
-    .map((line) => line.replace(/^\s*[-*•·]\s*/, '').trim())
+    // every leading marker: models sometimes double it ("- - point", "• - point")
+    .map((line) => line.replace(/^(?:\s*[-*•·])+\s*/, '').trim())
     .filter(Boolean);
   if (lines.length === 1) lines = splitSentences(lines[0]);
   return lines.slice(0, max);

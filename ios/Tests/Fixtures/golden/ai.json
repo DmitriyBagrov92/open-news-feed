@@ -337,6 +337,16 @@
    ]
   },
   {
+   "summary": "- - Doubled marker\n• - Mixed markers\n  -  - Spaced out\n- -5% is a figure",
+   "max": 7,
+   "bullets": [
+    "Doubled marker",
+    "Mixed markers",
+    "Spaced out",
+    "5% is a figure"
+   ]
+  },
+  {
    "summary": "",
    "max": 7,
    "bullets": []

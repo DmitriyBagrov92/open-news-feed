@@ -171,6 +171,7 @@ function aiVectors() {
     '- First point\n- Second point\n\n* Third point\n• Fourth',
     'A single paragraph. It has three sentences! Does it split?',
     '1. Numbered stays\n2. As is',
+    '- - Doubled marker\n• - Mixed markers\n  -  - Spaced out\n- -5% is a figure',
     '',
     Array.from({ length: 10 }, (_, i) => `- point ${i + 1}`).join('\n'),
   ];

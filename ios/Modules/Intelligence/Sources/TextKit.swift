@@ -140,15 +140,17 @@ public enum TextKit {
     /// paragraph is split into sentences.
     public static func toBullets(_ summary: String, max: Int = 7) -> [String] {
         var lines = summary.split(separator: "\n", omittingEmptySubsequences: true).map { line -> String in
+            // `/^(?:\s*[-*•·])+\s*/`: every leading marker — the on-device model sometimes doubles
+            // it ("- - point"), and one "- " was left on the brief's lines
             let scalars = Array(line.unicodeScalars)
             var index = 0
-            while index < scalars.count, isJSWhitespace(scalars[index]) { index += 1 }
-            if index < scalars.count, "-*•·".unicodeScalars.contains(scalars[index]) {
-                index += 1
-                while index < scalars.count, isJSWhitespace(scalars[index]) { index += 1 }
-                return jsTrim(String(String.UnicodeScalarView(scalars[index...])))
+            while true {
+                var next = index
+                while next < scalars.count, isJSWhitespace(scalars[next]) { next += 1 }
+                guard next < scalars.count, "-*•·".unicodeScalars.contains(scalars[next]) else { break }
+                index = next + 1
             }
-            return jsTrim(String(line))
+            return jsTrim(String(String.UnicodeScalarView(scalars[index...])))
         }.filter { !$0.isEmpty }
         if lines.count == 1 { lines = splitSentences(lines[0]) }
         return Array(lines.prefix(max))
