@@ -7,9 +7,9 @@ the review notes, the privacy answers, and the risks worth settling first. Engin
 ## Owner checklist (cannot be done from the repo)
 
 1. **Apple Developer Program** membership (paid) — done: team `WK25TS8CXF` (`project.yml`).
-2. **App Store Connect app record**: bundle id `info.meridi.app`, primary language English, SKU of
-   your choice. The name "Meridian" may be taken — have a fallback ("Meridian News", "Meridian —
-   the world by freshness").
+2. **App Store Connect app record** — done: "Meridian: World News" (Apple ID 6816656398), bundle id
+   `info.meridi.app` (registered through the API), SKU `meridian-ios`, English (U.S.). "Meridian"
+   and "Meridian News" were taken; the home screen keeps "Meridian" (`CFBundleDisplayName`).
 3. **App Store Connect API key** — done: a team key with the Admin role (xcodebuild's cloud-managed
    distribution certificate is refused to lower roles). On the release Mac the `.p8` lives in
    `~/.appstoreconnect/private_keys/` and its ids in `~/.appstoreconnect/meridian.env`
@@ -53,6 +53,8 @@ needs no review). The API cannot create an app record: that one is made in App S
 
 ## Metadata (drafts)
 
+- **Name** (≤ 30): `Meridian: World News` (the words of the name are indexed — keep them out of the
+  keywords)
 - **Subtitle** (≤ 30): `The world, sorted by freshness`
 - **Promotional text**: `News from dozens of verified sources, newest first — with a daily brief,
   translation into your language and Bubble Battle: one story, every angle.`
@@ -75,7 +77,7 @@ needs no review). The API cannot create an app record: that one is made in App S
 
   No account, no tracking. Saved stories read offline.
   ```
-- **Keywords** (≤ 100): `news,headlines,breaking,world,brief,translate,bias,left,right,center,aggregator,rss,summary`
+- **Keywords** (≤ 100, 98 used): `headlines,breaking,brief,digest,translate,bias,left,right,center,aggregator,summary,media,politics`
 - **Category**: News. **Support URL** https://meridi.info/support · **Privacy policy**
   https://meridi.info/privacy · **Marketing URL** https://meridi.info
 
