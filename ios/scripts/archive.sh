@@ -37,12 +37,14 @@ AUTH=(-allowProvisioningUpdates -authenticationKeyPath "$ASC_KEY_PATH"
 cd "$IOS"
 xcodegen generate --quiet
 rm -rf "$ARCHIVE" "$EXPORT"
+# Archived unsigned, signed by the export: an automatically signed archive needs a development
+# profile, and that needs a registered device ("Your team has no devices…"); the App Store export
+# signs with the cloud-managed distribution certificate and a store profile, which need none.
 xcodebuild archive -project Meridian.xcodeproj -scheme Meridian -configuration Release \
   -destination 'generic/platform=iOS' -archivePath "$ARCHIVE" \
   -derivedDataPath build/ReleaseData -clonedSourcePackagesDirPath .spm-cache \
   -skipPackagePluginValidation -skipMacroValidation \
-  DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" CODE_SIGN_STYLE=Automatic CURRENT_PROJECT_VERSION="$BUILD" \
-  "${AUTH[@]}" -quiet
+  DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" CURRENT_PROJECT_VERSION="$BUILD" CODE_SIGNING_ALLOWED=NO -quiet
 
 DESTINATION=export
 [ "$UPLOAD" = 1 ] && DESTINATION=upload

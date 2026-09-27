@@ -24,7 +24,10 @@ the review notes, the privacy answers, and the risks worth settling first. Engin
 6. **Decisions** below: full-text reading, age rating, screenshots.
 
 Then: `ios/scripts/archive.sh` — the build lands in TestFlight after processing (internal testing
-needs no review). The API cannot create an app record: that one is made in App Store Connect (Apps ›
+needs no review). Build 112 (1.0) went up on 2026-09-27; TestFlight's internal group "Internal" has
+access to every build and holds the account holder only. The team has no registered devices, so the
+archive is unsigned and the App Store export signs it (cloud-managed Apple Distribution certificate,
+"iOS Team Store" profile). The API cannot create an app record: that one is made in App Store Connect (Apps ›
 + › New App: iOS, bundle id `info.meridi.app` once registered, SKU `meridian-ios`).
 
 ## Decisions to take before review
