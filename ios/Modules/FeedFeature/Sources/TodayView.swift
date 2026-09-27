@@ -1,5 +1,6 @@
 import ArticleKit
 import CoreModels
+import Dependencies
 import DesignSystem
 import Intelligence
 import Networking
@@ -265,6 +266,8 @@ struct CategoryChips: View {
 /// The wire strip: UTC with seconds (a red dot), then Tokyo, Delhi, London, New York, Los Angeles.
 struct WorldClocks: View {
     let compact: Bool
+    /// The app's clock: the time itself, or the instant the UI tests pin (their screenshots agree).
+    @Dependency(\.date) private var clock
 
     private static let zones: [(key: String, zone: String, priority: Bool)] = [
         ("ios.wire.utc", "UTC", true), ("ios.wire.tokyo", "Asia/Tokyo", true), ("ios.wire.delhi", "Asia/Kolkata", false),
@@ -273,7 +276,8 @@ struct WorldClocks: View {
     ]
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { context in
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+            let now = clock.now
             let shown = Self.zones.filter { !compact || $0.priority }
             // the clocks wrap onto more lines with large text rather than shrinking to "U… 1…"
             FlowLayout(spacing: 16, lineSpacing: 6) {
@@ -283,7 +287,7 @@ struct WorldClocks: View {
                             Circle().fill(Tokens.Palette.live).frame(width: 5, height: 5)
                         }
                         Text(L10n.t(zone.key)).captionVoice(.secondary)
-                        Text(Self.time(context.date, zone: zone.zone, seconds: zone.zone == "UTC"))
+                        Text(Self.time(now, zone: zone.zone, seconds: zone.zone == "UTC"))
                             .captionVoice(.primary)
                     }
                     .fixedSize()
@@ -294,7 +298,7 @@ struct WorldClocks: View {
             // assistive technology cannot reach is itself an accessibility failure
             .accessibilityElement(children: .ignore)
             .accessibilityAddTraits(.isStaticText)
-            .accessibilityLabel(shown.map { L10n.t($0.key) + " " + Self.time(context.date, zone: $0.zone, seconds: false) }
+            .accessibilityLabel(shown.map { L10n.t($0.key) + " " + Self.time(now, zone: $0.zone, seconds: false) }
                 .joined(separator: ", "))
             .accessibilityIdentifier("world-clocks")
         }

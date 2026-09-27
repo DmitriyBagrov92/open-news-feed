@@ -16,6 +16,9 @@ scripts/test.sh acceptance        # XCUITest on iPhone 17 + iPad Pro 13" (M5)
 scripts/test.sh                   # all of the above (the gate)
 TEST_RUNNER_PERF=1 xcodebuild test … -only-testing:MeridianUITests/PerformanceTests
                                   # launch + scrolling metrics (outside the gate; see "Performance")
+scripts/screenshots.sh            # review captures on the fixtures (ios/screenshots/, git-ignored)
+scripts/appstore-screenshots.sh   # App Store captures on the newsroom (ios/screenshots/appstore/)
+scripts/archive.sh                # Release archive + App Store Connect upload (ios/AppStore.md)
 ```
 
 Toolchain: the default **Xcode 26.2** (Swift 6.2) building for the iOS 26.4 simulator runtime.
@@ -33,6 +36,10 @@ Generated data (commit the outputs; the gate fails on drift):
 - `node ios/scripts/sync-strings.mjs` — `CoreModels/Resources/Localizable.xcstrings` from the web's
   English table (`public/js/i18n.js`) + `CoreModels/Strings/strings-ios.json` (iOS-only keys).
 - `swift ios/scripts/app-icon.swift <appiconset>` — App Icon from the brand mark (no alpha).
+- `node ios/scripts/newsroom.mjs [--images]` — the App Store newsroom (`Tests/Newsroom`): the
+  fixtures' shape with invented outlets, stories and comments, `ai.json` for the scripted model,
+  `CREDITS.md`; `--images` downloads its public-domain / CC0 photographs into `images/`
+  (git-ignored). Real outlets, people and brands never appear in marketing captures.
 
 ## Modules (dependencies point downward)
 
@@ -87,8 +94,10 @@ otherwise every launch starts clean), `SEED_PREFS` (JSON `Preferences`), `APPEAR
 translator, the fixture server answers "[de] …"), `FAKE_MODEL` (the fake Apple Intelligence: `points`
 answers summaries with "On-device: …" lines, `slow` the same after 1.5 s, `refusal` refuses in prose,
 `error` throws; its forecast shows the web's mock drafts, badge MOCK; unset: no model — no ✦, the
-brief is the local digest, the fixture server's summarize answers 501), `FORCE_NO_AI=1` (no model even
-with `FAKE_MODEL`). `INITIAL_ROUTE=ahead` opens Today's forecast once the feed is in; `yourFeed` opens Your
+brief is the local digest, the fixture server's summarize answers 501; `showcase` answers from the
+newsroom's `ai.json` as "on-device"), `FORCE_NO_AI=1` (no model even with `FAKE_MODEL`). With
+`FIXTURES_DIR` at `Tests/Newsroom` (`LaunchContract.newsroomDirectory()`) photos load from its
+`images/`; the fixtures have none (letter tiles). `INITIAL_ROUTE=ahead` opens Today's forecast once the feed is in; `yourFeed` opens Your
 Feed (the onboarding deck on a fresh profile; seed `{"taste":{"count":5,…}}` for the ranked feed — the
 taste maps encode as `[key, value, …]` arrays); `battle` opens Bubble Battle (the arena on iPad, lanes on
 iPhone; fixture cluster `36fe6a64a99a` "Supreme Court": left The Guardian `b52427f78777` …).
@@ -126,7 +135,16 @@ pid,command | grep <device UDID> | grep Meridian.app/Meridian`) — and compare 
 built in a `git worktree` under the same two-simulator load. A forever-repeating animation that stays
 on after nobody can see it (the brief's `ThinkingBars` under a pushed story) keeps XCUITest from ever
 seeing the app idle: every query waits it out and a phone-only test fails at ~45 s (found in P7) —
-end thinking states that wait off screen.
+end thinking states that wait off screen. UIKit keeps the split view's column state with the
+scene session: a launch after an iPad story pane was left open could keep the pane's width (280 pt)
+as a trailing safe-area inset of the feed — an empty strip on the right, the toolbar short of the edge
+(a race, seen in App Store captures and in about one launch in three to ten).
+`OrphanedInspector.repair` fixes it a quarter of a second after launch; a new launch in a UI test is
+exactly such a relaunch, so iPad captures that follow a story can show it without the repair.
+`simctl status_bar … override --time` takes only UTC with milliseconds (`2026-09-27T06:41:00.000Z`)
+and changes the time, not the iPad's date — scripts/appstore-screenshots.sh therefore generates the
+newsroom as of today's 9:41 (`newsroom.mjs --captured-at … --out build/newsroom`). The world clocks
+read the `date` dependency, so they stand still at FIXED_NOW in UI tests.
 
 ## Accessibility
 

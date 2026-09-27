@@ -1,0 +1,716 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/news?pageSize=100"
+ },
+ "status": 200,
+ "body": {
+  "articles": [
+   {
+    "id": "947fb228292d",
+    "title": "Storm Idris strengthens as it nears the Atlantic coast",
+    "description": "Forecasters expect landfall late on Thursday; ferries are suspended and schools in three counties will close early.",
+    "url": "https://oakmere-chronicle.example/fixture/story-a",
+    "image": "https://images.newsroom.example/storm.jpg",
+    "source": {
+     "id": "oakmere",
+     "name": "Oakmere Chronicle",
+     "homepage": "https://oakmere-chronicle.example",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:56:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 128,
+    "down": 6,
+    "myVote": null
+   },
+   {
+    "id": "5a9f205e1113",
+    "title": "Northern lights could reach as far south as Madrid this weekend",
+    "description": "A burst of solar activity is set to push the aurora unusually far south on Saturday night, space-weather forecasters say.",
+    "url": "https://fieldline.example/fixture/northern-lights-could-reach-as-far-south-as-madrid-this-week",
+    "image": "https://images.newsroom.example/aurora.jpg",
+    "source": {
+     "id": "fieldline",
+     "name": "Fieldline Science",
+     "homepage": "https://fieldline.example",
+     "country": "GB"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-26T11:51:00.000Z",
+    "language": "en",
+    "commentCount": 9,
+    "up": 86,
+    "down": 2,
+    "myVote": null
+   },
+   {
+    "id": "4500d03f882b",
+    "title": "Forty shoebox satellites bring broadband to remote islands",
+    "description": "The network went live this week, linking twelve island communities to fast internet for the first time.",
+    "url": "https://bytewell.example/fixture/forty-shoebox-satellites-bring-broadband-to-remote-islands",
+    "image": "https://images.newsroom.example/dish.jpg",
+    "source": {
+     "id": "bytewell",
+     "name": "Bytewell",
+     "homepage": "https://bytewell.example",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T11:47:00.000Z",
+    "language": "en",
+    "commentCount": 6,
+    "up": 54,
+    "down": 3,
+    "myVote": null
+   },
+   {
+    "id": "263eda213914",
+    "title": "Portwell votes tonight on the Congestion Charge",
+    "description": "Supporters say the £6 daily fee would fund a new tram line; traders warn it will drive shoppers away.",
+    "url": "https://ferrow-gazette.example/fixture/story-b",
+    "image": "https://images.newsroom.example/marina.jpg",
+    "source": {
+     "id": "ferrow",
+     "name": "The Ferrow Gazette",
+     "homepage": "https://ferrow-gazette.example",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:42:00.000Z",
+    "language": "en",
+    "commentCount": 23,
+    "up": 97,
+    "down": 41,
+    "myVote": null
+   },
+   {
+    "id": "c4ab46b75b92",
+    "title": "Sandbar Wind Farm sends its first power to the grid",
+    "description": "Tessary Energy says the 60-turbine project will supply 400,000 homes when it is complete next spring.",
+    "url": "https://ledgerline.example/fixture/sandbar-wind-farm-sends-its-first-power-to-the-grid",
+    "image": "https://images.newsroom.example/wind.jpg",
+    "source": {
+     "id": "ledgerline",
+     "name": "Ledgerline Markets",
+     "homepage": "https://ledgerline.example",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T11:37:00.000Z",
+    "language": "en",
+    "commentCount": 4,
+    "up": 61,
+    "down": 9,
+    "myVote": null
+   },
+   {
+    "id": "32578643ba9d",
+    "title": "Castlemere Athletic reach the cup final with a late comeback",
+    "description": "Two goals in the last eight minutes send the second-tier side to their first final in 40 years.",
+    "url": "https://tallyboard.example/fixture/castlemere-athletic-reach-the-cup-final-with-a-late-comeback",
+    "image": "https://images.newsroom.example/stadium.jpg",
+    "source": {
+     "id": "tallyboard",
+     "name": "Tallyboard Sport",
+     "homepage": "https://tallyboard.example",
+     "country": "GB"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-26T11:33:00.000Z",
+    "language": "en",
+    "commentCount": 31,
+    "up": 143,
+    "down": 12,
+    "myVote": null
+   },
+   {
+    "id": "cb049c21c9eb",
+    "title": "A lost symphony gets its premiere, 90 years late",
+    "description": "The score, found in an attic during a house sale, was performed for the first time by a student orchestra.",
+    "url": "https://velvetaisle.example/fixture/a-lost-symphony-gets-its-premiere-90-years-late",
+    "image": "https://images.newsroom.example/concert.jpg",
+    "source": {
+     "id": "velvet-aisle",
+     "name": "The Velvet Aisle",
+     "homepage": "https://velvetaisle.example",
+     "country": "US"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-26T11:28:00.000Z",
+    "language": "en",
+    "commentCount": 2,
+    "up": 38,
+    "down": 1,
+    "myVote": null
+   },
+   {
+    "id": "26b437592e7c",
+    "title": "Walking 7,000 steps a day may be enough, a large study finds",
+    "description": "Researchers followed 90,000 adults for eight years; the benefits levelled off well below the popular 10,000 target.",
+    "url": "https://remedydesk.example/fixture/walking-7-000-steps-a-day-may-be-enough-a-large-study-finds",
+    "image": "https://images.newsroom.example/forest.jpg",
+    "source": {
+     "id": "remedy-desk",
+     "name": "Remedy Desk",
+     "homepage": "https://remedydesk.example",
+     "country": "GB"
+    },
+    "category": "health",
+    "publishedAt": "2026-09-26T11:24:00.000Z",
+    "language": "en",
+    "commentCount": 11,
+    "up": 72,
+    "down": 5,
+    "myVote": null
+   },
+   {
+    "id": "edf44475029f",
+    "title": "Reef survey finds coral recovering faster than expected",
+    "description": "Divers recorded new growth at two-thirds of the monitored sites after a mild summer.",
+    "url": "https://wattlebay.example/fixture/reef-survey-finds-coral-recovering-faster-than-expected",
+    "image": "https://images.newsroom.example/reef.jpg",
+    "source": {
+     "id": "wattle-bay",
+     "name": "Wattle Bay News",
+     "homepage": "https://wattlebay.example",
+     "country": "AU"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:19:00.000Z",
+    "language": "en",
+    "commentCount": 3,
+    "up": 66,
+    "down": 1,
+    "myVote": null
+   },
+   {
+    "id": "61cb0b01b63e",
+    "title": "Central Bank holds rates and points to a cut next spring",
+    "description": "Policymakers said inflation is cooling but want more evidence; they will meet again in December.",
+    "url": "https://brindlewire.example/fixture/story-c",
+    "image": "https://images.newsroom.example/towers.jpg",
+    "source": {
+     "id": "brindle",
+     "name": "Brindle Wire",
+     "homepage": "https://brindlewire.example",
+     "country": "US"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:13:00.000Z",
+    "language": "en",
+    "commentCount": 8,
+    "up": 29,
+    "down": 14,
+    "myVote": null
+   },
+   {
+    "id": "1bb200c5b5db",
+    "title": "Paris turns another riverside road into a park",
+    "description": "The 1.2-kilometre stretch along the Seine will open to walkers and cyclists in June.",
+    "url": "https://quaineuf.example/fixture/paris-turns-another-riverside-road-into-a-park",
+    "image": "https://images.newsroom.example/seine.jpg",
+    "source": {
+     "id": "quai-neuf",
+     "name": "Quai Neuf",
+     "homepage": "https://quaineuf.example",
+     "country": "FR"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T11:08:00.000Z",
+    "language": "en",
+    "commentCount": 5,
+    "up": 47,
+    "down": 6,
+    "myVote": null
+   },
+   {
+    "id": "a03749174963",
+    "title": "A new chip design cuts data-centre power use by a third",
+    "description": "Engineers moved working memory next to the processor, so far less energy is spent shuttling data back and forth.",
+    "url": "https://bytewell.example/fixture/a-new-chip-design-cuts-data-centre-power-use-by-a-third",
+    "image": "https://images.newsroom.example/chip.jpg",
+    "source": {
+     "id": "bytewell",
+     "name": "Bytewell",
+     "homepage": "https://bytewell.example",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T11:02:00.000Z",
+    "language": "en",
+    "commentCount": 7,
+    "up": 39,
+    "down": 4,
+    "myVote": null
+   },
+   {
+    "id": "7d759cb1b8e7",
+    "title": "Ancient ice core reveals 1.2 million years of climate",
+    "description": "The 2.8-kilometre core, drilled over five summers, extends the continuous record by 400,000 years.",
+    "url": "https://fieldline.example/fixture/ancient-ice-core-reveals-1-2-million-years-of-climate",
+    "image": "https://images.newsroom.example/glacier.jpg",
+    "source": {
+     "id": "fieldline",
+     "name": "Fieldline Science",
+     "homepage": "https://fieldline.example",
+     "country": "GB"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-26T10:56:00.000Z",
+    "language": "en",
+    "commentCount": 4,
+    "up": 58,
+    "down": 2,
+    "myVote": null
+   },
+   {
+    "id": "7d6864e900d9",
+    "title": "Solar-storage plant brings round-the-clock power to northern Kenya",
+    "description": "Batteries store the midday surplus, keeping clinics and schools lit after dark.",
+    "url": "https://nyotadaily.example/fixture/solar-storage-plant-brings-round-the-clock-power-to-northern",
+    "image": "https://images.newsroom.example/solar.jpg",
+    "source": {
+     "id": "nyota",
+     "name": "Nyota Daily",
+     "homepage": "https://nyotadaily.example",
+     "country": "KE"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T10:49:00.000Z",
+    "language": "en",
+    "commentCount": 2,
+    "up": 44,
+    "down": 3,
+    "myVote": null
+   },
+   {
+    "id": "706f524b285a",
+    "title": "Teenage qualifier stuns the top seed in straight sets",
+    "description": "The 17-year-old, ranked 212th in the world, needed just 74 minutes to reach the quarter-finals.",
+    "url": "https://tallyboard.example/fixture/teenage-qualifier-stuns-the-top-seed-in-straight-sets",
+    "image": "https://images.newsroom.example/court.jpg",
+    "source": {
+     "id": "tallyboard",
+     "name": "Tallyboard Sport",
+     "homepage": "https://tallyboard.example",
+     "country": "GB"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-26T10:43:00.000Z",
+    "language": "en",
+    "commentCount": 6,
+    "up": 52,
+    "down": 4,
+    "myVote": null
+   },
+   {
+    "id": "70935ecca162",
+    "title": "Museum reopens its glass-roofed hall after a five-year restoration",
+    "description": "More than 300 works return to the walls, including a gallery of sculpture unseen since 2019.",
+    "url": "https://velvetaisle.example/fixture/museum-reopens-its-glass-roofed-hall-after-a-five-year-resto",
+    "image": "https://images.newsroom.example/museum.jpg",
+    "source": {
+     "id": "velvet-aisle",
+     "name": "The Velvet Aisle",
+     "homepage": "https://velvetaisle.example",
+     "country": "US"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-26T10:36:00.000Z",
+    "language": "en",
+    "commentCount": 1,
+    "up": 31,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "2011ac689574",
+    "title": "Tokyo commuters face the first fare rise in a decade",
+    "description": "Rail operators say the 10-yen increase will pay for platform doors at 40 more stations.",
+    "url": "https://minatoledger.example/fixture/tokyo-commuters-face-the-first-fare-rise-in-a-decade",
+    "image": "https://images.newsroom.example/platform.jpg",
+    "source": {
+     "id": "minato",
+     "name": "Minato Ledger",
+     "homepage": "https://minatoledger.example",
+     "country": "JP"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T10:30:00.000Z",
+    "language": "en",
+    "commentCount": 12,
+    "up": 23,
+    "down": 17,
+    "myVote": null
+   },
+   {
+    "id": "b609adb32b35",
+    "title": "Coffee prices ease as the harvest outlook improves",
+    "description": "Futures fell 6% this week after rain returned to the main growing regions.",
+    "url": "https://ledgerline.example/fixture/coffee-prices-ease-as-the-harvest-outlook-improves",
+    "image": "https://images.newsroom.example/coffee.jpg",
+    "source": {
+     "id": "ledgerline",
+     "name": "Ledgerline Markets",
+     "homepage": "https://ledgerline.example",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T10:23:00.000Z",
+    "language": "en",
+    "commentCount": 1,
+    "up": 19,
+    "down": 2,
+    "myVote": null
+   },
+   {
+    "id": "86293fb1bbbc",
+    "title": "Hospitals trial AI note-takers to cut doctors’ paperwork",
+    "description": "Early results suggest clinicians save an hour a day; patients are asked for consent before each visit.",
+    "url": "https://remedydesk.example/fixture/hospitals-trial-ai-note-takers-to-cut-doctors-paperwork",
+    "image": null,
+    "source": {
+     "id": "remedy-desk",
+     "name": "Remedy Desk",
+     "homepage": "https://remedydesk.example",
+     "country": "GB"
+    },
+    "category": "health",
+    "publishedAt": "2026-09-26T10:16:00.000Z",
+    "language": "en",
+    "commentCount": 9,
+    "up": 34,
+    "down": 11,
+    "myVote": null
+   },
+   {
+    "id": "49243959c938",
+    "title": "Humpback whales return to a bay they left a century ago",
+    "description": "Researchers counted 37 whales feeding in the bay this summer, the most since records began.",
+    "url": "https://fieldline.example/fixture/humpback-whales-return-to-a-bay-they-left-a-century-ago",
+    "image": "https://images.newsroom.example/whale.jpg",
+    "source": {
+     "id": "fieldline",
+     "name": "Fieldline Science",
+     "homepage": "https://fieldline.example",
+     "country": "GB"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-26T10:09:00.000Z",
+    "language": "en",
+    "commentCount": 5,
+    "up": 91,
+    "down": 1,
+    "myVote": null
+   },
+   {
+    "id": "5b1338f8ca6b",
+    "title": "The quiet return of the small web",
+    "description": "Personal sites, hand-written newsletters and feed readers are finding a new audience.",
+    "url": "https://bytewell.example/fixture/the-quiet-return-of-the-small-web",
+    "image": null,
+    "source": {
+     "id": "bytewell",
+     "name": "Bytewell",
+     "homepage": "https://bytewell.example",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T10:02:00.000Z",
+    "language": "en",
+    "commentCount": 4,
+    "up": 27,
+    "down": 3,
+    "myVote": null
+   },
+   {
+    "id": "a62fa9b0161d",
+    "title": "Night trains return to three European routes",
+    "description": "Sleeper services will link Paris, Vienna and Copenhagen again from December.",
+    "url": "https://quaineuf.example/fixture/night-trains-return-to-three-european-routes",
+    "image": "https://images.newsroom.example/station.jpg",
+    "source": {
+     "id": "quai-neuf",
+     "name": "Quai Neuf",
+     "homepage": "https://quaineuf.example",
+     "country": "FR"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T09:54:00.000Z",
+    "language": "en",
+    "commentCount": 8,
+    "up": 64,
+    "down": 2,
+    "myVote": null
+   },
+   {
+    "id": "9ec81ffdb298",
+    "title": "The 50 best albums of the year so far",
+    "description": "From bedroom pop to a 70-minute jazz suite, the records we keep coming back to.",
+    "url": "https://velvetaisle.example/fixture/the-50-best-albums-of-the-year-so-far",
+    "image": "https://images.newsroom.example/vinyl.jpg",
+    "source": {
+     "id": "velvet-aisle",
+     "name": "The Velvet Aisle",
+     "homepage": "https://velvetaisle.example",
+     "country": "US"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-26T09:46:00.000Z",
+    "language": "en",
+    "commentCount": 14,
+    "up": 45,
+    "down": 6,
+    "myVote": null
+   },
+   {
+    "id": "b914199c55d3",
+    "title": "Record crowds line the harbour for the regatta finale",
+    "description": "Light winds made for a tactical last race, decided by four seconds.",
+    "url": "https://tallyboard.example/fixture/record-crowds-line-the-harbour-for-the-regatta-finale",
+    "image": "https://images.newsroom.example/sailboat.jpg",
+    "source": {
+     "id": "tallyboard",
+     "name": "Tallyboard Sport",
+     "homepage": "https://tallyboard.example",
+     "country": "GB"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-26T09:38:00.000Z",
+    "language": "en",
+    "commentCount": 1,
+    "up": 22,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "8e3334bef585",
+    "title": "Farmers expect a bumper wheat harvest after a mild spring",
+    "description": "Yields are forecast 8% above the five-year average, which should keep bread prices in check.",
+    "url": "https://ledgerline.example/fixture/farmers-expect-a-bumper-wheat-harvest-after-a-mild-spring",
+    "image": "https://images.newsroom.example/wheat.jpg",
+    "source": {
+     "id": "ledgerline",
+     "name": "Ledgerline Markets",
+     "homepage": "https://ledgerline.example",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T09:30:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 18,
+    "down": 1,
+    "myVote": null
+   },
+   {
+    "id": "2d75d6da85f8",
+    "title": "Why sleep before a test beats cramming",
+    "description": "A night’s rest helps the brain file new memories, a review of 40 studies concludes.",
+    "url": "https://remedydesk.example/fixture/why-sleep-before-a-test-beats-cramming",
+    "image": null,
+    "source": {
+     "id": "remedy-desk",
+     "name": "Remedy Desk",
+     "homepage": "https://remedydesk.example",
+     "country": "GB"
+    },
+    "category": "health",
+    "publishedAt": "2026-09-26T09:21:00.000Z",
+    "language": "en",
+    "commentCount": 6,
+    "up": 49,
+    "down": 3,
+    "myVote": null
+   },
+   {
+    "id": "acb8d1ece17b",
+    "title": "Singapore tightens rules on e-scooter batteries",
+    "description": "From January, only certified packs may be charged inside apartment blocks.",
+    "url": "https://pacificlantern.example/fixture/singapore-tightens-rules-on-e-scooter-batteries",
+    "image": null,
+    "source": {
+     "id": "pacific-lantern",
+     "name": "Pacific Lantern",
+     "homepage": "https://pacificlantern.example",
+     "country": "SG"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T09:12:00.000Z",
+    "language": "en",
+    "commentCount": 3,
+    "up": 15,
+    "down": 2,
+    "myVote": null
+   },
+   {
+    "id": "aa43788fbe0f",
+    "title": "A rare comet is visible to the naked eye this week",
+    "description": "Look low in the west just after sunset; binoculars will show its twin tails.",
+    "url": "https://fieldline.example/fixture/a-rare-comet-is-visible-to-the-naked-eye-this-week",
+    "image": "https://images.newsroom.example/comet.jpg",
+    "source": {
+     "id": "fieldline",
+     "name": "Fieldline Science",
+     "homepage": "https://fieldline.example",
+     "country": "GB"
+    },
+    "category": "science",
+    "publishedAt": "2026-09-26T09:03:00.000Z",
+    "language": "en",
+    "commentCount": 10,
+    "up": 77,
+    "down": 1,
+    "myVote": null
+   },
+   {
+    "id": "7d5905db6ff0",
+    "title": "Review: the first foldable phone that survives a pocket",
+    "description": "A tougher hinge and a screen without a crease, at last — but the battery still needs work.",
+    "url": "https://bytewell.example/fixture/review-the-first-foldable-phone-that-survives-a-pocket",
+    "image": null,
+    "source": {
+     "id": "bytewell",
+     "name": "Bytewell",
+     "homepage": "https://bytewell.example",
+     "country": "US"
+    },
+    "category": "technology",
+    "publishedAt": "2026-09-26T08:54:00.000Z",
+    "language": "en",
+    "commentCount": 12,
+    "up": 33,
+    "down": 8,
+    "myVote": null
+   },
+   {
+    "id": "e1a2ac8ea33b",
+    "title": "Flu season arrives early; vaccines are now at pharmacies",
+    "description": "Doctors urge over-65s and people with asthma to book a jab before November.",
+    "url": "https://remedydesk.example/fixture/flu-season-arrives-early-vaccines-are-now-at-pharmacies",
+    "image": null,
+    "source": {
+     "id": "remedy-desk",
+     "name": "Remedy Desk",
+     "homepage": "https://remedydesk.example",
+     "country": "GB"
+    },
+    "category": "health",
+    "publishedAt": "2026-09-26T08:44:00.000Z",
+    "language": "en",
+    "commentCount": 2,
+    "up": 12,
+    "down": 1,
+    "myVote": null
+   },
+   {
+    "id": "fadc5f39717b",
+    "title": "The mountain stage that decided the tour",
+    "description": "Twenty-one hairpins, a headwind and a 40-second attack in the final kilometre.",
+    "url": "https://tallyboard.example/fixture/the-mountain-stage-that-decided-the-tour",
+    "image": "https://images.newsroom.example/switchbacks.jpg",
+    "source": {
+     "id": "tallyboard",
+     "name": "Tallyboard Sport",
+     "homepage": "https://tallyboard.example",
+     "country": "GB"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-26T08:34:00.000Z",
+    "language": "en",
+    "commentCount": 7,
+    "up": 38,
+    "down": 2,
+    "myVote": null
+   },
+   {
+    "id": "1931978e007c",
+    "title": "Bond markets brace for heavy autumn issuance",
+    "description": "Governments plan to borrow a record amount before the year ends.",
+    "url": "https://ledgerline.example/fixture/bond-markets-brace-for-heavy-autumn-issuance",
+    "image": null,
+    "source": {
+     "id": "ledgerline",
+     "name": "Ledgerline Markets",
+     "homepage": "https://ledgerline.example",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T08:24:00.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 9,
+    "down": 2,
+    "myVote": null
+   },
+   {
+    "id": "de55efc243ac",
+    "title": "Review: a Hamlet that runs on batteries",
+    "description": "A staging lit only by hand-held lamps turns the old play into a ghost story.",
+    "url": "https://velvetaisle.example/fixture/review-a-hamlet-that-runs-on-batteries",
+    "image": null,
+    "source": {
+     "id": "velvet-aisle",
+     "name": "The Velvet Aisle",
+     "homepage": "https://velvetaisle.example",
+     "country": "US"
+    },
+    "category": "culture",
+    "publishedAt": "2026-09-26T08:14:00.000Z",
+    "language": "en",
+    "commentCount": 3,
+    "up": 26,
+    "down": 4,
+    "myVote": null
+   },
+   {
+    "id": "9321700c3d8e",
+    "title": "Lisbon adds night buses as the tourist season stretches into autumn",
+    "description": "Six new routes will run until 4am through the end of November.",
+    "url": "https://oakmere-chronicle.example/fixture/lisbon-adds-night-buses-as-the-tourist-season-stretches-into",
+    "image": null,
+    "source": {
+     "id": "oakmere",
+     "name": "Oakmere Chronicle",
+     "homepage": "https://oakmere-chronicle.example",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T08:04:00.000Z",
+    "language": "en",
+    "commentCount": 2,
+    "up": 14,
+    "down": 1,
+    "myVote": null
+   },
+   {
+    "id": "c336386b8088",
+    "title": "Monsoon withdrawal delayed by a week, forecasters say",
+    "description": "Late rains helped reservoirs, but farmers are waiting to sow winter crops.",
+    "url": "https://pacificlantern.example/fixture/monsoon-withdrawal-delayed-by-a-week-forecasters-say",
+    "image": null,
+    "source": {
+     "id": "pacific-lantern",
+     "name": "Pacific Lantern",
+     "homepage": "https://pacificlantern.example",
+     "country": "SG"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T07:53:00.000Z",
+    "language": "en",
+    "commentCount": 1,
+    "up": 11,
+    "down": 0,
+    "myVote": null
+   }
+  ],
+  "total": 35,
+  "page": 1,
+  "pageSize": 100,
+  "updatedAt": "2026-09-26T12:00:00.000Z",
+  "latestId": "947fb228292d"
+ }
+}

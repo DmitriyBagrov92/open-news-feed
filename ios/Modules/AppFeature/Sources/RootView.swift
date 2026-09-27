@@ -207,6 +207,12 @@ public struct RootView: View {
                 model.states.syncSaved()
             }
             .task { await openInitialStory() }
+            .task {
+                // a story pane's column restored by UIKit without its story (see OrphanedInspector)
+                try? await Task.sleep(for: .milliseconds(250))
+                guard horizontalSizeClass == .regular, router.panes.isEmpty else { return }
+                await OrphanedInspector.repair { router.panes.isEmpty }
+            }
             .task { await openInitialForecast() }
             .task { if opensSettings { showsSettings = true } }
             .preferredColorScheme(appearance ?? preferences.value.theme.colorScheme)

@@ -1,0 +1,72 @@
+{
+ "respond": [
+  {
+   "match": "titled \"Storm Idris strengthens",
+   "answer": "- Storm Idris is expected to make landfall late on Thursday, with gusts of up to 90 mph and a surge of up to two metres.\n- Every ferry crossing is suspended and schools in three counties close at noon.\n- Winds should peak between midnight and 3am; coastal roads close from 8pm.\n- Sandbags are available at three depots, and volunteers will staff a helpline overnight.\n- The first damage assessments are due by Friday afternoon."
+  },
+  {
+   "match": "titled \"Portwell votes tonight",
+   "answer": "- Portwell’s council votes at 7pm on a £6 daily charge for the harbour district.\n- The fee would raise about £14 million a year for a tram line and cheaper buses.\n- Traders have gathered 8,000 signatures against it.\n- 23 of 48 councillors back the charge and 21 oppose it."
+  },
+  {
+   "match": "You write a news brief from independent news headlines",
+   "answer": "- Storm Idris is due to make landfall late on Thursday; ferries are suspended and schools will close early.\n- The northern lights could be seen as far south as Madrid on Saturday night.\n- Portwell’s council votes tonight on a £6 Congestion Charge for the harbour district.\n- The Sandbar Wind Farm has sent its first power to the grid, ahead of schedule.\n- The Central Bank held rates and pointed to a cut next spring.\n- Castlemere Athletic reached their first cup final in 40 years."
+  }
+ ],
+ "forecast": [
+  {
+   "headline": "Portwell council approves the Congestion Charge in a close vote",
+   "why": "Supporters say the £6 daily fee would pay for a new tram line, and the vote is tonight.",
+   "timeframe": "24h",
+   "confidence": "medium",
+   "basis": [
+    "Portwell votes tonight"
+   ]
+  },
+  {
+   "headline": "Ferries stay in port until Saturday as Storm Idris makes landfall",
+   "why": "Forecasters expect landfall late on Thursday, and every crossing is already suspended.",
+   "timeframe": "48h",
+   "confidence": "medium",
+   "basis": [
+    "Storm Idris"
+   ]
+  },
+  {
+   "headline": "Aurora seen from Madrid and Lisbon on Saturday night",
+   "why": "A burst of solar activity is set to push the aurora unusually far south this weekend.",
+   "timeframe": "3d",
+   "confidence": "low",
+   "basis": [
+    "Northern lights"
+   ]
+  },
+  {
+   "headline": "Castlemere Athletic sell out their cup final allocation within a day",
+   "why": "It is the club’s first final in 40 years, reached with two goals in the last eight minutes.",
+   "timeframe": "3d",
+   "confidence": "low",
+   "basis": [
+    "Castlemere"
+   ]
+  },
+  {
+   "headline": "Tessary Energy signs a deal for a second offshore wind farm",
+   "why": "Its first 60-turbine project is already sending power to the grid ahead of schedule.",
+   "timeframe": "7d",
+   "confidence": "low",
+   "basis": [
+    "Sandbar Wind Farm sends"
+   ]
+  },
+  {
+   "headline": "Central Bank minutes show two members voted for a cut",
+   "why": "Policymakers held rates but pointed to a cut next spring, and they meet again in December.",
+   "timeframe": "7d",
+   "confidence": "low",
+   "basis": [
+    "Central Bank holds rates"
+   ]
+  }
+ ]
+}

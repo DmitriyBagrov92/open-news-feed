@@ -1,0 +1,371 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/battles"
+ },
+ "status": 200,
+ "body": {
+  "battles": [
+   {
+    "id": "d692b918df41",
+    "topic": [
+     "Congestion Charge",
+     "Congestion",
+     "Charge"
+    ],
+    "leans": {
+     "left": 2,
+     "center": 2,
+     "right": 2
+    },
+    "articles": [
+     {
+      "id": "263eda213914",
+      "title": "Portwell votes tonight on the Congestion Charge",
+      "description": "Supporters say the £6 daily fee would fund a new tram line; traders warn it will drive shoppers away.",
+      "url": "https://ferrow-gazette.example/fixture/story-b",
+      "image": "https://images.newsroom.example/marina.jpg",
+      "source": {
+       "id": "ferrow",
+       "name": "The Ferrow Gazette",
+       "homepage": "https://ferrow-gazette.example",
+       "country": "GB"
+      },
+      "category": "world",
+      "publishedAt": "2026-09-26T11:42:00.000Z",
+      "language": "en",
+      "commentCount": 23,
+      "up": 97,
+      "down": 41,
+      "myVote": null,
+      "lean": "left"
+     },
+     {
+      "id": "e514b6f288c0",
+      "title": "Campaigners welcome a Congestion Charge that puts Portwell’s buses first",
+      "description": "Cleaner air and a new tram line are worth a £6 fee, they argue.",
+      "url": "https://quillon.example/fixture/campaigners-welcome-a-congestion-charge-that-puts-portwell-s",
+      "image": null,
+      "source": {
+       "id": "quillon",
+       "name": "The Quillon Report",
+       "homepage": "https://quillon.example",
+       "country": "US"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:35:00.000Z",
+      "language": "en",
+      "lean": "left"
+     },
+     {
+      "id": "eb51cd40caf3",
+      "title": "Congestion Charge: what the £6 fee would cost Portwell, and what it would fund",
+      "description": "Drivers, traders and bus users on what changes if tonight’s vote passes.",
+      "url": "https://oakmere-chronicle.example/fixture/congestion-charge-what-the-6-fee-would-cost-portwell-and-wha",
+      "image": null,
+      "source": {
+       "id": "oakmere",
+       "name": "Oakmere Chronicle",
+       "homepage": "https://oakmere-chronicle.example",
+       "country": "GB"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:30:00.000Z",
+      "language": "en",
+      "lean": "center"
+     },
+     {
+      "id": "7c40769aecc0",
+      "title": "Traders slam the Congestion Charge as a tax on the high street",
+      "description": "Shop owners say the fee will empty the town centre.",
+      "url": "https://callowaypost.example/fixture/traders-slam-the-congestion-charge-as-a-tax-on-the-high-stre",
+      "image": null,
+      "source": {
+       "id": "calloway",
+       "name": "Calloway Post",
+       "homepage": "https://callowaypost.example",
+       "country": "US"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:32:00.000Z",
+      "language": "en",
+      "lean": "right"
+     },
+     {
+      "id": "283a3b7a6ebd",
+      "title": "Council set for a tight vote on the Congestion Charge",
+      "description": "Councillors are split almost evenly ahead of tonight’s meeting.",
+      "url": "https://brindlewire.example/fixture/council-set-for-a-tight-vote-on-the-congestion-charge",
+      "image": null,
+      "source": {
+       "id": "brindle",
+       "name": "Brindle Wire",
+       "homepage": "https://brindlewire.example",
+       "country": "US"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:25:00.000Z",
+      "language": "en",
+      "lean": "center"
+     },
+     {
+      "id": "16a391710804",
+      "title": "Drivers fear a new daily fee as the Congestion Charge vote looms",
+      "description": "Commuters say buses cannot replace the car for night shifts.",
+      "url": "https://ambervale.example/fixture/drivers-fear-a-new-daily-fee-as-the-congestion-charge-vote-l",
+      "image": null,
+      "source": {
+       "id": "ambervale",
+       "name": "Ambervale Courier",
+       "homepage": "https://ambervale.example",
+       "country": "US"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:20:00.000Z",
+      "language": "en",
+      "lean": "right"
+     }
+    ]
+   },
+   {
+    "id": "379906130f26",
+    "topic": [
+     "Central Bank",
+     "Central",
+     "Bank"
+    ],
+    "leans": {
+     "left": 2,
+     "center": 2,
+     "right": 2
+    },
+    "articles": [
+     {
+      "id": "61cb0b01b63e",
+      "title": "Central Bank holds rates and points to a cut next spring",
+      "description": "Policymakers said inflation is cooling but want more evidence; they will meet again in December.",
+      "url": "https://brindlewire.example/fixture/story-c",
+      "image": "https://images.newsroom.example/towers.jpg",
+      "source": {
+       "id": "brindle",
+       "name": "Brindle Wire",
+       "homepage": "https://brindlewire.example",
+       "country": "US"
+      },
+      "category": "world",
+      "publishedAt": "2026-09-26T11:13:00.000Z",
+      "language": "en",
+      "commentCount": 8,
+      "up": 29,
+      "down": 14,
+      "myVote": null,
+      "lean": "center"
+     },
+     {
+      "id": "5ca3d970a94b",
+      "title": "Central Bank fails renters again as rates stay high",
+      "description": "Tenants and first-time buyers are paying for the bank’s caution, critics say.",
+      "url": "https://quillon.example/fixture/central-bank-fails-renters-again-as-rates-stay-high",
+      "image": null,
+      "source": {
+       "id": "quillon",
+       "name": "The Quillon Report",
+       "homepage": "https://quillon.example",
+       "country": "US"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:05:00.000Z",
+      "language": "en",
+      "lean": "left"
+     },
+     {
+      "id": "a4546ec1c2fa",
+      "title": "Savers cheer as the Central Bank holds firm on rates",
+      "description": "Easy-access accounts keep paying above inflation for another quarter.",
+      "url": "https://callowaypost.example/fixture/savers-cheer-as-the-central-bank-holds-firm-on-rates",
+      "image": null,
+      "source": {
+       "id": "calloway",
+       "name": "Calloway Post",
+       "homepage": "https://callowaypost.example",
+       "country": "US"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:08:00.000Z",
+      "language": "en",
+      "lean": "right"
+     },
+     {
+      "id": "e25eb30813b5",
+      "title": "Central Bank leaves interest rates at 4.25% for a third meeting",
+      "description": "The decision was unanimous; the next meeting is in December.",
+      "url": "https://oakmere-chronicle.example/fixture/central-bank-leaves-interest-rates-at-4-25-for-a-third-meeti",
+      "image": null,
+      "source": {
+       "id": "oakmere",
+       "name": "Oakmere Chronicle",
+       "homepage": "https://oakmere-chronicle.example",
+       "country": "GB"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:10:00.000Z",
+      "language": "en",
+      "lean": "center"
+     },
+     {
+      "id": "360c2dfbbb6b",
+      "title": "First-time buyers priced out as the Central Bank holds rates",
+      "description": "Mortgage costs remain near a 15-year high.",
+      "url": "https://ferrow-gazette.example/fixture/first-time-buyers-priced-out-as-the-central-bank-holds-rates",
+      "image": null,
+      "source": {
+       "id": "ferrow",
+       "name": "The Ferrow Gazette",
+       "homepage": "https://ferrow-gazette.example",
+       "country": "GB"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:00:00.000Z",
+      "language": "en",
+      "lean": "left"
+     },
+     {
+      "id": "16223e105b66",
+      "title": "Central Bank backs savers with a third hold on rates",
+      "description": "Policymakers point to government borrowing as the reason inflation lingers.",
+      "url": "https://ambervale.example/fixture/central-bank-backs-savers-with-a-third-hold-on-rates",
+      "image": null,
+      "source": {
+       "id": "ambervale",
+       "name": "Ambervale Courier",
+       "homepage": "https://ambervale.example",
+       "country": "US"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T10:55:00.000Z",
+      "language": "en",
+      "lean": "right"
+     }
+    ]
+   },
+   {
+    "id": "3da2c4a42a38",
+    "topic": [
+     "Sandbar Wind Farm",
+     "Sandbar",
+     "Wind"
+    ],
+    "leans": {
+     "left": 2,
+     "center": 2,
+     "right": 2
+    },
+    "articles": [
+     {
+      "id": "179b02ae8a3d",
+      "title": "Sandbar Wind Farm sends first power ahead of schedule",
+      "description": "Tessary Energy’s 60 turbines will be fully running by spring.",
+      "url": "https://oakmere-chronicle.example/fixture/sandbar-wind-farm-sends-first-power-ahead-of-schedule",
+      "image": null,
+      "source": {
+       "id": "oakmere",
+       "name": "Oakmere Chronicle",
+       "homepage": "https://oakmere-chronicle.example",
+       "country": "GB"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:34:00.000Z",
+      "language": "en",
+      "lean": "center"
+     },
+     {
+      "id": "d9f7eca223ca",
+      "title": "Sandbar Wind Farm is a triumph for clean power",
+      "description": "Cheaper than gas and built in under three years.",
+      "url": "https://quillon.example/fixture/sandbar-wind-farm-is-a-triumph-for-clean-power",
+      "image": null,
+      "source": {
+       "id": "quillon",
+       "name": "The Quillon Report",
+       "homepage": "https://quillon.example",
+       "country": "US"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:27:00.000Z",
+      "language": "en",
+      "lean": "left"
+     },
+     {
+      "id": "de8c82609d25",
+      "title": "Critics warn Sandbar Wind Farm subsidies will add £40 a year to bills",
+      "description": "Bill payers are carrying the cost of the green push, they say.",
+      "url": "https://callowaypost.example/fixture/critics-warn-sandbar-wind-farm-subsidies-will-add-40-a-year-",
+      "image": null,
+      "source": {
+       "id": "calloway",
+       "name": "Calloway Post",
+       "homepage": "https://callowaypost.example",
+       "country": "US"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:22:00.000Z",
+      "language": "en",
+      "lean": "right"
+     },
+     {
+      "id": "ef3a35d928af",
+      "title": "Fishermen accuse Sandbar Wind Farm of closing their grounds",
+      "description": "Trawler crews want compensation for the waters they have lost.",
+      "url": "https://ambervale.example/fixture/fishermen-accuse-sandbar-wind-farm-of-closing-their-grounds",
+      "image": null,
+      "source": {
+       "id": "ambervale",
+       "name": "Ambervale Courier",
+       "homepage": "https://ambervale.example",
+       "country": "US"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:17:00.000Z",
+      "language": "en",
+      "lean": "right"
+     },
+     {
+      "id": "ab528d210ce9",
+      "title": "Sandbar Wind Farm opening shows what green investment can do",
+      "description": "The project employed 1,200 people in a town that lost its shipyard.",
+      "url": "https://ferrow-gazette.example/fixture/sandbar-wind-farm-opening-shows-what-green-investment-can-do",
+      "image": null,
+      "source": {
+       "id": "ferrow",
+       "name": "The Ferrow Gazette",
+       "homepage": "https://ferrow-gazette.example",
+       "country": "GB"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:15:00.000Z",
+      "language": "en",
+      "lean": "left"
+     },
+     {
+      "id": "9e87fba21075",
+      "title": "Sandbar Wind Farm on track as turbine costs fall",
+      "description": "Developers say prices have dropped 20% since the project was approved.",
+      "url": "https://brindlewire.example/fixture/sandbar-wind-farm-on-track-as-turbine-costs-fall",
+      "image": null,
+      "source": {
+       "id": "brindle",
+       "name": "Brindle Wire",
+       "homepage": "https://brindlewire.example",
+       "country": "US"
+      },
+      "category": "battle",
+      "publishedAt": "2026-09-26T11:12:00.000Z",
+      "language": "en",
+      "lean": "center"
+     }
+    ]
+   }
+  ],
+  "updatedAt": "2026-09-26T12:00:00.000Z"
+ }
+}

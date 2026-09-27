@@ -46,6 +46,26 @@ final class StoryAcceptanceTests: AcceptanceTestCase {
         XCTAssertTrue(text(app, "Full text unavailable — read at source.").exists)
     }
 
+    /// UIKit restores the pane's column with the window, SwiftUI starts with the pane closed: a
+    /// launch after a pane left open could keep its width as an empty strip on the right (the
+    /// toolbar and the feed ended short of it) until OrphanedInspector repaired it. It is a race —
+    /// without the repair it struck in one round of nine here (five of twelve on the App Store
+    /// newsroom), so this guard is loose: a red run is the bug; a green one proves little alone.
+    func testAPaneLeftOpenLeavesNoEmptyStripAtTheNextLaunch() throws {
+        try XCTSkipUnless(isPad, "iPad only")
+        XCUIDevice.shared.orientation = .landscapeLeft
+        defer { XCUIDevice.shared.orientation = .portrait }
+        for round in 1...3 {
+            openStory(hero)
+            let app = launch()
+            let gear = app.buttons["settings-open"]
+            XCTAssertTrue(gear.waitForExistence(timeout: 10))
+            Thread.sleep(forTimeInterval: 1.5) // the repair runs a quarter of a second after the launch
+            XCTAssertGreaterThan(gear.frame.maxX, app.windows.firstMatch.frame.width - 60,
+                                 "round \(round): the toolbar reaches the window's edge")
+        }
+    }
+
     func testSwipingWalksTheFeed() throws {
         try XCTSkipIf(isPad, "the pane walks with its arrows")
         let app = openStory(hero)

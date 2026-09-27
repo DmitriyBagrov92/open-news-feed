@@ -8,7 +8,8 @@ public enum LaunchContract {
     public static let uiTestMode = "-UITestMode"
 
     public enum Env {
-        /// Absolute host path of ios/Tests/Fixtures (the simulator reads the Mac's filesystem).
+        /// Absolute host path of ios/Tests/Fixtures (the simulator reads the Mac's filesystem), or
+        /// of ios/Tests/Newsroom — the App Store newsroom, whose `images/` the photos load from.
         public static let fixturesDir = "FIXTURES_DIR"
         /// Where the app starts: `today`, `yourFeed`, `battle`, `saved`, `search`, `settings`,
         /// `story/<articleID>`, `ahead` (the forecast).
@@ -19,7 +20,8 @@ public enum LaunchContract {
         public static let appearance = "APPEARANCE"
         /// JSON `Preferences` seeded before launch.
         public static let seedPrefs = "SEED_PREFS"
-        /// Behaviour of the fake on-device model: `points`, `refusal`, `error`, `slow`.
+        /// Behaviour of the fake on-device model: `points`, `refusal`, `error`, `slow`, or
+        /// `showcase` — the newsroom's scripted answers (`ai.json` next to its `api/`).
         public static let fakeModel = "FAKE_MODEL"
         /// `1` — behave like a device without Apple Intelligence.
         public static let forceNoAI = "FORCE_NO_AI"
@@ -41,5 +43,11 @@ public enum LaunchContract {
     public static func fixturesDirectory() -> String {
         URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .appendingPathComponent("Fixtures").path
+    }
+
+    /// ios/Tests/Newsroom: the fictional newsroom of the App Store screenshots (scripts/newsroom.mjs).
+    public static func newsroomDirectory() -> String {
+        URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Newsroom").path
     }
 }

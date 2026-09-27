@@ -36,3 +36,5 @@ DerivedData/
 ios/.build/
 ios/.spm-cache/
 ios/screenshots/
+# the App Store newsroom's photographs — fetched by ios/scripts/newsroom.mjs --images
+ios/Tests/Newsroom/images/

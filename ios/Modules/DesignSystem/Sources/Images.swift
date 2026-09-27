@@ -61,7 +61,8 @@ public actor ImagePipeline {
         return result
     }
 
-    static func decode(_ data: Data, maxPixelSize: CGFloat) -> LoadedImage? {
+    /// Decodes straight to `maxPixelSize` on the long side (ImageIO thumbnailing, EXIF orientation applied).
+    public static func decode(_ data: Data, maxPixelSize: CGFloat) -> LoadedImage? {
         guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary) else { return nil }
         let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
         let width = properties?[kCGImagePropertyPixelWidth] as? Int ?? 0

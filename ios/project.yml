@@ -210,6 +210,8 @@ targets:
       properties:
         CFBundleDisplayName: Meridian
         CFBundleDevelopmentRegion: en
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)   # scripts/archive.sh sets it to the commit count
         LSApplicationCategoryType: public.app-category.news
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen:

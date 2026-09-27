@@ -1,0 +1,82 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/comments?article=947fb228292d&sort=new",
+  "author": "amber"
+ },
+ "status": 200,
+ "body": {
+  "comments": [
+   {
+    "id": "cc00000000000004",
+    "name": "Velvet Comet",
+    "avatar": {
+     "hue": 205,
+     "glyph": 7
+    },
+    "authorKey": "7c2d91e0b4a36f18",
+    "body": "Good that the schools close at noon this time. Last storm, pickup at three was chaos.",
+    "createdAt": "2026-09-26T11:59:40.000Z",
+    "up": 7,
+    "down": 0,
+    "myVote": null,
+    "mine": false
+   },
+   {
+    "id": "cc00000000000002",
+    "name": "Lunar Tundra",
+    "avatar": {
+     "hue": 63,
+     "glyph": 1
+    },
+    "authorKey": "91813fec63b9fcfa",
+    "body": "Anyone on the coast: stay safe tonight. The ferry office says refunds are automatic.",
+    "createdAt": "2026-09-26T11:58:55.000Z",
+    "up": 12,
+    "down": 0,
+    "myVote": 1,
+    "mine": false
+   },
+   {
+    "id": "cc00000000000003",
+    "name": "Mellow Finch",
+    "avatar": {
+     "hue": 18,
+     "glyph": 14
+    },
+    "authorKey": "09da35b6e04145be",
+    "body": "Landfall forecasts have been drifting north all week. Worth checking again in the morning.",
+    "createdAt": "2026-09-26T11:58:10.000Z",
+    "up": 3,
+    "down": 1,
+    "myVote": null,
+    "mine": false
+   },
+   {
+    "id": "cc00000000000001",
+    "name": "Solar Jetty",
+    "avatar": {
+     "hue": 286,
+     "glyph": 0
+    },
+    "authorKey": "4f84573aeaa507b3",
+    "body": "The ferry closures came early this time — sensible.",
+    "createdAt": "2026-09-26T11:57:30.000Z",
+    "up": 5,
+    "down": 0,
+    "myVote": null,
+    "mine": true
+   }
+  ],
+  "total": 4,
+  "page": 1,
+  "pageSize": 20,
+  "me": {
+   "name": "Solar Jetty",
+   "avatar": {
+    "hue": 286,
+    "glyph": 0
+   }
+  }
+ }
+}

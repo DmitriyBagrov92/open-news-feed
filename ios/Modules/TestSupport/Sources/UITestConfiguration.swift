@@ -54,7 +54,8 @@ public struct UITestConfiguration: Sendable {
         values.meridianAPI = server.client
         values.date = .constant(now ?? server.capturedAt.date)
         values.authorIdentity = .inMemory()
-        values.imageLoader = .testValue
+        let photos = fixtures.appendingPathComponent("images")
+        values.imageLoader = FileManager.default.fileExists(atPath: photos.path) ? .files(in: photos) : .testValue
         values.library = .swiftData(inMemory: true)
         values.connectivity = .constant(!offline)
         values.onDeviceTranslation = switch fakeTranslation {
@@ -63,7 +64,11 @@ public struct UITestConfiguration: Sendable {
         default: .unavailable // the real translator is never called from tests
         }
         // the real model is never called from tests either: a fake only when asked for
-        values.languageModel = forceNoAI ? .unavailable : fakeModel.map { LanguageModelClient.fake($0) } ?? .unavailable
+        values.languageModel = switch (forceNoAI, fakeModel) {
+        case (true, _), (false, nil): .unavailable
+        case (false, "showcase"): .showcase(script: fixtures.appendingPathComponent("ai.json"))
+        case let (false, mode?): .fake(mode)
+        }
         if let pollInterval { values.polling = PollingConfiguration(interval: pollInterval, resumeDelay: .milliseconds(300)) }
 
         // Preferences persist in their own suite so a test can relaunch and find them; every other
@@ -73,5 +78,16 @@ public struct UITestConfiguration: Sendable {
         let client = PreferencesClient.userDefaults(defaults)
         if let seedPreferences { client.save(seedPreferences) }
         values.preferences = client
+    }
+}
+
+extension ImageLoader {
+    /// The App Store newsroom's photographs: an image URL's file name, read from `directory`
+    /// (Tests/Newsroom/images, fetched by `scripts/newsroom.mjs --images`).
+    static func files(in directory: URL) -> ImageLoader {
+        ImageLoader { url, maxPixelSize in
+            guard let data = try? Data(contentsOf: directory.appendingPathComponent(url.lastPathComponent)) else { return nil }
+            return ImagePipeline.decode(data, maxPixelSize: maxPixelSize)
+        }
     }
 }

@@ -1,0 +1,19 @@
+{
+ "capturedAt": "2026-09-26T12:00:00.000Z",
+ "commit": "newsroom",
+ "authors": {
+  "amber": "1f0e5a2c-6b7d-4e8f-9a0b-1c2d3e4f5a6b"
+ },
+ "files": [
+  "article-story-a",
+  "article-story-b",
+  "article-story-c-paywall",
+  "battles",
+  "comment-created",
+  "comments-me",
+  "news-all",
+  "news-all-de",
+  "news-new-stories",
+  "sources"
+ ]
+}

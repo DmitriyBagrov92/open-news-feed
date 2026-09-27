@@ -1,0 +1,76 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/news?since=2026-09-26T11%3A56%3A00.000Z&pageSize=100"
+ },
+ "status": 200,
+ "body": {
+  "articles": [
+   {
+    "id": "34845ed014a1",
+    "title": "Breaking: Storm Idris makes landfall near Portwell",
+    "description": "Gusts of 88 mph were recorded at the harbour wall.",
+    "url": "https://oakmere-chronicle.example/fixture/breaking-storm-idris-makes-landfall-near-portwell",
+    "image": null,
+    "source": {
+     "id": "oakmere",
+     "name": "Oakmere Chronicle",
+     "homepage": "https://oakmere-chronicle.example",
+     "country": "GB"
+    },
+    "category": "world",
+    "publishedAt": "2026-09-26T12:02:15.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "39281b7f2e43",
+    "title": "Breaking: Tessary Energy shares jump 9% at the open",
+    "description": "Investors cheered the Sandbar Wind Farm’s early start.",
+    "url": "https://ledgerline.example/fixture/breaking-tessary-energy-shares-jump-9-at-the-open",
+    "image": null,
+    "source": {
+     "id": "ledgerline",
+     "name": "Ledgerline Markets",
+     "homepage": "https://ledgerline.example",
+     "country": "US"
+    },
+    "category": "business",
+    "publishedAt": "2026-09-26T12:02:15.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   },
+   {
+    "id": "174aeb848d03",
+    "title": "Breaking: Castlemere Athletic sell out their cup final allocation",
+    "description": "All 32,000 tickets went in under an hour.",
+    "url": "https://tallyboard.example/fixture/breaking-castlemere-athletic-sell-out-their-cup-final-alloca",
+    "image": null,
+    "source": {
+     "id": "tallyboard",
+     "name": "Tallyboard Sport",
+     "homepage": "https://tallyboard.example",
+     "country": "GB"
+    },
+    "category": "sports",
+    "publishedAt": "2026-09-26T12:02:15.000Z",
+    "language": "en",
+    "commentCount": 0,
+    "up": 0,
+    "down": 0,
+    "myVote": null
+   }
+  ],
+  "total": 3,
+  "page": 1,
+  "pageSize": 100,
+  "updatedAt": "2026-09-26T12:00:00.000Z",
+  "latestId": "34845ed014a1"
+ }
+}

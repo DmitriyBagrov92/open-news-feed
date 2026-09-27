@@ -1,0 +1,213 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/sources"
+ },
+ "status": 200,
+ "body": {
+  "sources": [
+   {
+    "id": "oakmere",
+    "name": "Oakmere Chronicle",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://oakmere-chronicle.example",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center"
+   },
+   {
+    "id": "ferrow",
+    "name": "The Ferrow Gazette",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://ferrow-gazette.example",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "left"
+   },
+   {
+    "id": "brindle",
+    "name": "Brindle Wire",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://brindlewire.example",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "center"
+   },
+   {
+    "id": "quai-neuf",
+    "name": "Quai Neuf",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://quaineuf.example",
+    "country": "FR",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "wattle-bay",
+    "name": "Wattle Bay News",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://wattlebay.example",
+    "country": "AU",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "minato",
+    "name": "Minato Ledger",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://minatoledger.example",
+    "country": "JP",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "nyota",
+    "name": "Nyota Daily",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://nyotadaily.example",
+    "country": "KE",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "pacific-lantern",
+    "name": "Pacific Lantern",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://pacificlantern.example",
+    "country": "SG",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "lindenblatt",
+    "name": "Lindenblatt",
+    "category": "world",
+    "type": "rss",
+    "homepage": "https://lindenblatt.example",
+    "country": "DE",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "bytewell",
+    "name": "Bytewell",
+    "category": "technology",
+    "type": "rss",
+    "homepage": "https://bytewell.example",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "fieldline",
+    "name": "Fieldline Science",
+    "category": "science",
+    "type": "rss",
+    "homepage": "https://fieldline.example",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "ledgerline",
+    "name": "Ledgerline Markets",
+    "category": "business",
+    "type": "rss",
+    "homepage": "https://ledgerline.example",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "tallyboard",
+    "name": "Tallyboard Sport",
+    "category": "sports",
+    "type": "rss",
+    "homepage": "https://tallyboard.example",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "velvet-aisle",
+    "name": "The Velvet Aisle",
+    "category": "culture",
+    "type": "rss",
+    "homepage": "https://velvetaisle.example",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "remedy-desk",
+    "name": "Remedy Desk",
+    "category": "health",
+    "type": "rss",
+    "homepage": "https://remedydesk.example",
+    "country": "GB",
+    "enabled": true,
+    "requiresKey": false
+   },
+   {
+    "id": "quillon",
+    "name": "The Quillon Report",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://quillon.example",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "left",
+    "battle": true
+   },
+   {
+    "id": "calloway",
+    "name": "Calloway Post",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://callowaypost.example",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "right",
+    "battle": true
+   },
+   {
+    "id": "ambervale",
+    "name": "Ambervale Courier",
+    "category": "battle",
+    "type": "rss",
+    "homepage": "https://ambervale.example",
+    "country": "US",
+    "enabled": true,
+    "requiresKey": false,
+    "lean": "right",
+    "battle": true
+   }
+  ],
+  "categories": [
+   "world",
+   "business",
+   "technology",
+   "science",
+   "sports",
+   "culture",
+   "health"
+  ],
+  "languages": [
+   "en",
+   "de"
+  ]
+ }
+}

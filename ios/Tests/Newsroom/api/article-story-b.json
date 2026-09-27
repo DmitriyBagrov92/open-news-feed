@@ -1,0 +1,49 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/article?url=https%3A%2F%2Fferrow-gazette.example%2Ffixture%2Fstory-b"
+ },
+ "status": 200,
+ "body": {
+  "title": "Portwell votes tonight on the Congestion Charge",
+  "byline": null,
+  "text": "Portwell’s councillors meet at 7pm to decide whether drivers entering the harbour district should pay a £6 daily Congestion Charge from next April.\n\nSupporters say the fee would raise about £14 million a year — enough to build a tram line between the station and the ferry terminal and to cut bus fares by a third.\n\nTraders on the high street have collected 8,000 signatures against the plan, warning that shoppers will drive to out-of-town retail parks instead.\n\nThe vote is expected to be close: of 48 councillors, 23 have said they will back the charge and 21 oppose it.",
+  "blocks": [
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Portwell’s councillors meet at 7pm to decide whether drivers entering the harbour district should pay a £6 daily Congestion Charge from next April."
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Supporters say the fee would raise about £14 million a year — enough to build a tram line between the station and the ferry terminal and to cut bus fares by a third."
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Traders on the high street have collected 8,000 signatures against the plan, warning that shoppers will drive to out-of-town retail parks instead."
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "The vote is expected to be close: of 48 councillors, 23 have said they will back the charge and 21 oppose it."
+     }
+    ]
+   }
+  ],
+  "excerpt": "Portwell’s councillors meet at 7pm to decide whether drivers entering the harbour district should pay a £6 daily Congestion Charge from next April.",
+  "image": null,
+  "siteName": "ferrow-gazette.example"
+ }
+}

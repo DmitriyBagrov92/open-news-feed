@@ -1,0 +1,107 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/article?url=https%3A%2F%2Foakmere-chronicle.example%2Ffixture%2Fstory-a"
+ },
+ "status": 200,
+ "body": {
+  "title": "Storm Idris strengthens as it nears the Atlantic coast",
+  "byline": null,
+  "text": "Forecasters expect Storm Idris to make landfall late on Thursday, bringing gusts of up to 90 miles an hour and a storm surge that could reach two metres along the southern coast. Ferry operators have suspended every crossing, and schools in three counties will close at noon.\n\nThe national weather service raised its warning to amber on Wednesday morning, saying the system had strengthened faster than its models predicted. In Portwell, tonight’s council vote will go ahead as planned, officials said.\n\nWhat to expect overnight\n\nWinds peaking between midnight and 3am\n\nCoastal roads closed from 8pm\n\nPower cuts likely in exposed villages\n\n“This is the strongest system we have tracked this autumn,” the service’s duty forecaster said.\n\nResidents in low-lying areas have been advised to move cars to higher ground and to keep torches and water within reach. Emergency services said sandbags are available at three depots, and that volunteers will staff a helpline through the night.\n\nAfter the storm\n\nClean-up crews are on standby, with the first damage assessments expected by Friday afternoon. The council will publish a list of closed routes every two hours.",
+  "blocks": [
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Forecasters expect Storm Idris to make landfall late on Thursday, bringing gusts of up to 90 miles an hour and a storm surge that could reach two metres along the southern coast. Ferry operators have suspended every crossing, and schools in three counties will close at noon."
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "The national weather service raised its warning to amber on Wednesday morning, saying the system had strengthened faster than its models predicted. In Portwell, "
+     },
+     {
+      "text": "tonight’s council vote",
+      "href": "https://ferrow-gazette.example/fixture/story-b"
+     },
+     {
+      "text": " will go ahead as planned, officials said."
+     }
+    ]
+   },
+   {
+    "type": "h2",
+    "runs": [
+     {
+      "text": "What to expect overnight"
+     }
+    ]
+   },
+   {
+    "type": "ul",
+    "items": [
+     [
+      {
+       "text": "Winds peaking between midnight and 3am"
+      }
+     ],
+     [
+      {
+       "text": "Coastal roads closed from 8pm"
+      }
+     ],
+     [
+      {
+       "text": "Power cuts likely in exposed villages"
+      }
+     ]
+    ]
+   },
+   {
+    "type": "quote",
+    "runs": [
+     {
+      "text": "“This is the strongest system we have tracked this autumn,” the service’s duty forecaster said."
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Residents in low-lying areas have been advised to move cars to higher ground and to keep torches and water within reach. Emergency services said "
+     },
+     {
+      "text": "sandbags",
+      "b": true
+     },
+     {
+      "text": " are available at three depots, and that volunteers will staff a helpline through the night."
+     }
+    ]
+   },
+   {
+    "type": "h3",
+    "runs": [
+     {
+      "text": "After the storm"
+     }
+    ]
+   },
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Clean-up crews are on standby, with the first damage assessments expected by Friday afternoon. The council will publish a list of closed routes every two hours."
+     }
+    ]
+   }
+  ],
+  "excerpt": "Forecasters expect Storm Idris to make landfall late on Thursday, bringing gusts of up to 90 miles an hour and a storm surge that could reach two metres along the southern coast. Ferry operators have suspended every crossing, and schools in three counties will close at noon.",
+  "image": null,
+  "siteName": "oakmere-chronicle.example"
+ }
+}

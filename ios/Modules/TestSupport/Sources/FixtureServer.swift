@@ -60,7 +60,7 @@ public final class FixtureServer: @unchecked Sendable {
         if let storyA = english.first(where: { $0.url.absoluteString.hasSuffix("/fixture/story-a") }) {
             state.update { state in
                 state.comments[storyA.id] = thread
-                state.votes[storyA.id] = Reactions(comments: thread.count, up: 0, down: 0, myVote: nil)
+                state.votes[storyA.id] = Reactions(comments: thread.count, up: storyA.reactions?.up ?? 0, down: storyA.reactions?.down ?? 0, myVote: nil)
             }
         }
     }
@@ -190,8 +190,12 @@ public final class FixtureServer: @unchecked Sendable {
                 }
             },
             reactions: { [self] ids in
+                // the counts the feed was served with (the fixtures' zeros, the newsroom's seeded
+                // ones) unless this session voted or commented
                 let overlay = state.value.votes
-                return Dictionary(uniqueKeysWithValues: ids.map { ($0, overlay[$0] ?? .zero) })
+                return Dictionary(uniqueKeysWithValues: ids.map { id in
+                    (id, overlay[id] ?? english.first { $0.id == id }?.reactions ?? .zero)
+                })
             },
             translate: { texts, target, _ in
                 TranslateResponse(translations: texts.map { "[\(target)] \($0)" }, provider: "mymemory")

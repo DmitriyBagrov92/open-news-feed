@@ -29,3 +29,55 @@ public extension LanguageModelClient {
         )
     }
 }
+
+public extension LanguageModelClient {
+    /// The App Store newsroom's Apple Intelligence (FAKE_MODEL=showcase): answers scripted in
+    /// Tests/Newsroom/ai.json (scripts/newsroom.mjs) so the brief, the key points and Ahead read
+    /// like the real model's in the marketing screenshots. The first `respond` entry whose `match`
+    /// occurs in the instructions or the prompt answers; anything unscripted is refused, and the
+    /// ladders fall back as they would. A forecast's `basis` names text of the prompt's numbered
+    /// story lines.
+    static func showcase(script url: URL) -> LanguageModelClient {
+        struct Script: Decodable, Sendable {
+            struct Answer: Decodable, Sendable {
+                let match: String
+                let answer: String
+            }
+
+            struct Draft: Decodable, Sendable {
+                let headline: String
+                let why: String
+                let timeframe: String
+                let confidence: String
+                let basis: [String]
+            }
+
+            let respond: [Answer]
+            let forecast: [Draft]
+        }
+        guard let data = try? Data(contentsOf: url), let script = try? JSONDecoder().decode(Script.self, from: data) else {
+            fatalError("FAKE_MODEL=showcase: no script at \(url.path) — run ios/scripts/newsroom.mjs")
+        }
+        return LanguageModelClient(
+            availability: { .available },
+            languages: { ["en", "de", "es", "fr", "it", "ja", "pt", "zh"] },
+            respond: { instructions, prompt in
+                try await Task.sleep(for: .milliseconds(500))
+                let text = instructions + "\n" + prompt
+                guard let entry = script.respond.first(where: { text.contains($0.match) }) else { throw LanguageModelError.refused }
+                return entry.answer
+            },
+            forecast: { _, _, _, prompt in
+                try await Task.sleep(for: .milliseconds(900))
+                let lines = prompt.split(separator: "\n").map(String.init)
+                return script.forecast.map { draft in
+                    let basis = draft.basis.compactMap { needle in
+                        lines.first { $0.localizedCaseInsensitiveContains(needle) }.flatMap { Int($0.prefix { $0.isNumber }) }
+                    }
+                    return ForecastDraft(headline: draft.headline, why: draft.why, timeframe: draft.timeframe,
+                                         confidence: draft.confidence, basis: basis)
+                }
+            }
+        )
+    }
+}

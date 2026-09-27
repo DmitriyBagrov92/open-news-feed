@@ -1,0 +1,25 @@
+{
+ "request": {
+  "method": "GET",
+  "path": "/api/article?url=https%3A%2F%2Fbrindlewire.example%2Ffixture%2Fstory-c"
+ },
+ "status": 200,
+ "body": {
+  "title": "Central bank",
+  "byline": null,
+  "text": "Subscribe to read this story.",
+  "blocks": [
+   {
+    "type": "p",
+    "runs": [
+     {
+      "text": "Subscribe to read this story."
+     }
+    ]
+   }
+  ],
+  "excerpt": "Subscribe to read this story.",
+  "image": null,
+  "siteName": "brindlewire.example"
+ }
+}
