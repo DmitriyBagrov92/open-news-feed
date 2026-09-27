@@ -51,7 +51,7 @@ xcrun simctl install "$UDID" build/DerivedData/Build/Products/Debug-iphonesimula
 if [ "$LIVE" = 1 ]; then
   xcrun simctl launch --terminate-running-process "$UDID" info.meridi.app >/dev/null
 else
-  env SIMCTL_CHILD_FIXTURES_DIR="$IOS/Tests/Fixtures" SIMCTL_CHILD_APPEARANCE="$APPEARANCE" "${EXTRA[@]}" \
+  env SIMCTL_CHILD_FIXTURES_DIR="$IOS/Tests/Fixtures" SIMCTL_CHILD_APPEARANCE="$APPEARANCE" ${EXTRA[@]+"${EXTRA[@]}"} \
     xcrun simctl launch --terminate-running-process "$UDID" info.meridi.app -UITestMode >/dev/null
 fi
 sleep "$WAIT"

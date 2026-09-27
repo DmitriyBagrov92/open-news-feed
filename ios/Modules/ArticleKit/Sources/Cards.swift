@@ -401,6 +401,10 @@ struct CardFooter: View {
                 Label("\(reactions.comments)", systemImage: "bubble.left")
                     .labelStyle(CompactLabel())
                     .captionVoice(tint)
+                    .frame(minWidth: 30, minHeight: 30) // the counters' footprint (the card is tappable)
+                    .contentShape(Rectangle())
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityAddTraits(.isStaticText)
                     .accessibilityLabel(L10n.t("card.comments", ["n": String(reactions.comments)]))
             }
             Spacer(minLength: 8)

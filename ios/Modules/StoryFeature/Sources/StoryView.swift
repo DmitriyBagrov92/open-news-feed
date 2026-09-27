@@ -522,11 +522,24 @@ struct StoryBody: View {
     private var meta: some View {
         let provenance = article.source.provenance.resolved(sourceID: article.source.id, registry: registry)
         let rest = [RelativeTime.absTime(article.publishedAt), NewsCategory.label(for: article.category)].filter { !$0.isEmpty }.joined(separator: " · ")
-        return HStack(spacing: 6) {
-            FlagView(provenance, size: 15)
-            Text(article.source.name).captionVoice(.primary).lineLimit(1)
-            if !rest.isEmpty {
-                Text(rest).captionVoice(.secondary).lineLimit(1)
+        // one line while it fits; with large text the date moves under the outlet instead of
+        // both being cut short
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 6) {
+                FlagView(provenance, size: 15)
+                Text(article.source.name).captionVoice(.primary).fixedSize()
+                if !rest.isEmpty {
+                    Text(rest).captionVoice(.secondary).fixedSize()
+                }
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    FlagView(provenance, size: 15)
+                    Text(article.source.name).captionVoice(.primary)
+                }
+                if !rest.isEmpty {
+                    Text(rest).captionVoice(.secondary)
+                }
             }
         }
         .accessibilityElement(children: .combine)
@@ -616,11 +629,13 @@ struct BlockView: View {
                         Text(ordered ? "\(index + 1)." : "•")
                             .monospacedDigit()
                             .foregroundStyle(Tokens.Palette.ai)
+                            .accessibilityHidden(!ordered) // a bullet is layout; a number is content
                         Text(BlockText.attributed(runs))
                             .lineSpacing(6)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .font(.body)
+                    .accessibilityElement(children: .combine)
                 }
             }
         }

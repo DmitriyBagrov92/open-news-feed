@@ -7,6 +7,7 @@ import FeedFeature
 import Networking
 import Observation
 import Persistence
+import SettingsFeature
 import StoryFeature
 import SwiftUI
 import YourFeedFeature
@@ -136,16 +137,23 @@ public struct RootView: View {
     @State private var router: AppRouter
     /// The feed whose Ahead sheet is open.
     @State private var forecastFeed: FeedStore?
+    @State private var showsSettings = false
     private let initialStoryID: String?
     private let opensAhead: Bool
+    private let opensSettings: Bool
+    /// UI tests pin the appearance; otherwise the reader's theme applies.
+    private let appearance: ColorScheme?
 
     /// - Parameter initialRoute: UI tests / screenshots (`LaunchContract.Env.initialRoute`):
-    ///   `today`, `yourFeed`, `saved`, `search`, `story/<articleID>` (a Today story, opened once it
-    ///   loads) or `ahead` (Today's forecast, once the feed is in).
-    public init(initialRoute: String? = nil) {
+    ///   `today`, `yourFeed`, `battle`, `saved`, `search`, `settings`, `story/<articleID>` (a Today
+    ///   story, opened once it loads) or `ahead` (Today's forecast, once the feed is in).
+    /// - Parameter appearance: a pinned appearance (UI tests); otherwise the reader's theme.
+    public init(initialRoute: String? = nil, appearance: ColorScheme? = nil) {
+        self.appearance = appearance
         let parts = (initialRoute ?? "").split(separator: "/", maxSplits: 1).map(String.init)
         let tab: AppTab = switch parts.first {
         case "yourFeed": .yourFeed
+        case "settings": .today
         case "battle": .battle
         case "saved": .saved
         case "search": .search
@@ -154,6 +162,7 @@ public struct RootView: View {
         _router = State(initialValue: AppRouter(tab: tab))
         initialStoryID = parts.first == "story" && parts.count == 2 ? parts[1] : nil
         opensAhead = parts.first == "ahead"
+        opensSettings = parts.first == "settings"
     }
 
     public var body: some View {
@@ -168,6 +177,9 @@ public struct RootView: View {
                                     regular: horizontalSizeClass == .regular)
                     }
                 }
+            }
+            .sheet(isPresented: $showsSettings) {
+                SettingsView(forecastAvailable: model.forecast.isSupported)
             }
             .modifier(TimeAccessory(
                 // the chip belongs to the feed: not over a pushed story's dock
@@ -196,6 +208,8 @@ public struct RootView: View {
             }
             .task { await openInitialStory() }
             .task { await openInitialForecast() }
+            .task { if opensSettings { showsSettings = true } }
+            .preferredColorScheme(appearance ?? preferences.value.theme.colorScheme)
             .onAppear {
                 guard initialStoryID == nil else { return }
                 if let saved = AppTab(storageKey: preferences.value.lastTab), router.tab == .today { router.tab = saved }
@@ -340,11 +354,12 @@ public struct RootView: View {
         ToolbarItemGroup(placement: .topBarTrailing) {
             LanguageMenu()
             Button {
-                // P10: Settings
+                showsSettings = true
             } label: {
                 Image(systemName: "gearshape")
             }
             .accessibilityLabel(L10n.t("settings.open"))
+            .accessibilityIdentifier("settings-open")
         }
     }
 }
@@ -403,5 +418,16 @@ struct Placeholder: View {
         ContentUnavailableView(L10n.t("ios.soon.title"), systemImage: symbol, description: Text(text))
             .navigationTitle(title)
             .background { AmbientBackground(hues: AmbientPalette.defaults) }
+    }
+}
+
+extension Preferences.Theme {
+    /// Auto follows the system.
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .auto: nil
+        case .light: .light
+        case .dark: .dark
+        }
     }
 }

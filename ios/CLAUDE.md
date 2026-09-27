@@ -14,6 +14,8 @@ scripts/test.sh integration
 scripts/test.sh contract          # boots server.js (FEED_FIXTURE) on :4174, live client against it
 scripts/test.sh acceptance        # XCUITest on iPhone 17 + iPad Pro 13" (M5)
 scripts/test.sh                   # all of the above (the gate)
+TEST_RUNNER_PERF=1 xcodebuild test … -only-testing:MeridianUITests/PerformanceTests
+                                  # launch + scrolling metrics (outside the gate; see "Performance")
 ```
 
 Toolchain: the default **Xcode 26.2** (Swift 6.2) building for the iOS 26.4 simulator runtime.
@@ -106,7 +108,9 @@ the brief `brief` (+ `brief-toggle`); Your Feed: `onboard`, `onboard-card`, `onb
 `onboard-{like,skip,empty}`, `tune-more`; Battle: `battle-legend`, `battle-brief`, `battle-<battleID>` (a lane
 section), `battle-arena`, `battle-lanes`, `battle-empty`, tiles `bubble-<articleID>`; Ahead: `forecast-open` (✦), the sheet `forecast`,
 `forecast-{close,regenerate,status,badge,note,retry}`, cards `fcard` (+ `fcard-title`, `fcard-why`,
-`fcard-basis-<articleID>`);
+`fcard-basis-<articleID>`); Settings (`INITIAL_ROUTE=settings`): `settings`, `settings-{open,close,theme,
+card-size,language,auto-translate,forecast,sources,blocked,rules,reset-identity,privacy,support,comments-footer}`,
+sources `source-<sourceID>` (a switch), `unblock-<authorKey>`, `blocked-none`; `world-clocks`;
 toasts `toast` (match the text on the label — `toast(app, text)`). Pages of the pager coexist: scope
 queries to `story-<id>`.
 Suites derive from `AcceptanceTestCase` (`@MainActor`: XCUI APIs are main-actor isolated).
@@ -123,6 +127,31 @@ built in a `git worktree` under the same two-simulator load. A forever-repeating
 on after nobody can see it (the brief's `ThinkingBars` under a pushed story) keeps XCUITest from ever
 seeing the app idle: every query waits it out and a phone-only test fails at ~45 s (found in P7) —
 end thinking states that wait off screen.
+
+## Accessibility
+
+`AccessibilityAuditTests` runs Xcode's audit on Today, the story, Settings, Your Feed and Battle on both
+devices for hit regions, element descriptions and traits (the 26.2 SDK has no `.action` /
+`.parentChild`). Contrast, Dynamic Type, clipped text and text detection are not run: the sampler reads
+Liquid Glass and photographs as the colour behind the text (it flags black text on white glass),
+measures tracked small caps as clipped, reads decorative tile initials and the feed dimmed behind an
+iPad form sheet as unreachable text — and those screenshot checks time out with two simulators busy.
+An audit that times out is retried once (a loaded machine, not a finding). Check
+large text by eye: `xcrun simctl ui <udid> content_size accessibility-extra-extra-large`, then
+`scripts/shot.sh`. Rules learned: a static element inside a tappable card needs a 30 pt footprint
+*and* `contentShape` (the frame alone does not grow its accessibility frame); a lone bullet glyph is
+`accessibilityHidden`; rows of small labels wrap (`FlowLayout`) or stack (`ViewThatFits`) instead of
+truncating; XCUITest still lists SwiftUI views marked `accessibilityHidden(true)` — do not use the
+tree to judge VoiceOver.
+
+## Performance
+
+`PerformanceTests` (UI tests, skipped unless `TEST_RUNNER_PERF=1`) measure launch-to-responsive and the
+feed / Battle scrolling. Baseline (2026-09-27, Debug build, UI-test mode, iPhone 17 + iPad Pro 13"
+simulators side by side): launch 7.4 s / 9.4 s — dominated by dyld and debug overhead; `sample` on
+the launch shows the app's own main-thread work at ~0.2 s (fixture decoding 120 ms, test mode
+only; the SwiftData container 40 ms). The simulator reports scroll duration but no hitch ratio:
+hitches and Release launch are measured on a device (P11 checklist, Instruments).
 
 ## Verified API notes (iOS 26.4 SDK)
 

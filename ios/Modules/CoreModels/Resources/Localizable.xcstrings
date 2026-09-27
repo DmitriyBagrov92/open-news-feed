@@ -1629,6 +1629,116 @@
         }
       }
     },
+    "ios.settings.forecastHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs entirely on this device with Apple Intelligence. Shown only where it is available."
+          }
+        }
+      }
+    },
+    "ios.settings.forecastToggle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show ✦ Ahead in the feed"
+          }
+        }
+      }
+    },
+    "ios.settings.languageHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One setting for everything: stories are translated into it (on this device when it can, otherwise a free server fallback), and the AI brief and forecast answer in it. The interface is in English for now."
+          }
+        }
+      }
+    },
+    "ios.settings.languagePicker" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        }
+      }
+    },
+    "ios.settings.resetConfirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset identity"
+          }
+        }
+      }
+    },
+    "ios.settings.resetDone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have a new anonymous identity: your next comment uses a new nickname."
+          }
+        }
+      }
+    },
+    "ios.settings.resetHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A new random ID gives you a new nickname. Comments you already posted stay, but this device no longer counts them as yours."
+          }
+        }
+      }
+    },
+    "ios.settings.resetIdentity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset anonymous identity"
+          }
+        }
+      }
+    },
+    "ios.settings.sourcesLink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sources"
+          }
+        }
+      }
+    },
+    "ios.settings.version" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        }
+      }
+    },
     "ios.sidebar.categories" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -138,13 +138,13 @@ struct BattleBriefCard: View {
                         }
                         Text(row.stanceText)
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(row.stance == .critical ? Tokens.Palette.leanRight
-                                             : row.stance == .supportive ? Color.green : .secondary)
+                            .foregroundStyle(row.stance == .critical ? Tokens.Palette.critical
+                                             : row.stance == .supportive ? Tokens.Palette.supportive : .primary.opacity(0.72))
                         if let evidence = row.evidence {
                             Text("\u{201C}" + evidence + "\u{201D}")
                                 .font(.footnote.italic())
-                                .foregroundStyle(.secondary)
-                                .lineLimit(3)
+                                .foregroundStyle(.primary.opacity(0.72))
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
@@ -168,6 +168,8 @@ struct BubbleTile: View {
     let article: Article
     let side: CGFloat
     var isFighting = false
+    /// The title follows Dynamic Type up to a third larger: the tile is a poster of fixed size.
+    @ScaledMetric(relativeTo: .headline) private var typeScale: CGFloat = 1
     @Environment(ArticleStateStore.self) private var states
     @Environment(\.clockNow) private var now
     @Environment(\.colorScheme) private var scheme
@@ -179,13 +181,15 @@ struct BubbleTile: View {
         let shape = RoundedRectangle(cornerRadius: side * 0.22, style: .continuous)
         let provenance = article.source.provenance.resolved(sourceID: article.source.id, registry: registry)
         let country = CountryNames.name(for: provenance)
-        let font = max(11, min(20, side * 0.075))
+        let font = max(11, min(20, side * 0.075)) * min(typeScale, 1.35)
         ZStack(alignment: .bottomLeading) {
             RemoteImage(url: article.image, minimumPixelWidth: 200) {
                 SourceTile(sourceID: article.source.id, sourceName: article.source.name, letterScale: 0.42, letterOffset: -0.2)
             }
-            LinearGradient(stops: [.init(color: .black.opacity(0.05), location: 0.2),
-                                   .init(color: .black.opacity(0.78), location: 1)],
+            // dark enough under the small print (source, time) whatever the photo
+            LinearGradient(stops: [.init(color: .black.opacity(0.0), location: 0.1),
+                                   .init(color: .black.opacity(0.55), location: 0.45),
+                                   .init(color: .black.opacity(0.86), location: 1)],
                            startPoint: .top, endPoint: .bottom)
             VStack(alignment: .leading, spacing: side * 0.03) {
                 HStack(spacing: 4) {
@@ -210,7 +214,8 @@ struct BubbleTile: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isFighting)
         .contentShape(shape)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel([article.source.name, country].filter { !$0.isEmpty }.joined(separator: ", ") + " \u{2014} " + title)
+        .accessibilityLabel([article.source.name, country].filter { !$0.isEmpty }.joined(separator: ", ") + " \u{2014} " + title
+                            + " \u{2014} " + RelativeTime.relTime(article.publishedAt, now: now))
         .accessibilityAddTraits(.isButton)
         .accessibilityIdentifier("bubble-\(article.id)")
         .task(id: states.translationEpoch) { states.autoTranslate(article) }
@@ -262,7 +267,7 @@ struct BattleLaneSection: View {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(spacing: 6) {
                             Capsule().fill(lean.tint).frame(width: 18, height: 4)
-                            Text(lean.label + " \u{b7} " + String(articles.count)).captionVoice(.secondary)
+                            Text(lean.label + " \u{b7} " + String(articles.count)).captionVoice(Color.primary.opacity(0.72))
                         }
                         .padding(.horizontal, Tokens.Space.page)
                         ScrollView(.horizontal) {

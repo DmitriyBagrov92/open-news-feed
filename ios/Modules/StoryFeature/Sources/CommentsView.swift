@@ -126,8 +126,11 @@ struct RulesLink: View {
                 .font(.caption2)
                 .underline()
                 .foregroundStyle(.secondary)
+                .frame(minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .padding(.vertical, -14) // a 44 pt target, the line's own height in the layout
         .accessibilityIdentifier("comments-rules")
     }
 }

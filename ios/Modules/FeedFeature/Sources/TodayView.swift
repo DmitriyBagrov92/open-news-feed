@@ -274,8 +274,10 @@ struct WorldClocks: View {
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
-            HStack(spacing: 16) {
-                ForEach(Self.zones.filter { !compact || $0.priority }, id: \.zone) { zone in
+            let shown = Self.zones.filter { !compact || $0.priority }
+            // the clocks wrap onto more lines with large text rather than shrinking to "U… 1…"
+            FlowLayout(spacing: 16, lineSpacing: 6) {
+                ForEach(shown, id: \.zone) { zone in
                     HStack(spacing: 5) {
                         if zone.zone == "UTC" {
                             Circle().fill(Tokens.Palette.live).frame(width: 5, height: 5)
@@ -284,12 +286,18 @@ struct WorldClocks: View {
                         Text(Self.time(context.date, zone: zone.zone, seconds: zone.zone == "UTC"))
                             .captionVoice(.primary)
                     }
+                    .fixedSize()
                 }
-                Spacer(minLength: 0)
             }
-            .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // one element that reads the clocks ("UTC 19:39 · Tokyo 04:39 …"): text on screen that
+            // assistive technology cannot reach is itself an accessibility failure
+            .accessibilityElement(children: .ignore)
+            .accessibilityAddTraits(.isStaticText)
+            .accessibilityLabel(shown.map { L10n.t($0.key) + " " + Self.time(context.date, zone: $0.zone, seconds: false) }
+                .joined(separator: ", "))
+            .accessibilityIdentifier("world-clocks")
         }
-        .accessibilityHidden(true)
     }
 
     static func time(_ date: Date, zone: String, seconds: Bool) -> String {
@@ -314,7 +322,17 @@ struct BriefCard: View {
     var failed = false
     let refresh: () -> Void
     @State private var expanded = false
+    @Environment(\.dynamicTypeSize) private var typeSize
     private static let folded = 3
+
+    @ViewBuilder
+    private var status: some View {
+        if !isThinking {
+            Badge(TextKit.providerLabel(provider), tint: Tokens.Palette.ai).fixedSize()
+        } else {
+            Text(L10n.t("brief.working")).captionVoice(.secondary)
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -325,11 +343,7 @@ struct BriefCard: View {
                     .frame(width: 26, height: 26)
                     .background(Tokens.Palette.ai.gradient, in: Circle())
                 Text(L10n.t("brief.label")).captionVoice(.primary)
-                if !isThinking {
-                    Badge(TextKit.providerLabel(provider), tint: Tokens.Palette.ai)
-                } else {
-                    Text(L10n.t("brief.working")).captionVoice(.secondary)
-                }
+                if !typeSize.isAccessibilitySize { status }
                 Spacer()
                 Button(action: refresh) {
                     Image(systemName: "arrow.clockwise").font(.system(size: 13, weight: .semibold))
@@ -339,6 +353,8 @@ struct BriefCard: View {
                 .buttonBorderShape(.circle)
                 .accessibilityLabel(L10n.t("brief.rerun"))
             }
+            // with large text the provider gets a line of its own (it wrapped mid-word beside BRIEF)
+            if typeSize.isAccessibilitySize { status }
             if isThinking {
                 ThinkingBars()
             } else if lines.isEmpty {
@@ -368,9 +384,11 @@ struct BriefCard: View {
                             }
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(Tokens.Palette.ai)
-                            .padding(.top, 2)
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .padding(.vertical, -10) // the target grows, the layout does not
                         .accessibilityIdentifier("brief-toggle")
                     }
                 }

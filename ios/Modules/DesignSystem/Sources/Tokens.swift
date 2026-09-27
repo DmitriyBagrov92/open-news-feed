@@ -30,6 +30,10 @@ public enum Tokens {
         public static let leanLeft = Color.indigo
         public static let leanRight = Color.red
         public static let leanCenter = Color.secondary
+        /// Stance words as text: 4.5:1 on light and dark glass (the lean reds and greens are for
+        /// rings and dots).
+        public static let critical = Color(light: Color(red: 0.78, green: 0.16, blue: 0.16), dark: Color(red: 1, green: 0.45, blue: 0.43))
+        public static let supportive = Color(light: Color(red: 0.08, green: 0.50, blue: 0.24), dark: Color(red: 0.29, green: 0.87, blue: 0.50))
         /// `--photo-fade`: the bottom of a poster, where the white title sits.
         public static func photoFade(_ scheme: ColorScheme) -> Color { .black.opacity(scheme == .dark ? 0.8 : 0.74) }
         /// `--on-photo-2`.
@@ -68,6 +72,11 @@ public struct CardSizing: Sendable, Hashable {
 }
 
 public extension Color {
+    /// One colour per appearance (text that must keep its contrast in both).
+    init(light: Color, dark: Color) {
+        self.init(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light) })
+    }
+
     /// CSS `hsl()` — hue in degrees, saturation and lightness in 0…1.
     init(hue degrees: Double, saturation: Double, lightness: Double, opacity: Double = 1) {
         let value = lightness + saturation * min(lightness, 1 - lightness)

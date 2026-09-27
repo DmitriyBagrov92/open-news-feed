@@ -155,6 +155,7 @@ targets:
   SettingsFeature:
     templates: [Module]
     dependencies:
+      - target: ArticleKit
       - target: CoreModels
       - target: DesignSystem
       - target: Intelligence

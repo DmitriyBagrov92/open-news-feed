@@ -45,8 +45,7 @@ struct MeridianApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(initialRoute: initialRoute)
-                .preferredColorScheme(colorScheme)
+            RootView(initialRoute: initialRoute, appearance: colorScheme)
                 .modifier(TranslationHost(broker: translations))
         }
     }
