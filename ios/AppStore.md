@@ -6,14 +6,16 @@ the review notes, the privacy answers, and the risks worth settling first. Engin
 
 ## Owner checklist (cannot be done from the repo)
 
-1. **Apple Developer Program** membership (paid). `project.yml` signs with team `TAFK8PJV44` (taken
-   from `ai_predictor`); if the paid membership is another team, pass `DEVELOPMENT_TEAM=…` to
-   `scripts/archive.sh` or change `project.yml`.
+1. **Apple Developer Program** membership (paid) — done: team `WK25TS8CXF` (`project.yml`).
 2. **App Store Connect app record**: bundle id `info.meridi.app`, primary language English, SKU of
    your choice. The name "Meridian" may be taken — have a fallback ("Meridian News", "Meridian —
    the world by freshness").
-3. **App Store Connect API key** (Users and Access › Integrations, role App Manager): key id, issuer
-   id and the `.p8` file — `scripts/archive.sh` signs and uploads with it.
+3. **App Store Connect API key** — done: a team key with the Admin role (xcodebuild's cloud-managed
+   distribution certificate is refused to lower roles). On the release Mac the `.p8` lives in
+   `~/.appstoreconnect/private_keys/` and its ids in `~/.appstoreconnect/meridian.env`
+   (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_PATH`, `DEVELOPMENT_TEAM`) — never in the repo.
+   `scripts/archive.sh` signs and uploads with it; `node scripts/asc.mjs [METHOD] [route]` calls the
+   App Store Connect API (reads freely, writes only with `--write`).
 4. **Server**: deploy the moderation work (P4, commit 1562c5f and later) to meridi.info and set on
    Railway `ADMIN_TOKEN` (a long secret), `SUPPORT_EMAIL`, optionally `MODERATION_WEBHOOK_URL`. The
    app's comments, report, block and delete rely on those endpoints; App Review will try them.
@@ -21,8 +23,9 @@ the review notes, the privacy answers, and the risks worth settling first. Engin
    community rules promise.
 6. **Decisions** below: full-text reading, age rating, screenshots.
 
-Then: `ASC_KEY_ID=… ASC_ISSUER_ID=… ASC_KEY_PATH=… ios/scripts/archive.sh` —
-the build lands in TestFlight after processing (internal testing needs no review).
+Then: `ios/scripts/archive.sh` — the build lands in TestFlight after processing (internal testing
+needs no review). The API cannot create an app record: that one is made in App Store Connect (Apps ›
++ › New App: iOS, bundle id `info.meridi.app` once registered, SKU `meridian-ios`).
 
 ## Decisions to take before review
 

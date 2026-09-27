@@ -1,16 +1,25 @@
 #!/bin/bash
 # Archive Meridian for the App Store and upload it to App Store Connect (then TestFlight).
 #
-#   ASC_KEY_ID=… ASC_ISSUER_ID=… ASC_KEY_PATH=~/keys/AuthKey_….p8 [DEVELOPMENT_TEAM=…] \
-#     ios/scripts/archive.sh [--no-upload]
+#   ios/scripts/archive.sh [--no-upload]
 #
-# ASC_*: an App Store Connect API key (Users and Access › Integrations › App Store Connect API, role
-# App Manager); DEVELOPMENT_TEAM: the 10-character team id (default: project.yml's). Signing is
-# automatic — Xcode creates the distribution certificate and profile through the key. The build
-# number is the commit count, so every upload is new. --no-upload stops at an .ipa in
-# ios/build/export (to inspect or upload by hand).
+# ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH: an App Store Connect team API key (Users and Access ›
+# Integrations › App Store Connect API, role Admin — xcodebuild's cloud-managed distribution
+# certificate is refused to a lower role); DEVELOPMENT_TEAM: the 10-character team id (default:
+# project.yml's). Each comes from the environment or from ~/.appstoreconnect/meridian.env (KEY=VALUE
+# lines, outside the repo). Signing is automatic — Xcode gets the certificates and profiles through
+# the key. The build number is the commit count, so every upload is new. --no-upload stops at an
+# .ipa in ios/build/export (to inspect or upload by hand).
 set -euo pipefail
 IOS="$(cd "$(dirname "$0")/.." && pwd)"
+ENV_FILE="$HOME/.appstoreconnect/meridian.env"
+if [ -f "$ENV_FILE" ]; then # the environment wins over the file
+  while IFS='=' read -r name value; do
+    case "$name" in ASC_KEY_ID|ASC_ISSUER_ID|ASC_KEY_PATH|DEVELOPMENT_TEAM) ;; *) continue ;; esac
+    value="${value%\"}"; value="${value#\"}"; value="${value/#\~/$HOME}"; value="${value//\$HOME/$HOME}"
+    [ -z "${!name:-}" ] && export "$name=$value"
+  done < "$ENV_FILE"
+fi
 : "${ASC_KEY_ID:?the App Store Connect API key id}"
 : "${ASC_ISSUER_ID:?the API key issuer id}"
 : "${ASC_KEY_PATH:?the path of the .p8 key}"

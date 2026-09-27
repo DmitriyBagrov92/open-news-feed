@@ -23,7 +23,7 @@ settings:
     SWIFT_VERSION: "6.0"             # Swift 6 language mode (toolchain: Xcode 26.4.1 / Swift 6.3)
     SWIFT_STRICT_CONCURRENCY: complete
     CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: TAFK8PJV44     # the user's team (same as ~/pet_projects/ai_predictor)
+    DEVELOPMENT_TEAM: WK25TS8CXF     # the App Store team (the paid developer account)
     TARGETED_DEVICE_FAMILY: "1,2"    # iPhone + iPad
     SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
     SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"

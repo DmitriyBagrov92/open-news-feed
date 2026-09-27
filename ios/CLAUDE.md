@@ -19,6 +19,7 @@ TEST_RUNNER_PERF=1 xcodebuild test … -only-testing:MeridianUITests/Performance
 scripts/screenshots.sh            # review captures on the fixtures (ios/screenshots/, git-ignored)
 scripts/appstore-screenshots.sh   # App Store captures on the newsroom (ios/screenshots/appstore/)
 scripts/archive.sh                # Release archive + App Store Connect upload (ios/AppStore.md)
+node scripts/asc.mjs GET /v1/apps # the App Store Connect API (key from ~/.appstoreconnect/meridian.env)
 ```
 
 Toolchain: the default **Xcode 26.2** (Swift 6.2) building for the iOS 26.4 simulator runtime.
